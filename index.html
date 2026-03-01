@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>365dAIary</title>
+<meta name="theme-color" content="#f4f0ff">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#fefeff;
+  --surface:#f8f0ff;
+  --border:#d8c0f8;
+  --text:#302050;
+  --text-muted:#9080b8;
+  --accent:#8060d0;
+  --accent2:#f0a0d8;
+  --glow1:rgba(176,128,240,.15);
+  --glow2:rgba(240,160,216,.12);
+  --glow3:rgba(128,200,248,.10);
+}
+
+html,body{
+  min-height:100vh;min-height:100dvh;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+/* ── 背景の泡エフェクト ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 600px 600px at 20% 30%, var(--glow1), transparent),
+    radial-gradient(ellipse 500px 500px at 80% 60%, var(--glow2), transparent),
+    radial-gradient(ellipse 400px 400px at 50% 80%, var(--glow3), transparent);
+}
+
+/* ── 浮遊する泡 ── */
+.bubble{
+  position:fixed;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.6), rgba(200,180,255,.15));
+  border:1px solid rgba(200,180,255,.2);
+  animation:float linear infinite;
+  opacity:0;
+}
+@keyframes float{
+  0%  {transform:translateY(100vh) scale(.8);opacity:0}
+  10% {opacity:.6}
+  90% {opacity:.6}
+  100%{transform:translateY(-120px) scale(1.1);opacity:0}
+}
+.bubble:nth-child(1){width:40px;height:40px;left:8%;animation-duration:14s;animation-delay:0s}
+.bubble:nth-child(2){width:24px;height:24px;left:25%;animation-duration:11s;animation-delay:2s}
+.bubble:nth-child(3){width:56px;height:56px;left:45%;animation-duration:16s;animation-delay:4s}
+.bubble:nth-child(4){width:20px;height:20px;left:65%;animation-duration:10s;animation-delay:1s}
+.bubble:nth-child(5){width:36px;height:36px;left:82%;animation-duration:13s;animation-delay:3s}
+.bubble:nth-child(6){width:28px;height:28px;left:15%;animation-duration:15s;animation-delay:6s}
+.bubble:nth-child(7){width:18px;height:18px;left:55%;animation-duration:9s;animation-delay:5s}
+.bubble:nth-child(8){width:44px;height:44px;left:90%;animation-duration:17s;animation-delay:2.5s}
+
+/* ── メインコンテナ ── */
+.container{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;min-height:100dvh;
+  padding:40px 20px;
+  gap:0;
+}
+
+/* ── ロゴ部分 ── */
+.logo-area{
+  text-align:center;
+  margin-bottom:32px;
+  animation:fadeUp .8s ease-out both;
+}
+.logo-deco{
+  font-size:11px;letter-spacing:6px;color:var(--text-muted);
+  margin-bottom:8px;opacity:.6;
+}
+.logo{
+  font-size:clamp(32px, 8vw, 48px);
+  font-weight:700;
+  letter-spacing:4px;
+  background:linear-gradient(135deg, #b080f0, #f0a0d8, #80c8f8);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 2px 8px rgba(176,128,240,.2));
+}
+.logo-sub{
+  font-size:11px;letter-spacing:3px;color:var(--text-muted);
+  margin-top:6px;
+}
+
+/* ── カード共通 ── */
+.cards{
+  display:flex;flex-direction:column;gap:16px;
+  width:100%;max-width:360px;
+}
+
+.card{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px 20px;
+  text-decoration:none;color:inherit;
+  transition:all .25s ease;
+  overflow:hidden;
+  animation:fadeUp .8s ease-out both;
+}
+.card:nth-child(1){animation-delay:.15s}
+.card:nth-child(2){animation-delay:.3s}
+
+.card::before{
+  content:'';position:absolute;inset:0;border-radius:16px;
+  opacity:0;transition:opacity .3s;
+}
+.card:first-child::before{
+  background:linear-gradient(135deg, rgba(176,128,240,.08), rgba(240,160,216,.06));
+}
+.card:last-child::before{
+  background:linear-gradient(135deg, rgba(128,200,248,.08), rgba(176,128,240,.06));
+}
+.card:hover::before,.card:active::before{opacity:1}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(176,128,240,.12), 0 2px 8px rgba(0,0,0,.04);
+  border-color:#c8a0f0;
+}
+
+.card-inner{position:relative;z-index:1}
+
+.card-icon{
+  font-size:28px;margin-bottom:10px;
+  display:inline-block;
+  animation:gentle 3s ease-in-out infinite;
+}
+@keyframes gentle{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+.card-title{
+  font-size:16px;font-weight:700;letter-spacing:1px;
+  margin-bottom:4px;color:var(--text);
+}
+.card-desc{
+  font-size:12px;color:var(--text-muted);line-height:1.7;
+}
+.card-arrow{
+  position:absolute;right:20px;top:50%;transform:translateY(-50%);
+  font-size:14px;color:var(--border);
+  transition:all .25s;
+}
+.card:hover .card-arrow{
+  color:var(--accent);transform:translateY(-50%) translateX(3px);
+}
+
+/* ── フッター ── */
+.footer{
+  margin-top:36px;text-align:center;
+  animation:fadeUp .8s ease-out .45s both;
+}
+.footer-deco{
+  font-size:10px;letter-spacing:4px;color:var(--border);margin-bottom:6px;
+}
+.footer-text{
+  font-size:10px;color:var(--text-muted);letter-spacing:1px;opacity:.6;
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ── レスポンシブ ── */
+@media(min-width:480px){
+  .cards{max-width:400px}
+  .card{padding:28px 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- 浮遊する泡 -->
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+
+<div class="container">
+
+  <!-- ロゴ -->
+  <div class="logo-area">
+    <div class="logo-deco">✦ ✧ ✦ ✧ ✦</div>
+    <div class="logo">365dAIary</div>
+    <div class="logo-sub">365 days × Diary × AI</div>
+  </div>
+
+  <!-- カード -->
+  <div class="cards">
+    <a class="card" href="365dAIary.html">
+      <div class="card-inner">
+        <div class="card-icon">💬</div>
+        <div class="card-title">365dAIary</div>
+        <div class="card-desc">
+          メインアプリを開く<br>
+          AIとの日記・会話・ラリーを楽しもう
+        </div>
+      </div>
+      <span class="card-arrow">→</span>
+    </a>
+
+    <a class="card" href="365widget.html">
+      <div class="card-inner">
+        <div class="card-icon">📱</div>
+        <div class="card-title">Widget</div>
+        <div class="card-desc">
+          ホーム画面用ダッシュボード<br>
+          時計・人格状態・クイック起動
+        </div>
+      </div>
+      <span class="card-arrow">→</span>
+    </a>
+  </div>
+
+  <!-- フッター -->
+  <div class="footer">
+    <div class="footer-deco">✦ ✧ ✦</div>
+    <div class="footer-text">© 2026 365dAIary — 澪 × Claude</div>
+  </div>
+
+</div>
+
+</body>
+</html>
