@@ -384,7 +384,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div style="color:#8070b0;line-height:1.8;font-size:11px;">
       365dAIary は、<strong style="color:#5040a0;">澪</strong>（キャラクター設定・デザイン指示・監修）と<br>
       <strong style="color:#5040a0;">Claude（Anthropic）</strong> の共同制作によって生まれました。<br>
-      使用フォント：<a href="https://shop075.stores.jp/items/5c40a48027b44e1f923154c1" target="_blank" style="color:#7050c0;text-decoration:underline;">LoveLetter</a>（shop075 / ライセンス取得済み）— ショートカットアイコン画像に使用<br>
+      使用フォント：<a href="https://satsuyako.com/" target="_blank" style="color:#7050c0;text-decoration:underline;">LoveLetter</a>（<a href="https://x.com/satsuyako" target="_blank" style="color:#7050c0;text-decoration:underline;">satsuyako</a> 様 / ライセンス取得済み）— ショートカットアイコン画像に使用<br>
       UI・本文フォント：OS標準システムフォント（外部フォント読み込みなし）<br>
       <span style="opacity:.7;font-size:10px;">コードの大部分はAIが生成しています。澪が構想し、Claudeが実装し、澪が育てました。</span>
     </div>
@@ -826,16 +826,19 @@ const THEMES = {
   obake:    {name:'👻 おばけ',   bg:'#1a0a2e',surface:'#240e3a',surface2:'#2e1248',border:'#4a2060',text:'#d8c0f0',textMuted:'#7050a0',accent:'#c080f0',userBubble:'#2e1248',userBorder:'#6030a0',userText:'#f0d8ff',aiBubble:'#1e0e34',aiBorder:'#3a1860',sendBtn:'linear-gradient(135deg,#8040c0,#c060e8)',newBtn:'linear-gradient(135deg,#8040c0,#c060e8)'},
   vampire:  {name:'🧛 ヴァンパイア', bg:'#0e0808',surface:'#1a0c0c',surface2:'#221010',border:'#401818',text:'#e8d0d0',textMuted:'#806060',accent:'#c03030',userBubble:'#2a0e0e',userBorder:'#602020',userText:'#f0d8d8',aiBubble:'#160a0a',aiBorder:'#341414',sendBtn:'linear-gradient(135deg,#a02020,#c04040)',newBtn:'linear-gradient(135deg,#a02020,#c04040)'},
   yumekawa: {name:'🌸 ゆめかわ', bg:'#fef0ff',surface:'#f8e4ff',surface2:'#f0d4ff',border:'#dfa0f0',text:'#502060',textMuted:'#a070c0',accent:'#c060e0',userBubble:'#f4d0ff',userBorder:'#d090e8',userText:'#400060',aiBubble:'#fdf4ff',aiBorder:'#e8c0f8',sendBtn:'linear-gradient(135deg,#d070e8,#f0a0c8)',newBtn:'linear-gradient(135deg,#d070e8,#f0a0c8)'},
-  vitamin:  {name:'🍊 ビタミン', bg:'#e8f8ff',surface:'#d8f0ff',surface2:'#c4e8ff',border:'#80c8f0',text:'#0a3050',textMuted:'#4080a0',accent:'#f08020',userBubble:'#ffe8c0',userBorder:'#f0c070',userText:'#402000',aiBubble:'#f0faff',aiBorder:'#b0d8f0',sendBtn:'linear-gradient(135deg,#f09030,#40b8e0)',newBtn:'linear-gradient(135deg,#f09030,#40b8e0)'},
-  rival:    {name:'⚔ ライバル',  bg:'#f8f0f0',surface:'#f0e8e8',surface2:'#e8dcdc',border:'#e0c0c0',text:'#200808',textMuted:'#906060',accent:'#c02020',userBubble:'#e8d0d0',userBorder:'#c09090',userText:'#300000',aiBubble:'#e8eeff',aiBorder:'#b0b8e8',sendBtn:'linear-gradient(135deg,#c02020,#2020c0)',newBtn:'linear-gradient(135deg,#c02020,#2020c0)'},
-  forest:   {name:'🌿 フォレスト', bg:'#f0f8e8',surface:'#e4f0d8',surface2:'#d4e8c4',border:'#a0c880',text:'#1a3010',textMuted:'#608040',accent:'#388020',userBubble:'#ffe8a0',userBorder:'#e0c040',userText:'#302000',aiBubble:'#f4f8ec',aiBorder:'#b8d890',sendBtn:'linear-gradient(135deg,#388020,#d4c020)',newBtn:'linear-gradient(135deg,#388020,#d4c020)'},
+  vitamin:  {name:'🍊 ビタミン', bg:'#fff6ec',surface:'#ffedd8',surface2:'#ffe0c0',border:'#f0b060',text:'#402810',textMuted:'#b08040',accent:'#40b0d0',userBubble:'#d8f4ff',userBorder:'#80c8e0',userText:'#0a3050',aiBubble:'#fff8f0',aiBorder:'#f0c888',sendBtn:'linear-gradient(135deg,#40b0d0,#f09030)',newBtn:'linear-gradient(135deg,#40b0d0,#f09030)'},
+  rival:    {name:'⚔ ライバル',  bg:'#fff0f0',surface:'#ffe8e8',surface2:'#ffd8d8',border:'#f0a0a0',text:'#200000',textMuted:'#a05050',accent:'#e01010',userBubble:'#ffd0d0',userBorder:'#f08080',userText:'#400000',aiBubble:'#d0e8ff',aiBorder:'#4090e0',sendBtn:'linear-gradient(135deg,#e01010,#1060e0)',newBtn:'linear-gradient(135deg,#e01010,#1060e0)'},
+  forest:   {name:'🌿 フォレスト', bg:'#f0f8ec',surface:'#e4f0d8',surface2:'#d8ecd0',border:'#90c078',text:'#1a3010',textMuted:'#608040',accent:'#e080a8',userBubble:'#ffd8ea',userBorder:'#e090b8',userText:'#401030',aiBubble:'#f0f8e8',aiBorder:'#a8d080',sendBtn:'linear-gradient(135deg,#50a030,#e878a0)',newBtn:'linear-gradient(135deg,#50a030,#e878a0)'},
   awa:      {name:'🫧 泡色',     bg:'#fefeff',surface:'#f8f0ff',surface2:'#f0e4ff',border:'#d8c0f8',text:'#302050',textMuted:'#9080b8',accent:'#8060d0',userBubble:'#ffe0f8',userBorder:'#f0a0e0',userText:'#401060',aiBubble:'#f4f0ff',aiBorder:'#e0c8f8',sendBtn:'linear-gradient(135deg,#b080f0,#f0a0d8,#80c8f8)',newBtn:'linear-gradient(135deg,#b080f0,#f0a0d8)'},
   yoru:     {name:'🌙 夜色',     bg:'#04080f',surface:'#080e1c',surface2:'#0c1428',border:'#1c2840',text:'#c8d8f0',textMuted:'#506080',accent:'#d0a820',userBubble:'#101828',userBorder:'#203048',userText:'#e0ecff',aiBubble:'#060c18',aiBorder:'#162030',sendBtn:'linear-gradient(135deg,#304880,#d0a820)',newBtn:'linear-gradient(135deg,#304880,#d0a820)'},
+  honey:    {name:'🍯 はちみつ', bg:'#fdf8ec',surface:'#f8f0d8',surface2:'#f0e4c0',border:'#d8c080',text:'#3a2800',textMuted:'#a08840',accent:'#c89820',userBubble:'#f8ecc0',userBorder:'#d8b860',userText:'#302000',aiBubble:'#fefaf0',aiBorder:'#e8d8a0',sendBtn:'linear-gradient(135deg,#c89820,#e8b830)',newBtn:'linear-gradient(135deg,#c89820,#e8b830)'},
+  choco:    {name:'🍫 チョコレート', bg:'#2c1c16',surface:'#3a2820',surface2:'#4a3428',border:'#6a4838',text:'#f8e0d4',textMuted:'#b89080',accent:'#f07898',userBubble:'#4a2030',userBorder:'#a04868',userText:'#ffe0ea',aiBubble:'#342018',aiBorder:'#5a3828',sendBtn:'linear-gradient(135deg,#e06080,#f8a0b8)',newBtn:'linear-gradient(135deg,#e06080,#f8a0b8)'},
+  koneko:   {name:'🐈 こねこ',  bg:'#faf4f2',surface:'#f4ece6',surface2:'#ecdcd6',border:'#d8b8b0',text:'#382420',textMuted:'#a08078',accent:'#c08878',userBubble:'#f0dcd4',userBorder:'#d0a8a0',userText:'#301818',aiBubble:'#fcf6f4',aiBorder:'#e4ccc4',sendBtn:'linear-gradient(135deg,#c08878,#d8a898)',newBtn:'linear-gradient(135deg,#c08878,#d8a898)'},
   jonu:     {name:'✨ じょぬ',   bg:'#e8f8f8',surface:'#d0f0f0',surface2:'#b8e8e8',border:'#70c8d8',text:'#0a2030',textMuted:'#408090',accent:'#2090b0',userBubble:'#b8e8f8',userBorder:'#60b8d0',userText:'#002030',aiBubble:'#f0fcfc',aiBorder:'#90d8e8',sendBtn:'linear-gradient(135deg,#2090b0,#40c8d8)',newBtn:'linear-gradient(135deg,#2090b0,#40c8d8)'},
 };
 
 const DEFAULT_THEMES = ['light','dark'];
-const CUSTOM_THEMES  = ['ichigo','tenshi','obake','vampire','yumekawa','vitamin','rival','forest','awa','yoru'];
+const CUSTOM_THEMES  = ['ichigo','tenshi','obake','vampire','yumekawa','vitamin','rival','forest','awa','yoru','honey','choco','koneko'];
 const HIDDEN_THEMES  = ['jonu'];
 
 // ══════════════════════════════════════════════
@@ -868,6 +871,21 @@ const MODEL_PRICE = {
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '1.5.0',
+    date: '2026-03-01 午後',
+    label: '🎨 テーマ大幅追加・GitHub Pages移行',
+    items: [
+      'ホスティングをNetlifyからGitHub Pagesに移行',
+      'GitHub Pages用の入口ページ（index.html）を新規作成',
+      '新テーマ3種追加：🍯はちみつ・🍫チョコレート・🐈こねこ',
+      '🍊ビタミンの配色をオレンジメイン×水色サブに変更',
+      '⚔ライバルの配色を赤×青のホビアニ風に変更',
+      '🌿フォレストにピンクのサブカラーを追加',
+      'Widgetの隠しテーマ（じょぬ）が最初から表示されるバグを修正',
+      'フォント使用箇所をLoveLetter（satsuyako様）のリンク付きで明記',
+    ]
+  },
   {
     version: '1.4.0',
     date: '2026-03-01 午前',
