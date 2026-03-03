@@ -1,528 +1,232 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title id="page-title">まよいのお部屋</title>
-  <meta name="description" id="page-desc" content="">
-  <link rel="stylesheet" href="style.css">
-  <script src="config.js"></script>
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>365dAIary</title>
+<meta name="theme-color" content="#f4f0ff">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&display=swap');
 
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#fefeff;
+  --surface:#f8f0ff;
+  --border:#d8c0f8;
+  --text:#302050;
+  --text-muted:#9080b8;
+  --accent:#8060d0;
+  --accent2:#f0a0d8;
+  --glow1:rgba(176,128,240,.15);
+  --glow2:rgba(240,160,216,.12);
+  --glow3:rgba(128,200,248,.10);
+}
+
+html,body{
+  min-height:100vh;min-height:100dvh;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 600px 600px at 20% 30%, var(--glow1), transparent),
+    radial-gradient(ellipse 500px 500px at 80% 60%, var(--glow2), transparent),
+    radial-gradient(ellipse 400px 400px at 50% 80%, var(--glow3), transparent);
+}
+
+.bubble{
+  position:fixed;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.6), rgba(200,180,255,.15));
+  border:1px solid rgba(200,180,255,.2);
+  animation:float linear infinite;
+  opacity:0;
+}
+@keyframes float{
+  0%  {transform:translateY(100vh) scale(.8);opacity:0}
+  10% {opacity:.6}
+  90% {opacity:.6}
+  100%{transform:translateY(-120px) scale(1.1);opacity:0}
+}
+.bubble:nth-child(1){width:40px;height:40px;left:8%;animation-duration:14s;animation-delay:0s}
+.bubble:nth-child(2){width:24px;height:24px;left:25%;animation-duration:11s;animation-delay:2s}
+.bubble:nth-child(3){width:56px;height:56px;left:45%;animation-duration:16s;animation-delay:4s}
+.bubble:nth-child(4){width:20px;height:20px;left:65%;animation-duration:10s;animation-delay:1s}
+.bubble:nth-child(5){width:36px;height:36px;left:82%;animation-duration:13s;animation-delay:3s}
+.bubble:nth-child(6){width:28px;height:28px;left:15%;animation-duration:15s;animation-delay:6s}
+.bubble:nth-child(7){width:18px;height:18px;left:55%;animation-duration:9s;animation-delay:5s}
+.bubble:nth-child(8){width:44px;height:44px;left:90%;animation-duration:17s;animation-delay:2.5s}
+
+.container{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;min-height:100dvh;
+  padding:40px 20px;
+  gap:0;
+}
+
+.logo-area{
+  text-align:center;
+  margin-bottom:32px;
+  animation:fadeUp .8s ease-out both;
+}
+.logo-deco{
+  font-size:11px;letter-spacing:6px;color:var(--text-muted);
+  margin-bottom:8px;opacity:.6;
+}
+.logo{
+  font-size:clamp(32px, 8vw, 48px);
+  font-weight:700;
+  letter-spacing:4px;
+  background:linear-gradient(135deg, #b080f0, #f0a0d8, #80c8f8);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 2px 8px rgba(176,128,240,.2));
+}
+.logo-sub{
+  font-size:11px;letter-spacing:3px;color:var(--text-muted);
+  margin-top:6px;
+}
+
+.cards{
+  display:flex;flex-direction:column;gap:16px;
+  width:100%;max-width:360px;
+}
+
+.card{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px 20px;
+  text-decoration:none;color:inherit;
+  transition:all .25s ease;
+  overflow:hidden;
+  animation:fadeUp .8s ease-out both;
+}
+.card:nth-child(1){animation-delay:.15s}
+.card:nth-child(2){animation-delay:.3s}
+
+.card::before{
+  content:'';position:absolute;inset:0;border-radius:16px;
+  opacity:0;transition:opacity .3s;
+}
+.card:first-child::before{
+  background:linear-gradient(135deg, rgba(176,128,240,.08), rgba(240,160,216,.06));
+}
+.card:last-child::before{
+  background:linear-gradient(135deg, rgba(128,200,248,.08), rgba(176,128,240,.06));
+}
+.card:hover::before,.card:active::before{opacity:1}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(176,128,240,.12), 0 2px 8px rgba(0,0,0,.04);
+  border-color:#c8a0f0;
+}
+
+.card-inner{position:relative;z-index:1}
+
+.card-icon{
+  font-size:28px;margin-bottom:10px;
+  display:inline-block;
+  animation:gentle 3s ease-in-out infinite;
+}
+@keyframes gentle{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+.card-title{
+  font-size:16px;font-weight:700;letter-spacing:1px;
+  margin-bottom:4px;color:var(--text);
+}
+.card-desc{
+  font-size:12px;color:var(--text-muted);line-height:1.7;
+}
+.card-arrow{
+  position:absolute;right:20px;top:50%;transform:translateY(-50%);
+  font-size:14px;color:var(--border);
+  transition:all .25s;
+}
+.card:hover .card-arrow{
+  color:var(--accent);transform:translateY(-50%) translateX(3px);
+}
+
+.footer{
+  margin-top:36px;text-align:center;
+  animation:fadeUp .8s ease-out .45s both;
+}
+.footer-deco{
+  font-size:10px;letter-spacing:4px;color:var(--border);margin-bottom:6px;
+}
+.footer-text{
+  font-size:10px;color:var(--text-muted);letter-spacing:1px;opacity:.6;
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+@media(min-width:480px){
+  .cards{max-width:400px}
+  .card{padding:28px 24px}
+}
+</style>
+</head>
 <body>
 
-  <!-- Sparkle particles -->
-  <div class="sparks" id="sparks"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
 
-  <!-- Vaporwave side panels -->
-  <div class="vapor-panel vapor-left" id="vp-left">
-    <div class="vp-scan"></div>
-    <div class="vp-rec" style="right:14px;">● REC</div>
-    <div class="vp-label" style="top:18%;left:50%;transform:translateX(-50%);animation-delay:0s;">まよい</div>
-    <div class="vp-label cyan" style="top:30%;left:50%;transform:translateX(-50%);animation-delay:1.2s;">MAYOI</div>
-    <div class="vp-label pink sm" style="top:42%;left:50%;transform:translateX(-50%);animation-delay:0.6s;">1 8 9 8
-    </div>
-    <div class="vp-label sm" style="top:56%;left:50%;transform:translateX(-50%);animation-delay:2s;">ナース天使</div>
-    <div class="vp-star" style="top:12%;left:20%;--dur:2.8s;animation-delay:.5s;">✦</div>
-    <div class="vp-star" style="top:22%;left:75%;--dur:3.5s;animation-delay:1s;">✧</div>
-    <div class="vp-star" style="top:38%;left:15%;--dur:4s;animation-delay:0s;">★</div>
-    <div class="vp-star" style="top:48%;left:80%;--dur:2.5s;animation-delay:1.8s;">✦</div>
-    <div class="vp-star" style="top:65%;left:40%;--dur:3.2s;animation-delay:0.3s;">♡</div>
-    <div class="vp-horizon"></div>
-    <div class="vp-grid"></div>
-  </div>
-  <div class="vapor-panel vapor-right" id="vp-right">
-    <div class="vp-scan"></div>
-    <div class="vp-rec" style="left:14px;">● REC</div>
-    <div class="vp-label" style="top:18%;left:50%;transform:translateX(-50%);animation-delay:0.8s;">天使</div>
-    <div class="vp-label cyan" style="top:30%;left:50%;transform:translateX(-50%);animation-delay:0s;">NURSE</div>
-    <div class="vp-label pink sm" style="top:42%;left:50%;transform:translateX(-50%);animation-delay:1.5s;">V T U B E R
-    </div>
-    <div class="vp-label sm" style="top:56%;left:50%;transform:translateX(-50%);animation-delay:0.4s;">お手当中...</div>
-    <div class="vp-star" style="top:10%;left:60%;--dur:3s;animation-delay:0.7s;">✝</div>
-    <div class="vp-star" style="top:25%;left:20%;--dur:2.6s;animation-delay:1.4s;">✦</div>
-    <div class="vp-star" style="top:40%;left:75%;--dur:3.8s;animation-delay:0.2s;">✧</div>
-    <div class="vp-star" style="top:52%;left:30%;--dur:2.9s;animation-delay:2.1s;">♡</div>
-    <div class="vp-star" style="top:68%;left:65%;--dur:3.4s;animation-delay:0.9s;">★</div>
-    <div class="vp-horizon"></div>
-    <div class="vp-grid"></div>
+<div class="container">
+
+  <div class="logo-area">
+    <div class="logo-deco">✦ ✧ ✦ ✧ ✦</div>
+    <div class="logo">365dAIary</div>
+    <div class="logo-sub">365 days × Diary × AI</div>
   </div>
 
-  <div class="page">
-
-    <!-- Marquee -->
-    <div class="marquee-bar">
-      <span id="marquee-text"></span>
-    </div>
-
-    <!-- ═══ HERO ═══ -->
-    <div class="win" id="sec-top">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>💊</span><span id="win-title-hero">まよいのお部屋.exe</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
+  <div class="cards">
+    <a class="card" href="365dAIary.html">
+      <div class="card-inner">
+        <div class="card-icon">💬</div>
+        <div class="card-title">365dAIary</div>
+        <div class="card-desc">
+          メインアプリを開く<br>
+          AIとの日記・会話・ラリーを楽しもう
         </div>
       </div>
-      <div class="win-body" style="text-align:center;padding:14px 18px;">
-        <div class="deco">✝ ♡ ✦ ✧ ♡ ✝ ♡ ✦ ✧ ♡ ✝</div>
-        <div class="hero-name" id="hero-name"></div>
-        <div class="hero-ruby" id="hero-ruby"></div>
-        <div class="hero-sub" id="hero-sub"></div>
-        <div class="hero-catch" id="hero-catch" style="margin-top:12px;"></div>
-        <div class="deco" style="margin-top:12px;">✦ ✧ ✦ ✧ ✦ ✧ ✦</div>
-        <div style="font-size:11px;color:var(--txt-l);font-family:var(--dot);margin-top:6px;" id="hero-links-hint">
+      <span class="card-arrow">→</span>
+    </a>
+
+    <a class="card" href="365widget.html">
+      <div class="card-inner">
+        <div class="card-icon">📱</div>
+        <div class="card-title">Widget</div>
+        <div class="card-desc">
+          ホーム画面用ダッシュボード<br>
+          時計・人格状態・クイック起動
         </div>
       </div>
-      <div class="win-status"><span id="status-bar">ステータス: 活動中</span><span id="last-updated"></span></div>
-    </div>
+      <span class="card-arrow">→</span>
+    </a>
+  </div>
 
-    <!-- ═══ NAV ═══ -->
-    <div class="win">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>🗂️</span><span>Navigation</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body" style="padding:8px;">
-        <div class="nav-wrap">
-          <a class="nb" href="#sec-ann">📌 お知らせ</a>
-          <a class="nb" href="#sec-profile">💊 プロフィール</a>
-          <a class="nb" href="#sec-schedule">📅 スケジュール</a>
-          <a class="nb" href="#sec-content">📡 コンテンツ</a>
-          <a class="nb" href="#sec-goods">🛍 グッズ</a>
-          <a class="nb" href="#sec-wish">🎁 ほしい物</a>
-          <a class="nb" href="#sec-links">🔗 リンク</a>
-          <a class="nb" href="#sec-fanart">🎨 ファンアート</a>
-          <a class="nb" href="#sec-contact">✉ お問い合わせ</a>
-        </div>
-      </div>
-    </div>
+  <div class="footer">
+    <div class="footer-deco">✦ ✧ ✦</div>
+    <div class="footer-text">© 2026 365dAIary — 澪 × Claude</div>
+  </div>
 
-    <!-- ═══ ANNOUNCEMENTS ═══ -->
-    <div class="win" id="sec-ann">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>📌</span><span>お知らせ / Announcements</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body" id="ann-list"></div>
-    </div>
+</div>
 
-    <!-- ═══ PROFILE + CARTE (2col) ═══ -->
-    <div class="two-col">
-
-      <!-- Profile -->
-      <div class="win" id="sec-profile">
-        <div class="win-tb">
-          <div class="win-tb-l"><span>💊</span><span>プロフィール</span></div>
-          <div class="win-btns">
-            <div class="win-btn">_</div>
-            <div class="win-btn">□</div>
-            <div class="win-btn">✕</div>
-          </div>
-        </div>
-        <div class="win-menu"><span>表示(V)</span><span>診察申請(A)</span></div>
-        <div class="win-body">
-          <div class="sh">基本情報</div>
-          <div class="inset">
-            <div class="pf-grid" id="pf-grid"></div>
-          </div>
-          <div class="sh" style="margin-top:12px;">ひとこと</div>
-          <div class="inset" style="font-style:italic;color:var(--pu-d);font-size:12px;line-height:1.9;" id="pf-msg">
-          </div>
-        </div>
-      </div>
-
-      <!-- Carte (dark lore) -->
-      <div class="win win-dark" id="sec-carte">
-        <div class="win-tb" style="background:linear-gradient(90deg,#2A0A40,#6A1060);">
-          <div class="win-tb-l"><span>🔒</span><span style="letter-spacing:2px;">秘密のカルテ [CLASSIFIED]</span></div>
-          <div class="win-btns">
-            <div class="win-btn" style="background:#3A1A50;">_</div>
-            <div class="win-btn" style="background:#3A1A50;">□</div>
-            <div class="win-btn" style="background:#3A1A50;">✕</div>
-          </div>
-        </div>
-        <div class="win-body">
-          <div class="carte-header">───── 非公開診療記録 ─────<br>記録番号: HSZ-1898-001<br>分類: [REDACTED]</div>
-          <div class="carte-body">
-            <span class="carte-key">記録日時:</span> 1898.██.██<br>
-            <span class="carte-key">発生地点:</span> バイエルン州 ██████<br>
-            <span class="carte-key">分類:</span> 奇跡の使者 / <span class="carte-redact">CLASSIFIED</span><br>
-            <span class="carte-key">備考:</span> ある大きな製薬会社の研究室より<br>
-            　　"奇跡の薬"として世に送り出された。<br>
-            　　百余年にわたり人々の痛みに<br>
-            　　寄り添い続けている。<br><br>
-            <span class="carte-key">現状:</span> 活動継続中
-          </div>
-          <div class="carte-warn">⚠ この先の記録は診察会員限定公開です ⚠</div>
-          <div style="text-align:center;margin-top:12px;">
-            <a id="member-link" href="member.html" class="nb"
-              style="background:#2A0A40;color:#C080E0;border-color:#6A20A0;font-size:11px;">🔒 会員ページへ</a>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /two-col -->
-
-    <!-- ═══ SCHEDULE ═══ -->
-    <div class="win" id="sec-schedule">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>📅</span><span>配信スケジュール</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body">
-        <div class="inset"
-          style="text-align:center;font-family:var(--dot);font-size:12px;color:var(--txt-l);margin-bottom:12px;">
-          ✦ 不定期配信中 ✦<br>
-          <span style="font-size:11px;">配信情報は Twitter/X にてお知らせします。フォローしてね♡</span>
-        </div>
-        <div id="sch-list"></div>
-      </div>
-      <div class="win-status"><span>📌 最新情報は Twitter/X をチェック！</span></div>
-    </div>
-
-    <!-- ═══ CONTENT ═══ -->
-    <div class="win" id="sec-content">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>📡</span><span>コンテンツ / Contents</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body">
-        <div class="two-col">
-          <div>
-            <div class="sh">TwitCasting</div>
-            <div class="inset" style="text-align:center;font-size:12px;color:var(--txt-l);padding:20px 10px;">
-              📡 配信・アーカイブはこちら<br><br>
-              <a id="tc-link" href="#" class="nb" style="display:inline-block;margin-top:4px;">TwitCasting へ →</a>
-            </div>
-          </div>
-          <div>
-            <div class="sh">YouTube</div>
-            <div class="inset" style="text-align:center;font-size:12px;color:var(--txt-l);padding:20px 10px;"
-              id="yt-box">
-              ▶ チャンネル開設準備中...<br><br>
-              <span class="badge badge-soon" style="font-size:11px;padding:4px 10px;">COMING SOON</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ GOODS ═══ -->
-    <div class="win" id="sec-goods">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>🛍</span><span>グッズ / Goods</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body">
-        <div class="two-col">
-          <div class="goods-card">
-            <div class="goods-title">🛒 Booth</div>
-            <div class="goods-sub" id="booth-msg"></div>
-            <a id="booth-link" href="#" class="nb" style="display:inline-block;">Booth へ →</a>
-          </div>
-          <div class="inset" style="text-align:center;font-size:12px;color:var(--txt-l);padding:20px 10px;">
-            💌 グッズ情報が決まったら<br>Twitter/X でお知らせします♡<br><br>
-            <a id="tw-link-goods" href="#" class="nb" style="display:inline-block;margin-top:4px;">Twitter/X へ →</a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ WISHLIST ═══ -->
-    <div class="win" id="sec-wish">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>🎁</span><span>ほしい物リスト / Wishlist</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body" style="text-align:center;">
-        <div class="inset" style="padding:20px;font-size:12px;color:var(--txt-l);">
-          まよいへの贈り物、いつでも大歓迎です♡<br>
-          喜んでお手当してあげますよ☆<br><br>
-          <a id="wish-link" href="#" class="nb" style="display:inline-block;font-size:13px;padding:8px 20px;"
-            target="_blank" rel="noopener">
-            🎁 Amazon ほしい物リストを見る
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ LINKS ═══ -->
-    <div class="win" id="sec-links">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>🔗</span><span>リンク集 / Links</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body" id="links-list"></div>
-    </div>
-
-    <!-- ═══ FANART ═══ -->
-    <div class="win" id="sec-fanart">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>🎨</span><span>ファンアートについて</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body">
-        <div class="deco" style="font-size:14px;margin-bottom:12px;">♡ ファンアート大歓迎です ♡</div>
-        <div class="two-col">
-          <div>
-            <div class="sh" style="color:#50A850;">✅ OK なこと</div>
-            <ul id="fa-ok" style="list-style:none;font-size:12px;line-height:2.1;padding-left:8px;"></ul>
-          </div>
-          <div>
-            <div class="sh" style="color:#C84040;">❌ NG なこと</div>
-            <ul id="fa-ng" style="list-style:none;font-size:12px;line-height:2.1;padding-left:8px;"></ul>
-          </div>
-        </div>
-        <div class="inset" style="margin-top:12px;text-align:center;font-family:var(--dot);">
-          💌 ファンアートタグ：<br>
-          <span id="fa-tag" style="font-size:16px;color:var(--pu);"></span> でタグ付けしてね♡
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ CONTACT ═══ -->
-    <div class="win" id="sec-contact">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>✉</span><span>お問い合わせ / Contact</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body">
-        <div style="font-size:12px;margin-bottom:12px;line-height:2;">
-          お仕事のご依頼・コラボご提案・その他ご連絡はお気軽にどうぞ♡<br>
-          <span style="font-size:11px;color:var(--txt-l);">まよいへのメッセージもお待ちしています</span>
-        </div>
-        <div class="inset" style="font-family:var(--dot);font-size:12px;line-height:2.5;">
-          🐦 <strong>Twitter/X DM</strong>　→　<a id="ct-tw" href="#" style="color:var(--pu);" target="_blank"
-            rel="noopener"></a><br>
-          📧 <strong>メール</strong>　→　<a id="ct-mail" href="#" style="color:var(--pu);"></a><br>
-          <span style="font-size:11px;color:var(--txt-l);">※ お返事にお時間をいただく場合があります</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ FOOTER ═══ -->
-    <div class="win" style="text-align:center;">
-      <div class="win-tb">
-        <div class="win-tb-l"><span>🔢</span><span>まよいのお部屋 — Footer</span></div>
-        <div class="win-btns">
-          <div class="win-btn">_</div>
-          <div class="win-btn">□</div>
-          <div class="win-btn">✕</div>
-        </div>
-      </div>
-      <div class="win-body">
-        <div class="deco">✝ ♡ ✦ ✧ ♡ ✝</div>
-        <div class="counter-wrap">
-          <div class="counter-lbl">👁 You are visitor No.</div>
-          <div class="counter-num" id="counter">000000</div>
-        </div>
-        <div style="font-family:var(--dot);font-size:10px;color:var(--txt-l);margin:8px 0;">
-          <span id="footer-copy"></span>
-        </div>
-        <div style="font-family:var(--dot);font-size:10px;color:var(--pk);letter-spacing:3px;margin-top:6px;">
-          ✦ Since 2026 ✦
-        </div>
-        <div style="margin-top:14px;">
-          <a href="admin.html" class="nb" style="font-size:10px;opacity:.5;">⚙ 管理パネル</a>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /page -->
-
-  <script>
-    // ─── Merge CONFIG with localStorage overrides ───────────────
-    function mergeDeep(t, s) {
-      const o = Object.assign({}, t);
-      for (const k in s) {
-        if (s[k] && typeof s[k] === 'object' && !Array.isArray(s[k])) o[k] = mergeDeep(t[k] || {}, s[k]);
-        else o[k] = s[k];
-      }
-      return o;
-    }
-    const _ov = JSON.parse(localStorage.getItem('mayoi_admin_ov') || '{}');
-    const C = mergeDeep(CONFIG, _ov);
-
-    // Meta
-    document.title = C.siteName;
-    document.getElementById('page-desc').content = C.siteDesc;
-
-    // Marquee
-    document.getElementById('marquee-text').textContent =
-      `✦ ようこそ ${C.chara.name}まよい Official Homepage へ ✦ ☆ Welcome ☆ ✝ Virtual Nurse Angel ✝ ♡ ${C.chara.catchphrase} ♡ `.repeat(3);
-
-    // Hero
-    document.getElementById('hero-name').textContent = C.chara.name;
-    document.getElementById('hero-ruby').textContent = C.chara.nameRuby;
-    document.getElementById('hero-sub').textContent = C.chara.subtitle;
-    document.getElementById('hero-catch').innerHTML = C.chara.catchphrase;
-    document.getElementById('last-updated').textContent = '最終更新: ' + C.lastUpdated;
-    document.getElementById('hero-links-hint').textContent =
-      '📡 TwitCasting　｜　▶ YouTube（準備中）　｜　🐦 Twitter/X';
-
-    // Profile grid
-    const pfData = [
-      ['名前', C.chara.name + '（まよい）'],
-      ['種族', C.chara.type],
-      ['出身', C.chara.origin],
-      ['性格', C.chara.personality],
-      ['得意', C.chara.specialty],
-      ['活動', C.chara.activity],
-    ];
-    const pfGrid = document.getElementById('pf-grid');
-    pfData.forEach(([l, v]) => {
-      pfGrid.innerHTML += `<div class="pf-row"><span class="pf-lbl">${l}</span><span>${v}</span></div>`;
-    });
-    document.getElementById('pf-msg').innerHTML = C.chara.message.replace(/\n/g, '<br>');
-
-    // Member link
-    document.getElementById('member-link').href = C.hidden.memberFile;
-
-    // Announcements
-    const annEl = document.getElementById('ann-list');
-    C.announcements.forEach(a => {
-      annEl.innerHTML += `<div class="ann"><span class="ann-lbl ${a.type.toLowerCase()}">${a.type}</span><span>${a.text}</span></div>`;
-    });
-
-    // Schedule
-    const schEl = document.getElementById('sch-list');
-    C.schedule.forEach(s => {
-      const cls = s.status === 'soon' ? 'soon' : 'irr';
-      schEl.innerHTML += `<div class="sch-row"><span class="sch-day ${cls}">${s.day}</span><span>${s.text}</span></div>`;
-    });
-
-    // TwitCasting link
-    const tcEl = document.getElementById('tc-link');
-    tcEl.href = C.links.twitcast.url || '#';
-
-    // YouTube box
-    if (C.links.youtube.url) {
-      document.getElementById('yt-box').innerHTML =
-        `<a href="${C.links.youtube.url}" class="nb" style="display:inline-block;" target="_blank" rel="noopener">YouTube へ →</a>`;
-    }
-
-    // Goods / Booth
-    const boothMsg = document.getElementById('booth-msg');
-    const boothLnk = document.getElementById('booth-link');
-    if (C.goods.booth.url) {
-      boothMsg.textContent = C.goods.booth.label;
-      boothLnk.href = C.goods.booth.url;
-      boothLnk.target = '_blank'; boothLnk.rel = 'noopener';
-    } else {
-      boothMsg.textContent = 'Booth ショップ準備中…';
-      boothLnk.textContent = '準備中';
-      boothLnk.style.pointerEvents = 'none'; boothLnk.style.opacity = '0.5';
-    }
-    document.getElementById('tw-link-goods').href = C.links.twitter.url;
-
-    // Wishlist
-    const wishEl = document.getElementById('wish-link');
-    wishEl.href = C.links.wishlist.url;
-    wishEl.textContent = '🎁 ' + C.links.wishlist.label + ' を見る';
-
-    // Links list
-    const lkEl = document.getElementById('links-list');
-    const lkData = [
-      { icon: '🐦', name: 'Twitter / X', sub: C.links.twitter.label, url: C.links.twitter.url },
-      { icon: '📡', name: 'TwitCasting', sub: C.links.twitcast.label, url: C.links.twitcast.url },
-      { icon: '▶', name: 'YouTube', sub: C.links.youtube.label, url: C.links.youtube.url },
-      { icon: '🛒', name: 'Booth', sub: C.links.booth.label, url: C.links.booth.url },
-      { icon: '🎁', name: 'Amazon ほしい物リスト', sub: '', url: C.links.wishlist.url },
-    ];
-    lkData.forEach(l => {
-      const soon = !l.url ? `<span class="badge badge-soon" style="margin-left:auto;">準備中</span>` : '';
-      lkEl.innerHTML += `
-    <a class="lk" href="${l.url || '#'}" ${l.url ? 'target="_blank" rel="noopener"' : ''}
-       style="${!l.url ? 'opacity:.6;pointer-events:none;' : ''}">
-      <span class="lk-icon">${l.icon}</span>
-      <div><div style="font-family:var(--dot);font-size:11px;color:var(--txt-l);">${l.name}</div>
-      <div style="font-size:12px;">${l.sub || (l.url ? l.url : '準備中')}</div></div>
-      ${soon}
-    </a>`;
-    });
-
-    // Fanart
-    const faOk = document.getElementById('fa-ok');
-    const faNg = document.getElementById('fa-ng');
-    C.fanart.ok.forEach(t => { faOk.innerHTML += `<li>✅ ${t}</li>`; });
-    C.fanart.ng.forEach(t => { faNg.innerHTML += `<li>❌ ${t}</li>`; });
-    document.getElementById('fa-tag').textContent = C.fanart.tag;
-
-    // Contact
-    const ctTw = document.getElementById('ct-tw');
-    ctTw.textContent = C.links.twitter.label;
-    ctTw.href = C.links.twitter.url;
-    const ctMail = document.getElementById('ct-mail');
-    ctMail.textContent = C.links.email;
-    ctMail.href = 'mailto:' + C.links.email;
-
-    // Footer
-    document.getElementById('footer-copy').textContent =
-      `© ${new Date().getFullYear()} 麻酔（まよい） All Rights Reserved.`;
-
-    // ─── Visitor counter (localStorage) ─────────────────────────
-    (function () {
-      let n = parseInt(localStorage.getItem('mayoi_visits') || '0') + 1;
-      localStorage.setItem('mayoi_visits', n);
-      document.getElementById('counter').textContent = String(n).padStart(6, '0');
-    })();
-
-    // ─── Sparkle particles ──────────────────────────────────────
-    (function () {
-      const chars = ['✦', '✧', '✝', '♡', '★', '☆', '✿', '⁺'];
-      const container = document.getElementById('sparks');
-      for (let i = 0; i < 28; i++) {
-        const sp = document.createElement('span');
-        sp.className = 'sp';
-        sp.textContent = chars[Math.floor(Math.random() * chars.length)];
-        sp.style.left = Math.random() * 100 + 'vw';
-        sp.style.animationDuration = (6 + Math.random() * 12) + 's';
-        sp.style.animationDelay = (Math.random() * 12) + 's';
-        sp.style.fontSize = (8 + Math.random() * 10) + 'px';
-        sp.style.opacity = (0.2 + Math.random() * 0.6).toFixed(2);
-        container.appendChild(sp);
-      }
-    })();
-  </script>
 </body>
-
 </html>
