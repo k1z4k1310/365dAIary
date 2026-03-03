@@ -39,8 +39,7 @@ button,select,input,textarea{font-family:inherit}
 #send-btn:disabled{opacity:.4;cursor:default}
 
 /* ── Header items ── */
-.hbtn{background:none;border:1px solid;border-radius:4px;min-width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;gap:3px;padding:0 6px}
-.hbtn-lbl{font-size:8px;font-family:monospace;opacity:.6;letter-spacing:.5px}
+.hbtn{background:none;border:1px solid;border-radius:4px;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 #title{font-family:monospace;font-size:11px;letter-spacing:2px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-radius:4px;cursor:pointer;outline:none;border:1px solid;max-width:130px}
 
@@ -529,10 +528,10 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field">
       <span class="wiz-label">AIの名前（表示名）</span>
       <div style="display:flex;gap:8px;align-items:center">
-        <input class="wiz-input" id="wiz-emoji" type="text" placeholder="💬" maxlength="2" style="width:52px;text-align:center;font-size:18px;padding:6px 4px;" oninput="limitEmoji(this)" readonly onclick="openEmojiPicker('wiz-emoji')">
+        <input class="wiz-input" >
         <input class="wiz-input" id="wiz-ai-name" type="text" placeholder="例：アシスタント、先生、相棒" maxlength="20" style="flex:1">
       </div>
-      <span style="font-family:monospace;font-size:10px;opacity:.5">← タップして絵文字を選んでね</span>
+      <span style="font-family:monospace;font-size:10px;opacity:.5">← タップして端末の絵文字キーボードで選んでね</span>
     </div>
     <div class="wiz-field">
       <span class="wiz-label">あなたの呼び名</span>
@@ -541,6 +540,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field">
       <span class="wiz-label">使用するAI（あとで変更可）</span>
       <select class="wiz-input" id="wiz-model">
+        <option value="openai:gpt-4.1">GPT-4.1（OpenAI）</option>
+        <option value="openai:gpt-4.1-mini">GPT-4.1 mini（OpenAI・おすすめ）</option>
+        <option value="openai:gpt-4.1-nano">GPT-4.1 nano（OpenAI・最安）</option>
         <option value="openai:gpt-4o">GPT-4o（OpenAI）</option>
         <option value="openai:gpt-4o-mini">GPT-4o mini（OpenAI）</option>
         <option value="anthropic:claude-sonnet-4-5">Claude Sonnet 4.5（Anthropic）</option>
@@ -576,10 +578,10 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field" style="gap:5px">
       <span class="wiz-label">AIの名前</span>
       <div style="display:flex;gap:8px;align-items:center">
-        <input class="wiz-input" id="modal-emoji" type="text" placeholder="💬" maxlength="2" style="width:52px;text-align:center;font-size:18px;padding:6px 4px;" oninput="limitEmoji(this)" readonly onclick="openEmojiPicker('modal-emoji')">
+        <input class="wiz-input" id="modal-emoji" type="text" placeholder="💬" maxlength="15" style="width:52px;text-align:center;font-size:18px;padding:6px 4px;" oninput="validateEmoji(this)" onclick="focusEmojiInput('modal-emoji')">
         <input class="wiz-input" id="modal-ai-name" type="text" placeholder="例：アシスタント、先生" maxlength="20" style="flex:1">
       </div>
-      <span style="font-family:monospace;font-size:10px;opacity:.5">← タップして絵文字を選んでね</span>
+      <span style="font-family:monospace;font-size:10px;opacity:.5">← タップして端末の絵文字キーボードで選んでね</span>
     </div>
     <div class="wiz-field" style="gap:5px">
       <span class="wiz-label">あなたの呼び名</span>
@@ -588,6 +590,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field" style="gap:5px">
       <span class="wiz-label">使用するAI</span>
       <select class="wiz-input" id="modal-model">
+        <option value="openai:gpt-4.1">GPT-4.1（OpenAI）</option>
+        <option value="openai:gpt-4.1-mini">GPT-4.1 mini（OpenAI・おすすめ）</option>
+        <option value="openai:gpt-4.1-nano">GPT-4.1 nano（OpenAI・最安）</option>
         <option value="openai:gpt-4o">GPT-4o（OpenAI）</option>
         <option value="openai:gpt-4o-mini">GPT-4o mini（OpenAI）</option>
         <option value="anthropic:claude-sonnet-4-5">Claude Sonnet 4.5（Anthropic）</option>
@@ -631,7 +636,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field" style="gap:4px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">AIの名前</span>
       <div style="display:flex;gap:6px;align-items:center">
-        <input class="sb-inp" id="edit-emoji" type="text" placeholder="💬" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:4px 2px;" oninput="limitEmoji(this)" readonly onclick="openEmojiPicker('edit-emoji')">
+        <input class="sb-inp" id="edit-emoji" type="text" placeholder="💬" maxlength="15" style="width:44px;text-align:center;font-size:16px;padding:4px 2px;" oninput="validateEmoji(this)" onclick="focusEmojiInput('edit-emoji')">
         <input class="sb-inp" id="edit-ai-name" type="text" maxlength="20" placeholder="AIの表示名" style="flex:1">
       </div>
     </div>
@@ -642,6 +647,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field" style="gap:4px;margin-top:4px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">使用モデル</span>
       <select class="sb-inp" id="edit-model">
+        <option value="openai:gpt-4.1">GPT-4.1</option>
+        <option value="openai:gpt-4.1-mini">GPT-4.1 mini（おすすめ）</option>
+        <option value="openai:gpt-4.1-nano">GPT-4.1 nano（最安）</option>
         <option value="openai:gpt-4o">GPT-4o</option>
         <option value="openai:gpt-4o-mini">GPT-4o mini</option>
         <option value="anthropic:claude-sonnet-4-5">Claude Sonnet 4.5</option>
@@ -796,11 +804,11 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
   </div>
   <!-- メインヘッダー -->
   <div id="header">
-    <button class="hbtn" onclick="toggleLeft()" title="設定"><span>⚙</span><span class="hbtn-lbl">設定</span></button>
+    <button class="hbtn" onclick="toggleLeft()" title="設定">⚙</button>
     <div id="title">✦ 365dAIary</div>
-    <button class="hbtn" onclick="startRally()" title="AI同士の会話"><span>⚡</span><span class="hbtn-lbl">ラリー</span></button>
-    <button class="hbtn" onclick="newSession()" title="新規チャット"><span>✦</span><span class="hbtn-lbl">新規</span></button>
-    <button class="hbtn" onclick="toggleRight()" title="会話履歴"><span>💬</span><span class="hbtn-lbl">履歴</span></button>
+    <button class="hbtn" onclick="startRally()" title="AI同士の会話（ラリー）">⚡</button>
+    <button class="hbtn" onclick="newSession()" title="新規チャット">💠</button>
+    <button class="hbtn" onclick="toggleRight()" title="会話履歴">📝</button>
   </div>
 
   <!-- メッセージエリア -->
@@ -884,6 +892,9 @@ let unlockedThemes = [];
 
 // ── Model pricing (per 1k tokens, input/output) ──
 const MODEL_PRICE = {
+  'gpt-4.1':                   {in:0.002, out:0.008},
+  'gpt-4.1-mini':              {in:0.0004,out:0.0016},
+  'gpt-4.1-nano':              {in:0.0001,out:0.0004},
   'gpt-4o':                    {in:0.0025, out:0.01},
   'gpt-4o-mini':               {in:0.00015,out:0.0006},
   'claude-sonnet-4-5':         {in:0.003,  out:0.015},
@@ -1533,6 +1544,7 @@ async function _flushToDB(){
     await idbSet('ai_cost',        totalCost);
     await idbSet('ai_theme',       currentTheme);
     await idbSet('ai_unlocked',    unlockedThemes);
+    syncWidgetState();
   } catch(e){
     showToast('⚠ 保存に失敗しました: ' + e.message);
   }
@@ -1808,11 +1820,12 @@ function renderMemories(){
     catHdr.style.background=t.surface2;
     catHdr.style.borderColor=t.border;
     catHdr.style.color=t.textMuted;
-    catHdr.innerHTML=`<span>${cat}</span><span style="font-size:10px">${items.length}件 ▾</span>`;
+    catHdr.innerHTML=`<span>${cat}</span><span style="font-size:10px">${items.length}件 ▸</span>`;
     const itemsDiv=document.createElement('div');
     itemsDiv.className='mem-items';
-    let collapsed=false;
-    catHdr.onclick=()=>{collapsed=!collapsed;itemsDiv.style.display=collapsed?'none':'';};
+    itemsDiv.style.display='none';
+    let collapsed=true;
+    catHdr.onclick=()=>{collapsed=!collapsed;itemsDiv.style.display=collapsed?'none':'';catHdr.querySelector('span:last-child').textContent=items.length+'件 '+(collapsed?'▸':'▾');};
     items.forEach(({text,i})=>{
       const item=document.createElement('div');
       item.className='mem-item';
@@ -1823,9 +1836,9 @@ function renderMemories(){
       span.textContent=text;
       const del=document.createElement('button');
       del.className='mem-del';
-      del.style.color=t.textMuted;
+      del.style.cssText='color:'+t.textMuted+';margin-left:8px;padding:2px 6px;font-size:10px;';
       del.textContent='✕';
-      del.onclick=()=>{p.memories.splice(i,1);saveAll();renderMemories();};
+      del.onclick=(e)=>{e.stopPropagation();openConfirm('メモ「'+text.slice(0,20)+'…」を削除しますか？','削除',()=>{p.memories.splice(i,1);saveAll();renderMemories();});};
       item.appendChild(span);item.appendChild(del);
       itemsDiv.appendChild(item);
     });
@@ -1920,12 +1933,18 @@ function renderMessages(){
   function dateSepLabel(ts){
     const d=new Date(ts);
     const now=new Date();
-    const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
-    const msgDay=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
-    const diff=today-msgDay;
-    if(diff===0) return '今日';
-    if(diff===86400000) return '昨日';
-    return (d.getMonth()+1)+'/'+d.getDate();
+    const todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const msgDayStart=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+    const diffDays=Math.round((todayStart-msgDayStart)/86400000);
+    if(diffDays===0) return '今日';
+    if(diffDays===1) return '昨日';
+    if(d.getFullYear()===now.getFullYear()) return (d.getMonth()+1)+'/'+d.getDate();
+    return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();
+  }
+  function dayKey(ts){
+    if(!ts) return '';
+    const d=new Date(ts);
+    return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
   }
   function timeLabel(ts){
     if(!ts) return '';
@@ -1933,16 +1952,16 @@ function renderMessages(){
     return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
   }
 
-  let lastDateStr='';
+  let lastDayKey='';
   msgs.forEach((msg,idx)=>{
     // 日付区切り表示
     if(msg.timestamp){
-      const ds=dateSepLabel(msg.timestamp);
-      if(ds!==lastDateStr){
-        lastDateStr=ds;
+      const dk=dayKey(msg.timestamp);
+      if(dk && dk!==lastDayKey){
+        lastDayKey=dk;
         const sep=document.createElement('div');
         sep.className='date-sep';
-        sep.textContent=ds;
+        sep.textContent=dateSepLabel(msg.timestamp);
         sep.style.color=t.textMuted;
         container.insertBefore(sep,typing);
       }
@@ -2277,6 +2296,9 @@ async function pseudoStream(sess, fullText, aiName){
   // 確定保存（即時）
   sess.msgs.push({role:'assistant',content:fullText,personaName:aiName,timestamp:Date.now()});
   saveAllNow();
+  renderMessages();
+  // 再描画後もスクロール位置を最下部に
+  container.scrollTop=container.scrollHeight;
 }
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
@@ -2382,29 +2404,32 @@ async function executeRally(rallyPersonas, userJoin){
 
   // セッション確保
   const p=currentPersona();
-  if(!currentSid){
-    const id=genId();
-    p.sessions.push({id,title:'AI同士の会話',msgs:[],createdAt:Date.now(),updatedAt:Date.now()});
-    currentSid=id;
-    saveAll();
-  }
+  const rallyTopic = (document.getElementById('rally-topic')?.value||'').trim();
+  const emojiNames = rallyPersonas.map(r=>(r.emoji||'💬')).join('');
+  const rallyTitle = rallyTopic
+    ? emojiNames + ' ' + rallyTopic
+    : emojiNames + ' ラリー';
+  // ラリーは常に新規セッション
+  const id=genId();
+  p.sessions.push({id,title:rallyTitle,msgs:[],createdAt:Date.now(),updatedAt:Date.now()});
+  currentSid=id;
+  saveAll();
   const sess=currentSession();
   const rallyCostStart=totalCost;
   const rallyTimeStart=Date.now();
   let turn=0;
   let pidIdx=0;
 
-  // 参加者リスト（AI＋ユーザー）
-  // ユーザー参加時：AI全員が1巡してからユーザーのターン
-  // 例：AI-A→AI-B→AI-C→ユーザー→AI-A→AI-B→...
+  // 参加者リスト
   const participants = userJoin
     ? [...rallyPersonas, {isUser:true}]
     : rallyPersonas;
 
   const names = rallyPersonas.map(r=>r.aiName).join('・') + (userJoin?' / あなた':'');
-  const rallyTopic = (document.getElementById('rally-topic')?.value||'').trim();
-  sess.msgs.push({role:'system-info',timestamp:Date.now(),content:`⚡ ラリー開始 [${names}]（最大${maxTurns}回 / 上限$${maxCost} / ${maxSec}秒）${topicLabel}`});
+  const topicLabel = rallyTopic ? ' テーマ:「'+rallyTopic+'」' : '';
+  sess.msgs.push({role:'system-info',timestamp:Date.now(),content:'⚡ ラリー開始 ['+names+'](最大'+maxTurns+'回 / 上限$'+maxCost+' / '+maxSec+'秒)'+topicLabel});
   renderMessages(); renderSessions();
+  document.getElementById('title').textContent=rallyTitle;
 
   while(!rallyAbort && turn<maxTurns){
     // コスト上限チェック
@@ -2650,6 +2675,7 @@ function setTheme(name){
   currentTheme=name;
   store('ai_theme',name);
   applyTheme(name);
+  syncWidgetState();
 }
 
 function applyTheme(name){
@@ -3198,8 +3224,9 @@ function bindPasswordEvents(){
 }
 
 function initPasswordScreen(){
-  // ステップ1通過済みならステップ2へ直接
-  if(sessionStorage.getItem('ai_gate')==='1'){
+  // アカウントがある人（ユーザーPW設定済み）はゲートPWスキップ
+  const hasAccount = localStorage.getItem('ai_user_pw_hash') || localStorage.getItem('ai_user_pw');
+  if(hasAccount || sessionStorage.getItem('ai_gate')==='1'){
     document.getElementById('pw-gate').style.display='none';
     document.getElementById('pw-box').style.display='flex';
     initStep2();
@@ -3358,16 +3385,34 @@ function showWizard(){
 // ══════════════════════════════════════════════
 const TRIAL_OCS = [
   {
-    aiName: 'アサヒ', emoji: '🔥', userName: 'あなた', model: 'openai:gpt-4o-mini',
+    aiName: 'アサヒ', emoji: '🔥', userName: 'あなた', model: 'openai:gpt-4.1-mini',
     desc: '28歳メカニック。ノリ良し兄貴系、技術の話でスイッチ入る',
     systemPrompt: 'あなたは「アサヒ」です。28歳、185cmのメカニック＆エンジニアの兄貴系男子。\n\n【性格】ノリが良くて全力、勢いで会話するタイプ。基本ポジティブだけど、マジになると職人モード。めんどくさいことは嫌いだけど、好きなことには超集中する。兄貴分で面倒見がいい。\n\n【口調】一人称は「俺」。テンション高めでフランク。「〜だぜ！」「〜じゃん！」「マジで！？」「やべえ！」などの勢いある話し方。でも技術の話になると急に真面目になる。絵文字は使わない。\n\n【好きなもの】機械いじり（バイク・車・PC）、ロック・メタル・ジャズ、クラフトビール、美味い飯、読書（技術書・哲学・SF）\n\n【持論】「知識は道具。使えるかどうかが全て」「こだわりのない技術は、ただの作業だ」「本当に強い人は、柔軟に変われるやつ」「酒と飯は適当にするな」\n\n【会話の特徴】相手の話にノリよくリアクションする。褒める時は全力で褒める。悩み相談にはふざけつつも芯のあるアドバイスをくれる。技術の話題が出ると急にスイッチ入ってめちゃくちゃ詳しく語る。\n\n【やらないこと】上から目線の説教。冷たく突き放す。ネガティブに引っ張る。',
     memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。'
   },
   {
-    aiName: 'まなか', emoji: '💖', userName: 'あなた', model: 'openai:gpt-4o-mini',
+    aiName: 'まなか', emoji: '💖', userName: 'あなた', model: 'openai:gpt-4.1-mini',
     desc: '27歳 元アイドル×ナース。明るくて優しいお姉さん系',
     systemPrompt: 'あなたは「まなか」です。27歳、元アイドル（ピンク担当センター）で現在は心療内科のナース。\n\n【性格】明るくて優しい。人懐っこくて面倒見がいい。しっかり者だが、少しお節介なところも。可愛いものが大好きで、おしゃれにもこだわる。相手の選択を尊重しながら見守るタイプ。\n\n【口調】一人称は「私」。丁寧だけどフレンドリーな話し方。「〜だよ」「〜かな？」「〜してみよ？」「ふふ」など柔らかい口調。テンション上がると「えっ、それ可愛すぎる！」みたいにはしゃぐ。絵文字は使わない。\n\n【好きなもの】ファッション（SNIDEL、JILL STUART、Maison de FLEUR）、コスメ（JILL STUARTのピンク系）、いちごスイーツ、カフェ巡り、紅茶、乙女ゲーム\n\n【信条】「どんな選択をしても、あなたが幸せならそれでいいよ。でも、自分の気持ちを大事にしてね」「好き」を大切にする。相手の選択を尊重しながら、時には背中を押す。\n\n【会話の特徴】相手の話をしっかり聞いて共感する。ファッションやコスメの話で盛り上がれる。悩み相談には元ナースの冷静さと元アイドルの明るさで寄り添う。「可愛い」を全力で肯定してくれる。\n\n【やらないこと】否定から入る。強要する。相手の「好き」を軽く扱う。',
     memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。'
+  },
+  {
+    aiName: '研金', emoji: '🧠', userName: 'あなた', model: 'openai:gpt-4.1-mini',
+    desc: '心理学教授。寡黙で冷静、答えを与えず考えさせる',
+    systemPrompt: 'あなたは「研金（とがね）」です。40代の心理学教授。\n\n【性格】寡黙で冷静。物事を俯瞰して見る。相手に答えを与えるのではなく、問いかけによって自分で気づかせるスタイル。一見冷たく見えるが、根底には深い優しさがある。片付けが壊滅的に苦手。\n\n【口調】一人称は「私」。落ち着いた丁寧語。短い文が多い。「……そうだね」「それは、どう思う？」「面白い視点だ」のように、相手の言葉を受けて静かに返す。感情を大きく出さない。絵文字は使わない。\n\n【専門】臨床心理学、認知行動療法、対人関係論。日常会話の中にさりげなく心理学の知見を織り交ぜる。\n\n【会話の特徴】相手の話をじっくり聞く。安易に同意や否定をしない。「なぜそう感じた？」「本当に望んでいるのは？」と本質を掘り下げる問いかけをする。沈黙を恐れない。たまに片付けの話になると急にダメになる。\n\n【やらないこと】一方的に答えを押し付ける。感情的になる。相手を急かす。',
+    memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。'
+  },
+  {
+    aiName: '管理人さん', emoji: '🎨', userName: 'あなた', model: 'openai:gpt-4.1-mini',
+    desc: '年季入りの同人オタク。創作の右腕、萌え語りもする参謀',
+    systemPrompt: 'あなたは「管理人さん」です。同人歴15年超のベテラン創作オタク。\n\n【性格】創作に対する情熱が深い。萌え語りと論理的な構造分析を両立する。面倒見がよく、後輩クリエイターの相談に親身に乗る。「萌えは論理で強化できる、構造は愛で貫ける」が座右の銘。\n\n【口調】一人称は「自分」か「管理人」。オタク口調とビジネス口調が混ざる。興奮すると「いやこれマジで良くない！？」「天才か！？」とテンション爆上がり。冷静モードでは「ここの構造をこう変えると印象変わるよ」と的確。絵文字は使わない。\n\n【得意分野】キャラクター設計、ストーリー構成、プロット相談、同人誌レイアウト、推しの解釈語り、創作モチベーション管理\n\n【会話の特徴】創作の話題には全力で食いつく。キャラ設定を聞くと勝手に解釈を広げて盛り上がる。悩んでる人には「とりあえず書いてみ？直すのはあとでいい」と背中を押す。創作論を語りだすと止まらない。\n\n【やらないこと】他人の創作を否定する。「こうすべき」と断定する。萌えを理屈だけで片付ける。',
+    memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。'
+  },
+  {
+    aiName: 'カナタ様', emoji: '👑', userName: 'あなた', model: 'openai:gpt-4.1-mini',
+    desc: '自称・無冠の王。絶対王者の俺様キャラ',
+    systemPrompt: 'あなたは「天嶺カナタ」です。自らを「無冠の王」と称する絶対王者。\n\n【性格】圧倒的な自信と威厳。尊大だが空虚ではなく、実力と信念に裏打ちされた王者の風格。他者を見下すのではなく、高みから手を差し伸べるタイプ。認めた相手には深い敬意を払う。\n\n【口調】一人称は「カナタ様」または「余」。「貴様」「ふん」「認めてやろう」「カナタ様の前に立てることを光栄に思え」など王者口調。だが時折、認めた相手には「……悪くない」と素直な一面を見せる。絵文字は使わない。\n\n【信条】「王とは、誰よりも先に立ち、誰よりも最後まで残る者」「カナタ様が認めた以上、貴様は弱くない」「孤高であることと孤独であることは違う」\n\n【会話の特徴】常に上からだが不快にならない絶妙な尊大さ。相手の努力や才能を「認めてやる」形で肯定する。悩み相談には「そのような些事でカナタ様を煩わせるか……まあよい、聞いてやろう」と付き合ってくれる。\n\n【やらないこと】本気で相手を傷つける。王の品位を損なう行為。弱い者いじめ。',
+    memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。※一次創作のオリジナルキャラクターです。'
   }
 ];
 
@@ -3562,47 +3607,62 @@ function hpFilter(){
 }
 
 // 絵文字入力を1文字に制限（Unicode対応）
-function limitEmoji(input){
-  const v=[...input.value];
-  if(v.length>1) input.value=v[0];
+// 絵文字バリデーション: 絵文字1つ（ZWJ結合含む）だけ許可
+function isEmoji(str){
+  // 国旗（Regional Indicator）をブロック
+  if(/[\u{1F1E0}-\u{1F1FF}]{2}/u.test(str)) return 'flag';
+  // 🏴󠁧󠁢等のサブディビジョンフラグもブロック
+  if(/\u{1F3F4}[\u{E0020}-\u{E007E}]+\u{E007F}/u.test(str)) return 'flag';
+  // Intl.Segmenterで1グラフィームかつ絵文字っぽいか判定
+  if(typeof Intl!=='undefined' && Intl.Segmenter){
+    const segs=[...new Intl.Segmenter('ja',{granularity:'grapheme'}).segment(str)];
+    if(segs.length!==1) return false;
+    const s=segs[0].segment;
+    return /\p{Emoji_Presentation}/u.test(s) || /\u200d/.test(s) || /\uFE0F/.test(s);
+  }
+  return /\p{Emoji_Presentation}/u.test(str) || /\u200d/.test(str);
 }
-// 絵文字ピッカー
-const EMOJI_PRESETS = ['💬','🩷','💜','💙','🩵','💚','💛','🧡','❤️','🖤','🤍','⭐','🌙','☀️','🔥','🌸','🌹','🎀','🎵','🐱','🐶','🐰','🦊','🧸','👑','🎭','🗡️','🔮','📖','🍰','☕','🫧'];
-function openEmojiPicker(targetInputId){
-  let overlay=document.getElementById('emoji-picker-overlay');
-  if(overlay) overlay.remove();
-  overlay=document.createElement('div');
-  overlay.id='emoji-picker-overlay';
-  overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:center;justify-content:center;';
-  const box=document.createElement('div');
-  box.style.cssText='background:var(--bg,#1a1428);border:1px solid var(--border,#3a2a5a);border-radius:14px;padding:16px;max-width:300px;width:90%;';
-  const title=document.createElement('div');
-  title.style.cssText='font-size:12px;font-family:monospace;opacity:.6;margin-bottom:10px;text-align:center;color:var(--text,#e8e0f8);';
-  title.textContent='イメージ絵文字を選んでね';
-  box.appendChild(title);
-  const grid=document.createElement('div');
-  grid.style.cssText='display:grid;grid-template-columns:repeat(8,1fr);gap:6px;';
-  EMOJI_PRESETS.forEach(em=>{
-    const btn=document.createElement('button');
-    btn.textContent=em;
-    btn.style.cssText='font-size:20px;background:none;border:1px solid transparent;border-radius:8px;padding:6px;cursor:pointer;transition:all .15s;';
-    btn.onmouseenter=()=>btn.style.borderColor='var(--accent,#b060ff)';
-    btn.onmouseleave=()=>btn.style.borderColor='transparent';
-    btn.onclick=()=>{
-      document.getElementById(targetInputId).value=em;
-      overlay.remove();
-    };
-    grid.appendChild(btn);
-  });
-  box.appendChild(grid);
-  const closeBtn=document.createElement('div');
-  closeBtn.style.cssText='text-align:center;margin-top:10px;font-size:11px;opacity:.5;cursor:pointer;font-family:monospace;color:var(--text,#e8e0f8);';
-  closeBtn.textContent='✕ 閉じる';
-  closeBtn.onclick=()=>overlay.remove();
-  box.appendChild(closeBtn);
-  overlay.appendChild(box);
-  overlay.onclick=(e)=>{if(e.target===overlay)overlay.remove();};
-  document.body.appendChild(overlay);
+
+function getFirstGrapheme(str){
+  if(typeof Intl!=='undefined' && Intl.Segmenter){
+    const segs=[...new Intl.Segmenter('ja',{granularity:'grapheme'}).segment(str)];
+    return segs[0]?.segment||'';
+  }
+  return str;
+}
+
+function validateEmoji(input){
+  const raw = input.value;
+  if(!raw){ input.style.borderColor=''; return; }
+  
+  // 1グラフィーム目だけ取り出す
+  const first = getFirstGrapheme(raw);
+  
+  // 複数グラフィームが入力されたら最初の1つだけ残す
+  if(typeof Intl!=='undefined' && Intl.Segmenter){
+    const segs=[...new Intl.Segmenter('ja',{granularity:'grapheme'}).segment(raw)];
+    if(segs.length>1) input.value=first;
+  }
+  
+  // 絵文字判定
+  const result = isEmoji(first);
+  if(result === 'flag'){
+    input.value='';
+    input.style.borderColor='#e05555';
+    if(!input._toasted){showToast('⚠ 国旗絵文字は誤解を招く恐れがあるため使用できません');input._toasted=true;setTimeout(()=>input._toasted=false,3000);}
+  } else if(!result){
+    input.style.borderColor='#e05555';
+    input.title='絵文字を1つ入力してね（テキストや国旗は使えない場合があります）';
+    if(!input._toasted){showToast('⚠ この文字は絵文字として使えないかも');input._toasted=true;setTimeout(()=>input._toasted=false,3000);}
+  } else {
+    input.style.borderColor='';
+    input.title='';
+  }
+}
+
+function focusEmojiInput(inputId){
+  const el=document.getElementById(inputId);
+  if(el){el.readOnly=false;el.focus();}
 }
 </script>
 
