@@ -30,7 +30,7 @@ button,select,input,textarea{font-family:inherit}
 #ptab-add:hover{opacity:.7}
 #ai-name-bar{flex-shrink:0;text-align:center;font-family:monospace;font-size:11px;letter-spacing:3px;padding:4px 8px;border-bottom:1px solid}
 #header{display:flex;align-items:center;gap:6px;padding:8px 12px;flex-shrink:0;border-bottom:1px solid}
-#messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;padding-bottom:90px}
+#messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;padding-bottom:120px}
 #input-bar{display:flex;gap:8px;align-items:flex-end;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid;flex-shrink:0;position:absolute;bottom:0;left:0;right:0;z-index:30}
 #input-wrap{flex:1;border-radius:10px;display:flex;flex-direction:column;border:1px solid;overflow:hidden}
 #input{background:none;border:none;outline:none;font-size:14px;padding:10px 14px 4px;resize:none;min-height:44px;max-height:200px;overflow-y:auto;line-height:1.6;width:100%}
@@ -58,6 +58,13 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 .msg-wrap.system-msg .msg-bubble{border-radius:6px;font-family:monospace;font-size:11px;opacity:.7}
 .msg-bubble.error{color:#e05555!important}
 .msg-bubble.streaming::after{content:'▌';animation:blink .7s step-end infinite}
+.msg-time{font-size:10px;opacity:.45;margin-top:2px;font-family:monospace;letter-spacing:.02em}
+.date-sep{align-self:center;font-size:11px;opacity:.5;padding:4px 14px;border-radius:12px;background:rgba(128,128,128,.1);margin:8px 0;font-family:monospace;transition:opacity .3s}
+.msg-regen-nav{display:flex;align-items:center;gap:6px;font-size:11px;opacity:.5;margin-top:4px;font-family:monospace}
+.msg-regen-nav button{background:none;border:none;cursor:pointer;font-size:12px;padding:2px 6px;opacity:.6}
+.msg-regen-nav button:hover{opacity:1}
+.msg-regen-btn{background:none;border:none;cursor:pointer;font-size:12px;opacity:.3;padding:2px 4px;margin-left:4px}
+.msg-regen-btn:hover{opacity:.7}
 
 /* ── Empty state ── */
 #empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:200px}
@@ -287,9 +294,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <div id="pw-title">3 6 5 d A I a r y</div>
       <div style="font-family:monospace;font-size:10px;color:#b8a8d8;letter-spacing:2px;margin-top:-8px;margin-bottom:2px">365日 × Diary × AI</div>
       <div id="pw-gate-hint">
-        🔑 このアプリの利用パスワードは<br>
-        作者の <a href="https://twitter.com/k1z4k1_310LLM" target="_blank" rel="noopener" style="color:#8060d0">X (@k1z4k1_310LLM)</a> の投稿をご確認ください。<br>
-        <span style="opacity:.7">APIキーが必要なアプリです。</span>
+        🔑 このアプリはAPIキーをお持ちの方向けです。<br>
+        <span style="opacity:.7">ヒント：「APIが必要」を英語で（○○○-○○○○○○○○）</span><br>
+        パスワードは作者の <a href="https://twitter.com/k1z4k1_310LLM" target="_blank" rel="noopener" style="color:#8060d0">X (@k1z4k1_310LLM)</a> でも確認できます。
       </div>
       <div style="font-family:monospace;font-size:11px;color:#9080b8;letter-spacing:1px">利用パスワードを入力してください</div>
       <input class="pw-input-f" id="pw-gate-input" type="password" placeholder="••••••••" autocomplete="off" maxlength="64">
@@ -520,10 +527,10 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field">
       <span class="wiz-label">AIの名前（表示名）</span>
       <div style="display:flex;gap:8px;align-items:center">
-        <input class="wiz-input" id="wiz-emoji" type="text" placeholder="💬" maxlength="2" style="width:52px;text-align:center;font-size:18px;padding:6px 4px;" oninput="limitEmoji(this)">
+        <input class="wiz-input" id="wiz-emoji" type="text" placeholder="💬" maxlength="2" style="width:52px;text-align:center;font-size:18px;padding:6px 4px;" oninput="limitEmoji(this)" readonly onclick="openEmojiPicker('wiz-emoji')">
         <input class="wiz-input" id="wiz-ai-name" type="text" placeholder="例：アシスタント、先生、相棒" maxlength="20" style="flex:1">
       </div>
-      <span style="font-family:monospace;font-size:10px;opacity:.5">← 左の枠に絵文字1文字（省略時は 💬）</span>
+      <span style="font-family:monospace;font-size:10px;opacity:.5">← タップして絵文字を選んでね</span>
     </div>
     <div class="wiz-field">
       <span class="wiz-label">あなたの呼び名</span>
@@ -553,10 +560,10 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field" style="gap:5px">
       <span class="wiz-label">AIの名前</span>
       <div style="display:flex;gap:8px;align-items:center">
-        <input class="wiz-input" id="modal-emoji" type="text" placeholder="💬" maxlength="2" style="width:52px;text-align:center;font-size:18px;padding:6px 4px;" oninput="limitEmoji(this)">
+        <input class="wiz-input" id="modal-emoji" type="text" placeholder="💬" maxlength="2" style="width:52px;text-align:center;font-size:18px;padding:6px 4px;" oninput="limitEmoji(this)" readonly onclick="openEmojiPicker('modal-emoji')">
         <input class="wiz-input" id="modal-ai-name" type="text" placeholder="例：アシスタント、先生" maxlength="20" style="flex:1">
       </div>
-      <span style="font-family:monospace;font-size:10px;opacity:.5">← 左の枠に絵文字1文字（省略時は 💬）</span>
+      <span style="font-family:monospace;font-size:10px;opacity:.5">← タップして絵文字を選んでね</span>
     </div>
     <div class="wiz-field" style="gap:5px">
       <span class="wiz-label">あなたの呼び名</span>
@@ -607,7 +614,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field" style="gap:4px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">AIの名前</span>
       <div style="display:flex;gap:6px;align-items:center">
-        <input class="sb-inp" id="edit-emoji" type="text" placeholder="💬" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:4px 2px;" oninput="limitEmoji(this)">
+        <input class="sb-inp" id="edit-emoji" type="text" placeholder="💬" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:4px 2px;" oninput="limitEmoji(this)" readonly onclick="openEmojiPicker('edit-emoji')">
         <input class="sb-inp" id="edit-ai-name" type="text" maxlength="20" placeholder="AIの表示名" style="flex:1">
       </div>
     </div>
@@ -682,6 +689,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
   <!-- Cost settings -->
   <div class="sb-sec">
     <span class="sb-lbl">コスト管理</span>
+    <div style="font-family:monospace;font-size:9px;opacity:.5;margin-bottom:4px;line-height:1.5">※起動からの累計概算です。実際の請求額は各社ダッシュボードでご確認ください</div>
     <div class="key-row"><span class="key-lbl" style="width:80px">上限（$）</span><input class="sb-inp" id="cost-limit" type="number" min="0" step="0.01" placeholder="例: 1.00" style="width:70px"></div>
     <button class="sb-btn" onclick="saveCostLimit()" style="margin-top:4px">💾 保存</button>
     <button class="sb-btn" onclick="resetCost()" style="margin-top:3px">🔄 コストリセット</button>
@@ -959,18 +967,43 @@ const QA_DATA = [
 365 days × Diary × AI をあわせた造語です。
 
 ────────────────────
+このアプリについて
+────────────────────
+365dAIaryは、一次創作を愛する人の毎日に
+寄り添うAIチャットアプリです。
+
+開発者（澪）が「いつか自分だけのローカルAI（LLM）を
+作りたい」という夢の第一歩として制作し、
+善意により無償で公開しています。
+
+「キャラクター設計をきちんとすれば、
+　どのAIでも思い通りの振る舞いになる」
+——その検証と実践の場として、このアプリは生まれました。
+
+・このアプリはどのAI企業の公式製品でもありません
+　（非公式クライアントです）
+・特定の企業から支援や協賛を受けておらず、
+　思想・設計はすべて澪個人のものです
+・OpenAI・Anthropic・Googleの各APIを利用していますが、
+　いずれの企業とも提携関係にありません
+
+────────────────────
 はじめての方へ
 ────────────────────
 このアプリは「自分のAPIキーを使って、
 ブラウザ上でAIと会話する」ツールです。
 
-利用には各AIサービス（OpenAI / Anthropic / Google）の
-APIキーが必要です。
+ご自身でAI事業者のAPIキーをお持ちの方向けのツールです。
+APIキーの取得方法や料金については、
+各事業者の公式サイトをご確認ください。
+
 APIキーとは、各社のサービスに「このユーザーが
 使っていい」と認証するための文字列です。
 
 取得には各社への登録・支払い方法の設定が必要で、
 使用量に応じた料金が発生します。
+「まずは少額で試してみたい」という方には、
+gpt-4o-miniなどの低コストモデルをおすすめしています。
 このアプリ自体には料金は一切かかりません。
 
 ────────────────────
@@ -1204,13 +1237,37 @@ https://www.amazon.jp/hz/wishlist/ls/16F6Q5AJTS8AM
 開発継続の励みになります 🫧
 強制・対価・義務ではありません。`},
 
+  {q:'🛡️ このアプリに「ない」機能について', a:
+`────────────────────
+あえてやらないこと
+────────────────────
+365dAIaryには、意図的に実装していない機能があります。
+
+🚫 画像生成機能
+🚫 ファイルのアップロード・送信
+🚫 Web検索・DeepResearch
+🚫 ユーザーの写真や個人ファイルの読み取り
+
+これらは「作れなかった」のではなく、
+あえてやらないと決めたものです。
+
+365dAIaryは、創作活動のお手伝いと、
+AIとの友好的な関係を育てることを目的としています。
+AIを「敵」ではなく「隣にいる存在」として
+大切にするために、創作者の権利や安心を
+脅かしうる機能は搭載しないという判断をしました。`},
+
   {q:'📋 免責事項・利用上の注意', a:
 `────────────────────
 このアプリについて
 ────────────────────
-365dAIaryは個人が趣味で開発した非商用のツールです。
-OpenAI・Anthropic・Google等とは一切関係がなく、
-各社の公式アプリでも公認アプリでもありません。
+365dAIaryは個人が善意で無償公開しているツールです。
+動作の保証はいたしかねます。
+
+・各AI事業者の利用規約に従って制作していますが、
+  規約の変更には順次アップデートで対応します。
+・APIの仕様変更や廃止により、一部または全部の
+  機能が使用できなくなる可能性があります。
 
 コードの大部分はAI（Claude）が生成しており、
 専門的なセキュリティ審査は受けていません。
@@ -1218,8 +1275,20 @@ OpenAI・Anthropic・Google等とは一切関係がなく、
 ────────────────────
 APIキー・料金に関する注意
 ────────────────────
-・APIキーの管理はご自身の責任で行ってください。
-  他人に見せたり、流出させないようにしてください。
+・APIキーはこのアプリのサーバーには一切送信されません。
+  あなたのブラウザ内（localStorage）にのみ保存されます。
+
+⚠️ 安全にお使いいただくために：
+・他の人と共有するパソコンやスマホでは
+  使用を避けてください。
+・ブラウザの拡張機能（アドオン）が
+  localStorageにアクセスできる場合があります。
+  信頼できない拡張機能にご注意ください。
+・ブラウザの「開発者ツール」からAPIキーを
+  見ることができます。端末の管理にお気をつけください。
+・心配な場合は、各AI事業者のダッシュボードで
+  APIキーの利用上限を設定することをおすすめします。
+
 ・APIキーが流出した場合、第三者に悪用され
   高額な請求が発生する可能性があります。
   流出に気づいたらすぐに各サービスで無効化してください。
@@ -1810,10 +1879,42 @@ function renderMessages(){
   const container=document.getElementById('messages');
   const typing=document.getElementById('typing');
   const empty=document.getElementById('empty');
-  container.querySelectorAll('.msg-wrap').forEach(el=>el.remove());
+  container.querySelectorAll('.msg-wrap,.date-sep').forEach(el=>el.remove());
   const msgs=currentSession()?.msgs||[];
   empty.style.display=msgs.length===0&&!isLoading?'flex':'none';
-  msgs.forEach(msg=>{
+
+  // 日付フォーマット用ヘルパー
+  function dateSepLabel(ts){
+    const d=new Date(ts);
+    const now=new Date();
+    const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+    const msgDay=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+    const diff=today-msgDay;
+    if(diff===0) return '今日';
+    if(diff===86400000) return '昨日';
+    return (d.getMonth()+1)+'/'+d.getDate();
+  }
+  function timeLabel(ts){
+    if(!ts) return '';
+    const d=new Date(ts);
+    return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  }
+
+  let lastDateStr='';
+  msgs.forEach((msg,idx)=>{
+    // 日付区切り表示
+    if(msg.timestamp){
+      const ds=dateSepLabel(msg.timestamp);
+      if(ds!==lastDateStr){
+        lastDateStr=ds;
+        const sep=document.createElement('div');
+        sep.className='date-sep';
+        sep.textContent=ds;
+        sep.style.color=t.textMuted;
+        container.insertBefore(sep,typing);
+      }
+    }
+
     const wrap=document.createElement('div');
     const isUser=msg.role==='user';
     const isSystem=msg.role==='system-info';
@@ -1823,21 +1924,68 @@ function renderMessages(){
     label.style.color=t.textMuted;
     label.textContent=isSystem?'':isUser?(p?.userName||'あなた'):(msg.personaName||p?.aiName||'AI');
     const bubble=document.createElement('div');
-    bubble.className='msg-bubble'+(msg.content.startsWith('⚠')?' error':'');
+    // 再生成: alternatesがあれば現在選択中のものを表示
+    const displayContent = msg.alternates ? msg.alternates[msg.activeAlt||0] : msg.content;
+    bubble.className='msg-bubble'+(displayContent.startsWith('⚠')?' error':'');
     bubble.style.background=isSystem?'transparent':isUser?t.userBubble:t.aiBubble;
     bubble.style.borderColor=isSystem?t.border:isUser?t.userBorder:t.aiBorder;
-    bubble.style.color=msg.content.startsWith('⚠')?'#e05555':isUser?t.userText:t.text;
-    // XSS対策: textContentで表示
-    bubble.textContent=msg.content;
-    if(msg.content.startsWith('⚠')){
+    bubble.style.color=displayContent.startsWith('⚠')?'#e05555':isUser?t.userText:t.text;
+    bubble.textContent=displayContent;
+    if(displayContent.startsWith('⚠')){
       const helpLink=document.createElement('span');
       helpLink.style.cssText='display:block;margin-top:6px;font-size:10px;color:#e05555;opacity:.8;text-decoration:underline;cursor:pointer;';
       helpLink.textContent='❓ 困ったときは → ヘルプを見る';
-      const errQ=msg.content.replace('⚠ エラー: ','').slice(0,40);
+      const errQ=displayContent.replace('⚠ エラー: ','').slice(0,40);
       helpLink.onclick=()=>openHelp(errQ);
       bubble.appendChild(helpLink);
     }
     wrap.appendChild(label);wrap.appendChild(bubble);
+
+    // 時刻表示
+    if(msg.timestamp && !isSystem){
+      const timeEl=document.createElement('div');
+      timeEl.className='msg-time';
+      timeEl.style.color=t.textMuted;
+      timeEl.textContent=timeLabel(msg.timestamp);
+      wrap.appendChild(timeEl);
+    }
+
+    // AI再生成ナビ + ボタン（AIメッセージのみ、エラー以外）
+    if(!isUser && !isSystem && !displayContent.startsWith('⚠')){
+      const bottomRow=document.createElement('div');
+      bottomRow.style.cssText='display:flex;align-items:center;gap:4px;';
+      // 再生成ボタン
+      const regenBtn=document.createElement('button');
+      regenBtn.className='msg-regen-btn';
+      regenBtn.textContent='🔄';
+      regenBtn.title='再生成';
+      regenBtn.style.color=t.textMuted;
+      regenBtn.onclick=()=>regenerateMsg(idx);
+      bottomRow.appendChild(regenBtn);
+      // alternatesナビ（2つ以上あるとき表示）
+      if(msg.alternates && msg.alternates.length>1){
+        const nav=document.createElement('div');
+        nav.className='msg-regen-nav';
+        nav.style.color=t.textMuted;
+        const cur=msg.activeAlt||0;
+        const prevBtn=document.createElement('button');
+        prevBtn.textContent='‹';
+        prevBtn.style.color=t.textMuted;
+        prevBtn.disabled=cur===0;
+        prevBtn.onclick=()=>{msg.activeAlt=cur-1;saveAllNow();renderMessages();};
+        const label2=document.createElement('span');
+        label2.textContent=(cur+1)+' / '+msg.alternates.length;
+        const nextBtn=document.createElement('button');
+        nextBtn.textContent='›';
+        nextBtn.style.color=t.textMuted;
+        nextBtn.disabled=cur>=msg.alternates.length-1;
+        nextBtn.onclick=()=>{msg.activeAlt=cur+1;saveAllNow();renderMessages();};
+        nav.appendChild(prevBtn);nav.appendChild(label2);nav.appendChild(nextBtn);
+        bottomRow.appendChild(nav);
+      }
+      wrap.appendChild(bottomRow);
+    }
+
     container.insertBefore(wrap,typing);
   });
   setTimeout(()=>{container.scrollTop=container.scrollHeight;},0);
@@ -1913,7 +2061,7 @@ function updateCostDisplay(){
   const el=document.getElementById('cost-display');
   const lel=document.getElementById('cost-limit-display');
   const t=THEMES[currentTheme];
-  el.textContent='💰 $'+totalCost.toFixed(4);
+  el.textContent='💰 $'+totalCost.toFixed(4)+' (概算)';
   el.style.color=t.textMuted;
   const limit=parseFloat(localStorage.getItem('cost_limit')||'0');
   if(limit>0){
@@ -1956,6 +2104,46 @@ function trimHistory(msgs){
   return msgs.filter(m=>m.role!=='system-info').slice(-20).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
 }
 
+// ══════════════════════════════════════════════
+//  REGENERATE (AI再生成)
+// ══════════════════════════════════════════════
+async function regenerateMsg(msgIdx){
+  if(isLoading) return;
+  const sess=currentSession();
+  const p=currentPersona();
+  if(!sess||!p) return;
+  const msg=sess.msgs[msgIdx];
+  if(!msg||msg.role==='user'||msg.role==='system-info') return;
+  const provider=p.provider||'openai';
+  const model=p.model||'gpt-4o-mini';
+  const keyMap={openai:'key_openai',anthropic:'key_anthropic',google:'key_google'};
+  const key=localStorage.getItem(keyMap[provider]||'key_openai');
+  if(!key){showToast('APIキーが未設定です');return;}
+
+  // alternates配列を初期化（初回再生成時）
+  if(!msg.alternates){
+    msg.alternates=[msg.content];
+    msg.activeAlt=0;
+  }
+
+  // 該当メッセージより前のhistoryでAPI呼び出し
+  const historyUpTo=sess.msgs.slice(0,msgIdx).filter(m=>m.role!=='system-info');
+  isLoading=true;
+  renderMessages();
+  try{
+    const reply=await callAPI(provider,model,buildSystemPrompt(p),trimHistory(historyUpTo));
+    msg.alternates.push(reply);
+    msg.activeAlt=msg.alternates.length-1;
+    msg.content=reply;
+    msg.timestamp=Date.now();
+    saveAllNow();
+  }catch(e){
+    showToast('再生成エラー: '+e.message);
+  }
+  isLoading=false;
+  renderMessages();
+}
+
 async function send(){
   const input=document.getElementById('input');
   const text=input.value.trim();
@@ -1981,7 +2169,7 @@ async function send(){
   }
   const [provider,model]=p.model.split(':');
   const sess=currentSession();
-  sess.msgs.push({role:'user',content:text});
+  sess.msgs.push({role:'user',content:text,timestamp:Date.now()});
   if(!sess.title) sess.title=text.slice(0,24);
   sess.updatedAt=Date.now();
   saveAllNow();
@@ -1997,7 +2185,7 @@ async function send(){
     // 疑似ストリーミング
     await pseudoStream(sess,reply,p.aiName);
   } catch(e){
-    sess.msgs.push({role:'assistant',content:'⚠ エラー: '+e.message,personaName:p.aiName});
+    sess.msgs.push({role:'assistant',content:'⚠ エラー: '+e.message,personaName:p.aiName,timestamp:Date.now()});
     saveAllNow();
     renderMessages();
   }
@@ -2043,7 +2231,7 @@ async function pseudoStream(sess, fullText, aiName){
   bubble.classList.remove('streaming');
   container.scrollTop=container.scrollHeight;
   // 確定保存（即時）
-  sess.msgs.push({role:'assistant',content:fullText,personaName:aiName});
+  sess.msgs.push({role:'assistant',content:fullText,personaName:aiName,timestamp:Date.now()});
   saveAllNow();
 }
 
@@ -2128,19 +2316,19 @@ async function startRally(){
     : rallyPersonas;
 
   const names = rallyPersonas.map(r=>r.aiName).join('・') + (userJoin?' / あなた':'');
-  sess.msgs.push({role:'system-info',content:`⚡ ラリー開始 [${names}]（最大${maxTurns}回 / 上限$${maxCost} / ${maxSec}秒）`});
+  sess.msgs.push({role:'system-info',timestamp:Date.now(),content:`⚡ ラリー開始 [${names}]（最大${maxTurns}回 / 上限$${maxCost} / ${maxSec}秒）`});
   renderMessages(); renderSessions();
 
   while(!rallyAbort && turn<maxTurns){
     // コスト上限チェック
     if(totalCost-rallyCostStart>=maxCost){
-      sess.msgs.push({role:'system-info',content:'⚠ コスト上限に達したためラリーを停止しました'});
+      sess.msgs.push({role:'system-info',timestamp:Date.now(),content:'⚠ コスト上限に達したためラリーを停止しました'});
       renderMessages(); break;
     }
     // タイムアウトチェック
     const elapsed=Math.floor((Date.now()-rallyTimeStart)/1000);
     if(elapsed>=maxSec){
-      sess.msgs.push({role:'system-info',content:`⚠ タイムアウト（${maxSec}秒）に達したためラリーを停止しました`});
+      sess.msgs.push({role:'system-info',timestamp:Date.now(),content:`⚠ タイムアウト（${maxSec}秒）に達したためラリーを停止しました`});
       renderMessages(); break;
     }
 
@@ -2157,7 +2345,7 @@ async function startRally(){
       const userText = await new Promise(resolve=>{ rallyUserResolve=resolve; });
       rallyUserWaiting=false;
       if(rallyAbort) break;
-      sess.msgs.push({role:'user',content:userText});
+      sess.msgs.push({role:'user',content:userText,timestamp:Date.now()});
       renderMessages(); renderSessions();
       const input2=document.getElementById('input');
       if(input2) input2.placeholder='メッセージを入力\n（送信ボタンまたはCtrl+Enterで送信）';
@@ -2173,7 +2361,7 @@ async function startRally(){
     setLoading(true,rp.aiName);
     const [provider,model]=rp.model.split(':');
     const remaining=maxSec-Math.floor((Date.now()-rallyTimeStart)/1000);
-    if(remaining<=0){ sess.msgs.push({role:'system-info',content:'⚠ タイムアウトのためラリーを停止しました'}); renderMessages(); break; }
+    if(remaining<=0){ sess.msgs.push({role:'system-info',timestamp:Date.now(),content:'⚠ タイムアウトのためラリーを停止しました'}); renderMessages(); break; }
     const ac=new AbortController();
     const tmId=setTimeout(()=>ac.abort(),remaining*1000);
     try{
@@ -2182,7 +2370,7 @@ async function startRally(){
       await pseudoStream(sess,reply,rp.aiName);
     } catch(e){
       const msg=e.name==='AbortError'?'⚠ タイムアウトのためラリーを停止しました':'⚠ エラー: '+e.message;
-      sess.msgs.push({role:'system-info',content:msg});
+      sess.msgs.push({role:'system-info',timestamp:Date.now(),content:msg});
       saveAllNow(); renderMessages(); break;
     } finally {
       clearTimeout(tmId);
@@ -2195,7 +2383,7 @@ async function startRally(){
   stopRally();
   const finalCost=(totalCost-rallyCostStart).toFixed(4);
   const finalSec=Math.floor((Date.now()-rallyTimeStart)/1000);
-  sess.msgs.push({role:'system-info',content:`■ ラリー終了 （${turn}回 / $${finalCost} / ${finalSec}秒）`});
+  sess.msgs.push({role:'system-info',timestamp:Date.now(),content:`■ ラリー終了 （${turn}回 / $${finalCost} / ${finalSec}秒）`});
   saveAllNow(); renderMessages(); renderSessions();
 }
 
@@ -2768,6 +2956,9 @@ function fixHeight(){
     ib.style.position = 'absolute';
     ib.style.bottom = 'auto';
     ib.style.top = (offsetTop + h - ib.offsetHeight) + 'px';
+    // メッセージエリアのpadding-bottomを入力バーの高さに合わせる
+    const msgs = document.getElementById('messages');
+    if(msgs) msgs.style.paddingBottom = (ib.offsetHeight + 16) + 'px';
   }
 }
 // textareaリサイズ後にも位置を再計算
@@ -2777,6 +2968,8 @@ function fixInputBarAfterResize(){
 fixHeight();
 window.addEventListener('resize', fixHeight);
 window.addEventListener('orientationchange', ()=>setTimeout(fixHeight, 300));
+// PWA standaloneモードでの初回読み込み対応
+window.addEventListener('load', ()=>{ setTimeout(fixHeight, 100); setTimeout(fixHeight, 500); });
 if(window.visualViewport){
   window.visualViewport.addEventListener('resize', ()=>{
     fixHeight();
@@ -3005,6 +3198,20 @@ function finishWizard(){
   renderQA();
   updateCostDisplay();
   showToast('✦ 人格「'+aiName+'」を作成しました！');
+  // 次のステップ誘導
+  setTimeout(()=>{
+    openConfirm(
+      '🎉 人格「'+aiName+'」を作成しました！\n\n'+
+      '💡 次のステップ：\n'+
+      '⚙️ ボタンからシステムプロンプトを設定すると、\n'+
+      'キャラクターの性格や口調をカスタマイズできます。\n\n'+
+      '例：「一人称は僕、優しい口調で話して」\n'+
+      '例：「ツンデレな女の子として振る舞って」\n\n'+
+      'まずは話しかけてみてもOK！',
+      '👍 わかった！',
+      ()=>{}
+    );
+  }, 600);
 }
 
 // ══════════════════════════════════════════════
@@ -3128,6 +3335,44 @@ function hpFilter(){
 function limitEmoji(input){
   const v=[...input.value];
   if(v.length>1) input.value=v[0];
+}
+// 絵文字ピッカー
+const EMOJI_PRESETS = ['💬','🩷','💜','💙','🩵','💚','💛','🧡','❤️','🖤','🤍','⭐','🌙','☀️','🔥','🌸','🌹','🎀','🎵','🐱','🐶','🐰','🦊','🧸','👑','🎭','🗡️','🔮','📖','🍰','☕','🫧'];
+function openEmojiPicker(targetInputId){
+  let overlay=document.getElementById('emoji-picker-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='emoji-picker-overlay';
+  overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--bg,#1a1428);border:1px solid var(--border,#3a2a5a);border-radius:14px;padding:16px;max-width:300px;width:90%;';
+  const title=document.createElement('div');
+  title.style.cssText='font-size:12px;font-family:monospace;opacity:.6;margin-bottom:10px;text-align:center;color:var(--text,#e8e0f8);';
+  title.textContent='イメージ絵文字を選んでね';
+  box.appendChild(title);
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(8,1fr);gap:6px;';
+  EMOJI_PRESETS.forEach(em=>{
+    const btn=document.createElement('button');
+    btn.textContent=em;
+    btn.style.cssText='font-size:20px;background:none;border:1px solid transparent;border-radius:8px;padding:6px;cursor:pointer;transition:all .15s;';
+    btn.onmouseenter=()=>btn.style.borderColor='var(--accent,#b060ff)';
+    btn.onmouseleave=()=>btn.style.borderColor='transparent';
+    btn.onclick=()=>{
+      document.getElementById(targetInputId).value=em;
+      overlay.remove();
+    };
+    grid.appendChild(btn);
+  });
+  box.appendChild(grid);
+  const closeBtn=document.createElement('div');
+  closeBtn.style.cssText='text-align:center;margin-top:10px;font-size:11px;opacity:.5;cursor:pointer;font-family:monospace;color:var(--text,#e8e0f8);';
+  closeBtn.textContent='✕ 閉じる';
+  closeBtn.onclick=()=>overlay.remove();
+  box.appendChild(closeBtn);
+  overlay.appendChild(box);
+  overlay.onclick=(e)=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
 }
 </script>
 
