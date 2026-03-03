@@ -897,7 +897,7 @@ function renderLauncher(){
     a.href='365dAIary.html#pid='+p.id;
     a.innerHTML=`
       <span class="l-emoji">${p.emoji||'💬'}</span>
-      <div><div class="l-name">${escHtml(p.aiName||'—')}</div><div class="l-sub">${escHtml(p.userName||'あなた')} との会話</div></div>
+      <div><div class="l-name">${escHtml(p.aiName||'—')}</div><div class="l-sub">${escHtml(p.aiName||'AI')} に話しかける</div></div>
       <span class="l-arrow">›</span>
     `;
     grid.appendChild(a);

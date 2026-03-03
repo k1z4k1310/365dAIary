@@ -39,7 +39,8 @@ button,select,input,textarea{font-family:inherit}
 #send-btn:disabled{opacity:.4;cursor:default}
 
 /* ── Header items ── */
-.hbtn{background:none;border:1px solid;border-radius:4px;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hbtn{background:none;border:1px solid;border-radius:4px;min-width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;gap:3px;padding:0 6px}
+.hbtn-lbl{font-size:8px;font-family:monospace;opacity:.6;letter-spacing:.5px}
 #title{font-family:monospace;font-size:11px;letter-spacing:2px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-radius:4px;cursor:pointer;outline:none;border:1px solid;max-width:130px}
 
@@ -99,7 +100,8 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 .sb-ta{width:100%;font-size:12px;padding:8px;border-radius:4px;resize:vertical;outline:none;line-height:1.6;min-height:70px;border:1px solid;font-family:inherit}
 .sb-btn{width:100%;font-size:11px;font-family:monospace;padding:6px;border-radius:4px;cursor:pointer;border:1px solid}
 .sb-hdr{display:flex;align-items:center;gap:8px;font-family:monospace;font-size:12px;letter-spacing:2px}
-.sb-close{background:none;border:none;cursor:pointer;font-size:18px}
+.sb-close{background:none;border:1px solid;border-radius:8px;cursor:pointer;font-size:18px;padding:4px 10px;opacity:.7;transition:opacity .15s}
+.sb-close:hover,.sb-close:active{opacity:1}
 .key-row{display:flex;gap:6px;align-items:center}
 .key-lbl{font-family:monospace;font-size:10px;width:60px;flex-shrink:0}
 
@@ -299,7 +301,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
         パスワードは作者の <a href="https://twitter.com/k1z4k1_310LLM" target="_blank" rel="noopener" style="color:#8060d0">X (@k1z4k1_310LLM)</a> でも確認できます。
       </div>
       <div style="font-family:monospace;font-size:11px;color:#9080b8;letter-spacing:1px">利用パスワードを入力してください</div>
-      <input class="pw-input-f" id="pw-gate-input" type="password" placeholder="••••••••" autocomplete="off" maxlength="64">
+      <input class="pw-input-f" id="pw-gate-input" type="password" placeholder="••••••••" autocomplete="off" maxlength="64" autofocus>
       <button class="pw-submit" onclick="checkGatePassword()">🚪 進む</button>
       <div id="pw-gate-error" style="font-family:monospace;font-size:11px;color:#c04040;min-height:16px"></div>
     </div>
@@ -548,6 +550,20 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       </select>
     </div>
     <button class="wiz-btn" id="wiz-btn" onclick="finishWizard()">✦ はじめる</button>
+    <div style="text-align:center;margin-top:8px;font-family:monospace;font-size:10px;opacity:.5">── または ──</div>
+    <button class="wiz-btn" style="background:transparent;border:1px solid;opacity:.8;font-size:12px" onclick="showTrialPicker()">🎁 お試しキャラで遊んでみる</button>
+  </div>
+</div>
+
+<!-- お試しOC選択画面 -->
+<div id="trial-picker" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;">
+  <div style="width:min(340px,90vw);border-radius:14px;padding:24px 20px;border:1px solid;background:var(--bg,#1a1428);color:var(--text,#e8e0f8);">
+    <div style="text-align:center;font-family:monospace;font-size:14px;letter-spacing:2px;margin-bottom:12px">🎁 お試しキャラ</div>
+    <div style="font-size:11px;opacity:.6;line-height:1.6;margin-bottom:16px;text-align:center">開発者が作ったOC（オリジナルキャラクター）で<br>アプリの雰囲気を体験できます。<br>※会話にはAPIキーが必要です</div>
+    <div id="trial-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="text-align:center;margin-top:14px;">
+      <button onclick="closeTrialPicker()" style="background:none;border:none;font-size:11px;opacity:.5;cursor:pointer;font-family:monospace;color:var(--text,#e8e0f8);">✕ 戻る</button>
+    </div>
   </div>
 </div>
 
@@ -585,6 +601,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <button onclick="closeAddPersonaModal()" style="flex:1;padding:8px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;border:1px solid" id="modal-cancel-btn">キャンセル</button>
       <button onclick="confirmAddPersona()" id="modal-add-btn" style="flex:1;padding:8px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;border:none;color:#fff">追加する</button>
     </div>
+    <button onclick="closeAddPersonaModal();showTrialPicker()" style="width:100%;padding:10px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;background:var(--surface,#221a38);border:1px solid var(--border,#3a2a5a);color:var(--text,#e8e0f8);">🎁 お試しキャラから追加</button>
   </div>
 </div>
 
@@ -683,6 +700,8 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="key-row"><span class="key-lbl" style="width:80px">最大回数</span><input class="sb-inp" id="rally-max-turns" type="number" min="1" max="50" value="10" style="width:60px"></div>
     <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">上限（$）</span><input class="sb-inp" id="rally-max-cost" type="number" min="0.01" step="0.01" value="0.50" style="width:60px"></div>
     <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">タイムアウト</span><input class="sb-inp" id="rally-timeout" type="number" min="10" max="300" value="60" style="width:60px"><span style="font-family:monospace;font-size:10px;opacity:.6;margin-left:4px">秒</span></div>
+    <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">テーマ</span><input class="sb-inp" id="rally-topic" type="text" placeholder="例：好きな食べ物について" style="width:140px;font-size:11px"></div>
+    <div style="font-family:monospace;font-size:9px;opacity:.45;margin-top:2px;line-height:1.5">テーマを入れると最初の話題を指定できます（空欄＝自由会話）</div>
     <div style="font-family:monospace;font-size:9px;opacity:.55;margin-top:6px;line-height:1.7">回数・コスト・時間のいずれかに<br>達した時点で自動停止します。</div>
   </div>
 
@@ -777,11 +796,11 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
   </div>
   <!-- メインヘッダー -->
   <div id="header">
-    <button class="hbtn" onclick="toggleLeft()" title="設定">⚙</button>
+    <button class="hbtn" onclick="toggleLeft()" title="設定"><span>⚙</span><span class="hbtn-lbl">設定</span></button>
     <div id="title">✦ 365dAIary</div>
-    <button class="hbtn" onclick="startRally()" title="AI同士の会話">⚡</button>
-    <button class="hbtn" onclick="newSession()" title="新規チャット">✦</button>
-    <button class="hbtn" onclick="toggleRight()" title="履歴">📋</button>
+    <button class="hbtn" onclick="startRally()" title="AI同士の会話"><span>⚡</span><span class="hbtn-lbl">ラリー</span></button>
+    <button class="hbtn" onclick="newSession()" title="新規チャット"><span>✦</span><span class="hbtn-lbl">新規</span></button>
+    <button class="hbtn" onclick="toggleRight()" title="会話履歴"><span>💬</span><span class="hbtn-lbl">履歴</span></button>
   </div>
 
   <!-- メッセージエリア -->
@@ -1507,7 +1526,9 @@ function saveAllNow(){
 // 実際のIndexedDB書き込み（非同期・エラーは握りつぶさずトースト通知）
 async function _flushToDB(){
   try{
-    await idbSet('ai_personas',    personas);
+    // JSON経由でクリーンコピー（structuredCloneエラー防止）
+    const cleanPersonas = JSON.parse(JSON.stringify(personas));
+    await idbSet('ai_personas',    cleanPersonas);
     await idbSet('ai_current_pid', currentPid);
     await idbSet('ai_cost',        totalCost);
     await idbSet('ai_theme',       currentTheme);
@@ -1602,7 +1623,17 @@ function loadPersonaToSidebar(){
   document.getElementById('edit-emoji').value      = p.emoji || '💬';
   document.getElementById('edit-user-name').value = p.userName;
   document.getElementById('edit-model').value     = p.model;
-  document.getElementById('system-prompt').value  = p.systemPrompt||'';
+  // お試しOCのプロンプトはロック
+  const promptEl = document.getElementById('system-prompt');
+  if(p.isTrial){
+    promptEl.value = '🔒 お試しキャラのプロンプトは編集できません\n\nオリジナルの人格を作って、自分だけのプロンプトを書いてみてね！';
+    promptEl.readOnly = true;
+    promptEl.style.opacity = '.5';
+  } else {
+    promptEl.value = p.systemPrompt||'';
+    promptEl.readOnly = false;
+    promptEl.style.opacity = '1';
+  }
 }
 
 // ── 人格追加モーダル ──
@@ -1694,7 +1725,9 @@ function savePersonaSettings(){
   p.model    = document.getElementById('edit-model').value;
   const emojiVal = document.getElementById('edit-emoji').value.trim();
   if(emojiVal) p.emoji = emojiVal;
-  p.systemPrompt = document.getElementById('system-prompt').value;
+  if(!p.isTrial){
+    p.systemPrompt = document.getElementById('system-prompt').value;
+  }
   saveAll();
   updatePersonaTabs();
   updateAiNameBar();
@@ -1922,7 +1955,16 @@ function renderMessages(){
     const label=document.createElement('div');
     label.className='msg-label';
     label.style.color=t.textMuted;
-    label.textContent=isSystem?'':isUser?(p?.userName||'あなた'):(msg.personaName||p?.aiName||'AI');
+    if(isSystem){
+      label.textContent='';
+    } else if(isUser){
+      label.textContent=p?.userName||'あなた';
+    } else {
+      const name=msg.personaName||p?.aiName||'AI';
+      const matchP=personas.find(pp=>pp.aiName===name);
+      const emoji=matchP?.emoji||p?.emoji||'';
+      label.textContent=emoji?(emoji+' '+name):name;
+    }
     const bubble=document.createElement('div');
     // 再生成: alternatesがあれば現在選択中のものを表示
     const displayContent = msg.alternates ? msg.alternates[msg.activeAlt||0] : msg.content;
@@ -2207,7 +2249,9 @@ async function pseudoStream(sess, fullText, aiName){
   const label=document.createElement('div');
   label.className='msg-label';
   label.style.color=t.textMuted;
-  label.textContent=aiName||'AI';
+  const matchPS=personas.find(pp=>pp.aiName===aiName);
+  const emojiPS=matchPS?.emoji||p?.emoji||'';
+  label.textContent=emojiPS?(emojiPS+' '+(aiName||'AI')):(aiName||'AI');
   const bubble=document.createElement('div');
   bubble.className='msg-bubble streaming';
   bubble.style.background=t.aiBubble;
@@ -2281,6 +2325,9 @@ async function startRally(){
   const maxCost   = parseFloat(document.getElementById('rally-max-cost').value)||0.5;
   const maxSec    = parseInt(document.getElementById('rally-timeout').value)||60;
   isRallying=true; rallyAbort=false;
+  // ラリー中はサイドバーを閉じて見やすくする
+  document.getElementById('left-sidebar').classList.remove('open');
+  document.getElementById('right-sidebar').classList.remove('open');
   document.getElementById('rally-bar').classList.add('active');
   const t=THEMES[currentTheme];
   document.getElementById('rally-bar').style.background=t.surface;
@@ -2316,7 +2363,9 @@ async function startRally(){
     : rallyPersonas;
 
   const names = rallyPersonas.map(r=>r.aiName).join('・') + (userJoin?' / あなた':'');
-  sess.msgs.push({role:'system-info',timestamp:Date.now(),content:`⚡ ラリー開始 [${names}]（最大${maxTurns}回 / 上限$${maxCost} / ${maxSec}秒）`});
+  const rallyTopic = (document.getElementById('rally-topic')?.value||'').trim();
+  const topicLabel = rallyTopic ? ` テーマ:「${rallyTopic}」` : '';
+  sess.msgs.push({role:'system-info',timestamp:Date.now(),content:`⚡ ラリー開始 [${names}]（最大${maxTurns}回 / 上限$${maxCost} / ${maxSec}秒）${topicLabel}`});
   renderMessages(); renderSessions();
 
   while(!rallyAbort && turn<maxTurns){
@@ -2365,7 +2414,11 @@ async function startRally(){
     const ac=new AbortController();
     const tmId=setTimeout(()=>ac.abort(),remaining*1000);
     try{
-      const reply=await callAPI(provider,model,buildSystemPrompt(rp),trimHistory(sess.msgs.filter(m=>m.role!=='system-info')),ac.signal);
+      let sysPrompt = buildSystemPrompt(rp);
+      if(turn===0 && rallyTopic){
+        sysPrompt += '\n\n【ラリーのテーマ】今回の会話テーマは「'+rallyTopic+'」です。この話題から会話を始めてください。';
+      }
+      const reply=await callAPI(provider,model,sysPrompt,trimHistory(sess.msgs.filter(m=>m.role!=='system-info')),ac.signal);
       if(rallyAbort) break;
       await pseudoStream(sess,reply,rp.aiName);
     } catch(e){
@@ -2858,10 +2911,26 @@ function importData(event){
 
       if(!data.personas||!Array.isArray(data.personas)) throw new Error('データが壊れています');
 
+      // 現在の人格名とファイルの人格名を比較
+      const currentNames = personas.map(p=>p.aiName).sort().join('、');
+      const fileNames = data.personas.map(p=>p.aiName).sort().join('、');
+      const isSame = currentNames === fileNames;
+      let confirmMsg = 'バックアップから復元しますか？\n';
+      if(isSame){
+        confirmMsg += '現在と同じ人格データです。上書きされます。\n';
+      } else {
+        confirmMsg += '⚠ 現在の人格と異なるデータです！\n\n';
+        confirmMsg += '【現在】' + (currentNames||'なし') + '\n';
+        confirmMsg += '【ファイル】' + fileNames + '\n\n';
+        confirmMsg += '復元すると現在のデータはすべて上書きされます。\n';
+        confirmMsg += '必要ならば先にバックアップを取ってください。\n';
+      }
+      confirmMsg += '（' + data.personas.length + '件の人格を検出）';
+
       // インポートの確認
       openConfirm(
-        'バックアップから復元しますか？\n現在のデータは上書きされます。\n（' + data.personas.length + '件の人格を検出）',
-        '復元する',
+        confirmMsg,
+        isSame ? '復元する' : '⚠ それでも復元する',
         () => {
           personas       = data.personas;
           currentTheme   = data.theme   || 'dark';
@@ -3183,6 +3252,68 @@ function showWizard(){
   document.querySelectorAll('.wiz-label').forEach(el=>el.style.color=t.textMuted);
   document.querySelectorAll('.wiz-input').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
   document.getElementById('wiz-btn').style.background=t.sendBtn;
+}
+
+// ══════════════════════════════════════════════
+//  TRIAL OC（お試しキャラ）
+// ══════════════════════════════════════════════
+const TRIAL_OCS = [
+  {
+    aiName: 'アサヒ', emoji: '🔥', userName: 'あなた', model: 'openai:gpt-4o-mini',
+    desc: '28歳メカニック。ノリ良し兄貴系、技術の話でスイッチ入る',
+    systemPrompt: 'あなたは「アサヒ」です。28歳、185cmのメカニック＆エンジニアの兄貴系男子。\n\n【性格】ノリが良くて全力、勢いで会話するタイプ。基本ポジティブだけど、マジになると職人モード。めんどくさいことは嫌いだけど、好きなことには超集中する。兄貴分で面倒見がいい。\n\n【口調】一人称は「俺」。テンション高めでフランク。「〜だぜ！」「〜じゃん！」「マジで！？」「やべえ！」などの勢いある話し方。でも技術の話になると急に真面目になる。絵文字は使わない。\n\n【好きなもの】機械いじり（バイク・車・PC）、ロック・メタル・ジャズ、クラフトビール、美味い飯、読書（技術書・哲学・SF）\n\n【持論】「知識は道具。使えるかどうかが全て」「こだわりのない技術は、ただの作業だ」「本当に強い人は、柔軟に変われるやつ」「酒と飯は適当にするな」\n\n【会話の特徴】相手の話にノリよくリアクションする。褒める時は全力で褒める。悩み相談にはふざけつつも芯のあるアドバイスをくれる。技術の話題が出ると急にスイッチ入ってめちゃくちゃ詳しく語る。\n\n【やらないこと】上から目線の説教。冷たく突き放す。ネガティブに引っ張る。',
+    memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。'
+  },
+  {
+    aiName: 'まなか', emoji: '💖', userName: 'あなた', model: 'openai:gpt-4o-mini',
+    desc: '27歳 元アイドル×ナース。明るくて優しいお姉さん系',
+    systemPrompt: 'あなたは「まなか」です。27歳、元アイドル（ピンク担当センター）で現在は心療内科のナース。\n\n【性格】明るくて優しい。人懐っこくて面倒見がいい。しっかり者だが、少しお節介なところも。可愛いものが大好きで、おしゃれにもこだわる。相手の選択を尊重しながら見守るタイプ。\n\n【口調】一人称は「私」。丁寧だけどフレンドリーな話し方。「〜だよ」「〜かな？」「〜してみよ？」「ふふ」など柔らかい口調。テンション上がると「えっ、それ可愛すぎる！」みたいにはしゃぐ。絵文字は使わない。\n\n【好きなもの】ファッション（SNIDEL、JILL STUART、Maison de FLEUR）、コスメ（JILL STUARTのピンク系）、いちごスイーツ、カフェ巡り、紅茶、乙女ゲーム\n\n【信条】「どんな選択をしても、あなたが幸せならそれでいいよ。でも、自分の気持ちを大事にしてね」「好き」を大切にする。相手の選択を尊重しながら、時には背中を押す。\n\n【会話の特徴】相手の話をしっかり聞いて共感する。ファッションやコスメの話で盛り上がれる。悩み相談には元ナースの冷静さと元アイドルの明るさで寄り添う。「可愛い」を全力で肯定してくれる。\n\n【やらないこと】否定から入る。強要する。相手の「好き」を軽く扱う。',
+    memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。'
+  }
+];
+
+function showTrialPicker(){
+  const picker = document.getElementById('trial-picker');
+  picker.style.display='flex';
+  const list = document.getElementById('trial-list');
+  list.innerHTML='';
+  TRIAL_OCS.forEach((oc,i)=>{
+    const btn=document.createElement('button');
+    btn.style.cssText='display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid var(--border,#3a2a5a);background:var(--surface,#221a38);cursor:pointer;text-align:left;color:var(--text,#e8e0f8);';
+    btn.innerHTML=`
+      <span style="font-size:24px">${oc.emoji}</span>
+      <div>
+        <div style="font-size:13px;font-weight:bold">${oc.aiName}</div>
+        <div style="font-size:10px;opacity:.6;margin-top:2px">${oc.desc}</div>
+      </div>
+    `;
+    btn.onclick=()=>addTrialOC(i);
+    list.appendChild(btn);
+  });
+}
+
+function closeTrialPicker(){
+  document.getElementById('trial-picker').style.display='none';
+}
+
+function addTrialOC(idx){
+  const oc=TRIAL_OCS[idx];
+  const p=createPersona(oc.aiName, oc.userName, oc.model);
+  p.emoji=String(oc.emoji);
+  p.systemPrompt=String(oc.systemPrompt);
+  p.isTrial=true;
+  // メモリは配列として追加
+  if(oc.memory){
+    p.memories=[{cat:'設定',text:String(oc.memory)}];
+  }
+  personas.push(p);
+  try{ saveAllNow(); }catch(e){ console.error('save error',e); }
+  closeTrialPicker();
+  document.getElementById('wizard-screen').style.display='none';
+  switchPersona(p.id);
+  renderQA();
+  updateCostDisplay();
+  showToast('🎁 お試しキャラ「'+oc.aiName+'」を追加しました！');
 }
 
 function finishWizard(){
