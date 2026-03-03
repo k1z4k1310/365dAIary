@@ -2321,6 +2321,52 @@ async function startRally(){
   if(rallyPersonas.length < 2 && !userJoin){showToast('⚠ ラリーにはAI2つ以上、またはAI1つ＋自分参加が必要です');return;}
   if(isRallying){stopRally();return;}
 
+  // テーマ入力ポップアップ
+  showRallyTopicPrompt(rallyPersonas, userJoin);
+}
+
+function showRallyTopicPrompt(rallyPersonas, userJoin){
+  let overlay=document.getElementById('rally-topic-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='rally-topic-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;';
+  const t=THEMES[currentTheme];
+  const names=rallyPersonas.map(r=>r.emoji+' '+r.aiName).join(' × ')+(userJoin?' × あなた':'');
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:22px 20px;max-width:320px;width:90%;color:${t.text};`;
+  box.innerHTML=`
+    <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:6px">⚡ ラリー開始</div>
+    <div style="font-size:11px;text-align:center;opacity:.6;margin-bottom:14px">${names}</div>
+    <div style="font-size:11px;margin-bottom:6px;opacity:.8">会話のテーマ（空欄＝自由会話）</div>
+    <input type="text" id="rally-topic-input" placeholder="例：好きな食べ物について" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid ${t.border};background:${t.surface};color:${t.text};font-size:13px;font-family:inherit;">
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button id="rally-topic-cancel" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:1px solid ${t.border};background:transparent;color:${t.text};">キャンセル</button>
+      <button id="rally-topic-start" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff;">⚡ 開始！</button>
+    </div>
+  `;
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay){overlay.remove();}};
+  document.body.appendChild(overlay);
+  // フォーカス
+  setTimeout(()=>document.getElementById('rally-topic-input')?.focus(),100);
+  // ボタンイベント
+  document.getElementById('rally-topic-cancel').onclick=()=>overlay.remove();
+  document.getElementById('rally-topic-start').onclick=()=>{
+    const topic=document.getElementById('rally-topic-input').value.trim();
+    // サイドバーのテーマ欄にも反映
+    const topicEl=document.getElementById('rally-topic');
+    if(topicEl) topicEl.value=topic;
+    overlay.remove();
+    executeRally(rallyPersonas, userJoin);
+  };
+  // Enterで開始
+  document.getElementById('rally-topic-input').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();document.getElementById('rally-topic-start').click();}
+  });
+}
+
+async function executeRally(rallyPersonas, userJoin){
   const maxTurns  = parseInt(document.getElementById('rally-max-turns').value)||10;
   const maxCost   = parseFloat(document.getElementById('rally-max-cost').value)||0.5;
   const maxSec    = parseInt(document.getElementById('rally-timeout').value)||60;
@@ -2349,22 +2395,14 @@ async function startRally(){
   let pidIdx=0;
 
   // 参加者リスト（AI＋ユーザー）
-  // userJoinの場合は「user」というダミーエントリを順番に挟む
-  const memberList = userJoin
-    ? rallyPersonas.flatMap((p,i)=> i===0 ? [p, {isUser:true}] : [p, {isUser:true}]).slice(0, rallyPersonas.length + rallyPersonas.length)
-    : rallyPersonas;
-  // シンプルに: AI1→user→AI2→user→... の交互、またはAI1→AI2→...
+  // ユーザー参加時：AI全員が1巡してからユーザーのターン
+  // 例：AI-A→AI-B→AI-C→ユーザー→AI-A→AI-B→...
   const participants = userJoin
-    ? (() => {
-        const arr=[];
-        rallyPersonas.forEach(rp=>{ arr.push(rp); arr.push({isUser:true}); });
-        return arr;
-      })()
+    ? [...rallyPersonas, {isUser:true}]
     : rallyPersonas;
 
   const names = rallyPersonas.map(r=>r.aiName).join('・') + (userJoin?' / あなた':'');
   const rallyTopic = (document.getElementById('rally-topic')?.value||'').trim();
-  const topicLabel = rallyTopic ? ` テーマ:「${rallyTopic}」` : '';
   sess.msgs.push({role:'system-info',timestamp:Date.now(),content:`⚡ ラリー開始 [${names}]（最大${maxTurns}回 / 上限$${maxCost} / ${maxSec}秒）${topicLabel}`});
   renderMessages(); renderSessions();
 
@@ -2381,7 +2419,62 @@ async function startRally(){
       renderMessages(); break;
     }
 
-    const current = participants[pidIdx % participants.length];
+    // ── 次の話者を決定 ──
+    let current;
+    const WARMUP_TURNS = rallyPersonas.length; // 最初は全AI1巡（固定順）
+    
+    if(turn < WARMUP_TURNS){
+      // 序盤：固定順でAI全員が1回ずつ話す
+      current = rallyPersonas[turn % rallyPersonas.length];
+    } else {
+      // 中盤以降：名前検出で次の話者を決定
+      const lastMsgs = sess.msgs.filter(m=>m.role!=='system-info');
+      const lastMsg = lastMsgs[lastMsgs.length-1];
+      const lastContent = lastMsg?.content||'';
+      const lastSpeaker = lastMsg?.personaName||'';
+      
+      // 直前の発言にAIの名前が含まれてたら、そのAIが優先
+      let named = rallyPersonas.find(rp => 
+        rp.aiName !== lastSpeaker && lastContent.includes(rp.aiName)
+      );
+      
+      // ユーザーに話が振られた（「あなた」「君」「きみ」等が含まれる）
+      const userCallWords = ['あなた','きみ','君','お前','おまえ'];
+      const calledUser = userJoin && userCallWords.some(w => lastContent.includes(w));
+      
+      if(calledUser && lastMsg?.role !== 'user'){
+        // ユーザーのターン
+        current = {isUser:true};
+      } else if(named){
+        // 名指しされたAIが応答
+        current = named;
+      } else {
+        // 誰も名指しされてない場合：
+        // 直前に話してないAIを優先（会話が偏らないように）
+        const notLastSpeaker = rallyPersonas.filter(rp => rp.aiName !== lastSpeaker);
+        if(notLastSpeaker.length > 0){
+          // 最後に話してから一番時間が経ってるAIを選ぶ
+          let oldest = notLastSpeaker[0];
+          let oldestIdx = -1;
+          notLastSpeaker.forEach(rp => {
+            const lastSpoke = lastMsgs.map((m,i)=>m.personaName===rp.aiName?i:-1).filter(x=>x>=0);
+            const idx = lastSpoke.length>0 ? lastSpoke[lastSpoke.length-1] : -1;
+            if(idx < oldestIdx || oldestIdx === -1){ oldestIdx=idx; oldest=rp; }
+          });
+          current = oldest;
+        } else {
+          current = rallyPersonas[turn % rallyPersonas.length];
+        }
+        // ユーザー参加時：AI数巡に1回はユーザーのターンを挟む
+        if(userJoin && !calledUser){
+          const lastUserIdx = lastMsgs.map((m,i)=>m.role==='user'?i:-1).filter(x=>x>=0);
+          const sinceUser = lastUserIdx.length>0 ? (lastMsgs.length - lastUserIdx[lastUserIdx.length-1]) : 999;
+          if(sinceUser >= rallyPersonas.length + 1){
+            current = {isUser:true};
+          }
+        }
+      }
+    }
 
     // ── ユーザーのターン ──
     if(current.isUser){
@@ -2415,6 +2508,12 @@ async function startRally(){
     const tmId=setTimeout(()=>ac.abort(),remaining*1000);
     try{
       let sysPrompt = buildSystemPrompt(rp);
+      // ラリー用追加指示
+      const otherNames = rallyPersonas.filter(r=>r.aiName!==rp.aiName).map(r=>r.aiName);
+      const rallyContext = '\n\n【会話の参加者】' + rallyPersonas.map(r=>r.aiName).join('、') + (userJoin?'、ユーザー':'') + ' が会話しています。'
+        + '\n自然な会話を心がけてください。他の参加者の名前を呼んで話を振ったり、相手の発言に反応したりしてください。'
+        + (userJoin ? '\nユーザーにも時々話を振ってください。' : '');
+      sysPrompt += rallyContext;
       if(turn===0 && rallyTopic){
         sysPrompt += '\n\n【ラリーのテーマ】今回の会話テーマは「'+rallyTopic+'」です。この話題から会話を始めてください。';
       }
