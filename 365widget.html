@@ -1010,6 +1010,40 @@ function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 // ═══ INIT ═══
 initTheme();
 
+// ── メインアプリとの同期（3重対策） ──
+// 1. BroadcastChannel（同一オリジン・PWA間でも動く）
+if(typeof BroadcastChannel!=='undefined'){
+  const _ch=new BroadcastChannel('365dAIary_sync');
+  _ch.onmessage=(e)=>{
+    try{
+      localStorage.setItem('widget_state',JSON.stringify(e.data));
+      if(currentThemeSource==='main') loadFromMainApp();
+      onTabShow(document.querySelector('.tab.active')?.dataset?.tab||'home');
+    }catch(ex){}
+  };
+}
+// 2. storageイベント（別タブからの変更検知）
+window.addEventListener('storage',(e)=>{
+  if(e.key==='widget_state'){
+    if(currentThemeSource==='main') loadFromMainApp();
+    onTabShow(document.querySelector('.tab.active')?.dataset?.tab||'home');
+  }
+});
+// 3. ポーリング（PWAスタンドアロン同士のフォールバック、30秒間隔）
+let _lastWidgetUpdate=0;
+setInterval(()=>{
+  try{
+    const raw=localStorage.getItem('widget_state');
+    if(!raw) return;
+    const st=JSON.parse(raw);
+    if(st.updatedAt && st.updatedAt>_lastWidgetUpdate){
+      _lastWidgetUpdate=st.updatedAt;
+      if(currentThemeSource==='main') loadFromMainApp();
+      onTabShow(document.querySelector('.tab.active')?.dataset?.tab||'home');
+    }
+  }catch(e){}
+},30000);
+
 // 初期ハッシュ
 (function(){
   const h = location.hash.replace('#','');

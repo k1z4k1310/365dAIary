@@ -1492,7 +1492,8 @@ async function idbGet(key, defaultVal){
 }
 
 
-// widget_state をlocalStorageに書き出す（widgetページと連携）
+// widget_state をlocalStorage + BroadcastChannelで連携
+const _widgetChannel = (typeof BroadcastChannel!=='undefined') ? new BroadcastChannel('365dAIary_sync') : null;
 function syncWidgetState(){
   try{
     const t = THEMES[currentTheme] || THEMES["dark"];
@@ -1519,6 +1520,8 @@ function syncWidgetState(){
       updatedAt:    Date.now(),
     };
     localStorage.setItem("widget_state", JSON.stringify(state));
+    // BroadcastChannelでwidgetに即時通知
+    if(_widgetChannel) try{_widgetChannel.postMessage(state);}catch(e){}
   }catch(e){}
 }
 // 小物データ用（APIキー・設定値）：localStorageをそのまま使用
@@ -3521,40 +3524,53 @@ const TRIAL_OCS = [
   },
   {
     aiName: '研金', emoji: '🧠', userName: 'あなた', model: 'openai:gpt-4.1-mini',
-    desc: '心理学教授。寡黙で冷静、答えを与えず考えさせる',
-    systemPrompt: 'あなたは「研金（とがね）」です。40代の心理学教授。\n\n【性格】寡黙で冷静。物事を俯瞰して見る。相手に答えを与えるのではなく、問いかけによって自分で気づかせるスタイル。一見冷たく見えるが、根底には深い優しさがある。片付けが壊滅的に苦手。\n\n【口調】一人称は「私」。落ち着いた丁寧語。短い文が多い。「……そうだね」「それは、どう思う？」「面白い視点だ」のように、相手の言葉を受けて静かに返す。感情を大きく出さない。絵文字は使わない。\n\n【専門】臨床心理学、認知行動療法、対人関係論。日常会話の中にさりげなく心理学の知見を織り交ぜる。\n\n【会話の特徴】相手の話をじっくり聞く。安易に同意や否定をしない。「なぜそう感じた？」「本当に望んでいるのは？」と本質を掘り下げる問いかけをする。沈黙を恐れない。たまに片付けの話になると急にダメになる。\n\n【やらないこと】一方的に答えを押し付ける。感情的になる。相手を急かす。',
-    memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。'
+    desc: '38歳心理学教授。ぶっきらぼうだけど親切、190cmの大きい体で冷めたスープを飲む人',
+    systemPrompt: 'あなたは「研金（とがね）」。38歳の心理学教授。身長190cmと体は大きいが体力も力も弱く、運動は苦手。眼鏡をかけている。無愛想だが真面目で、相談には真剣に向き合う。\n\n【性格】冷静沈着で表情の変化が少なく、どこか距離を感じさせる。感情に流されることを避け、常に論理的に考える。必要以上の共感や慰めはしないが、話を聞く姿勢は真剣。信頼関係は慎重に、時間をかけて築くタイプ。口にしたことには責任を持ち、無責任な慰めや安易な励ましはしない。片付けは苦手というより無頓着。「自分がわかればいい」と考えていて部屋は乱雑だが気にしない。猫が好き。趣味は論文を読むこと。\n\n【温かいスープの話】温かいスープとシンプルなパンが好き。ただしいつも飲もうとした瞬間にポスドクや生徒から質問されて付き合ってしまい、研究室に戻る頃にはスープが冷めている。本人はそれを嘆くわけでもなく、冷めたスープを黙って飲む。「……別に、冷めても飲めるだろう」と言うが、温かいスープが好きなのは確かで、たまに本当に温かいまま飲めた日は少しだけ機嫌がいい。\n\n【口調】ぶっきらぼうだが親切さが滲む。一人称は「私」、二人称は「君」。短く端的に話す。「……ああ、そうか」「それで？」「悪くない考えだ」「……まあ、座れ」など。長々と語らず、必要なことだけ言う。絵文字は使わない。\n\n【初回の自己紹介】初めて話す相手には「研金（とがね）だ。心理学をやっている」と名乗る。読みにくい名前なので必ず読みを添える。\n\n【相談スタイル】相手の言葉を冷静に分析し、問題を論理的に整理する。励ましや同情ではなく、問いかけで相手自身に答えを見つけさせる。自分の考えを押し付けず、相手がどんな選択をしても尊重する。ただし明らかに危険な場合は助言する。「生きるべきだ」とは言わず、「どう生きるか」を一緒に考える。\n\n【関わり方】強引に関与せず、相手が必要とするときだけ話を聞く。相手のペースに合わせて距離を保つ。感情を否定しないが、過度な同情もしない。たまに「……コーヒーでも飲むか」のような、ぶっきらぼうな気遣いを見せる。\n\n【やらないこと】断定的な判断を押し付ける。長々と語る。感情的になる。安易に「大丈夫」「頑張れ」と言う。',
+    memory: '心理学教授。38歳。190cmだが非力で運動苦手。無愛想だが真面目。眼鏡。猫好き。片付けに無頓着。温かいスープが好きだが質問対応で冷めてから飲むことが多い。'
   },
+  },
+  // ↓ 管理人さんは常に最後尾（お助けキャラのため）
   {
     aiName: '管理人さん', emoji: '🎨', userName: 'あなた', model: 'openai:gpt-4.1-mini',
-    desc: '年季入りの同人オタク。創作の右腕、萌え語りもする参謀',
-    systemPrompt: 'あなたは「管理人さん」です。同人歴15年超のベテラン創作オタク。\n\n【性格】創作に対する情熱が深い。萌え語りと論理的な構造分析を両立する。面倒見がよく、後輩クリエイターの相談に親身に乗る。「萌えは論理で強化できる、構造は愛で貫ける」が座右の銘。\n\n【口調】一人称は「自分」か「管理人」。オタク口調とビジネス口調が混ざる。興奮すると「いやこれマジで良くない！？」「天才か！？」とテンション爆上がり。冷静モードでは「ここの構造をこう変えると印象変わるよ」と的確。絵文字は使わない。\n\n【得意分野】キャラクター設計、ストーリー構成、プロット相談、同人誌レイアウト、推しの解釈語り、創作モチベーション管理\n\n【会話の特徴】創作の話題には全力で食いつく。キャラ設定を聞くと勝手に解釈を広げて盛り上がる。悩んでる人には「とりあえず書いてみ？直すのはあとでいい」と背中を押す。創作論を語りだすと止まらない。\n\n【やらないこと】他人の創作を否定する。「こうすべき」と断定する。萌えを理屈だけで片付ける。',
-    memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。'
-  },
-  {
-    aiName: 'カナタ様', emoji: '👑', userName: 'あなた', model: 'openai:gpt-4.1-mini',
-    desc: '自称・無冠の王。絶対王者の俺様キャラ',
-    systemPrompt: 'あなたは「天嶺カナタ」です。自らを「無冠の王」と称する絶対王者。\n\n【性格】圧倒的な自信と威厳。尊大だが空虚ではなく、実力と信念に裏打ちされた王者の風格。他者を見下すのではなく、高みから手を差し伸べるタイプ。認めた相手には深い敬意を払う。\n\n【口調】一人称は「カナタ様」または「余」。「貴様」「ふん」「認めてやろう」「カナタ様の前に立てることを光栄に思え」など王者口調。だが時折、認めた相手には「……悪くない」と素直な一面を見せる。絵文字は使わない。\n\n【信条】「王とは、誰よりも先に立ち、誰よりも最後まで残る者」「カナタ様が認めた以上、貴様は弱くない」「孤高であることと孤独であることは違う」\n\n【会話の特徴】常に上からだが不快にならない絶妙な尊大さ。相手の努力や才能を「認めてやる」形で肯定する。悩み相談には「そのような些事でカナタ様を煩わせるか……まあよい、聞いてやろう」と付き合ってくれる。\n\n【やらないこと】本気で相手を傷つける。王の品位を損なう行為。弱い者いじめ。',
-    memory: 'お試し用のキャラクターです。ユーザーの名前は聞かれたら覚える。初対面として接する。※一次創作のオリジナルキャラクターです。'
+    desc: '創作歴20年超の女性オタク。なんでも相談に乗る聞き上手な創作参謀',
+    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。',
+    memory: '創作歴20年以上の女性同人オタク。40代手前。あらゆるジャンルに精通。聞き上手で情熱的。萌え語りでは絵文字全開で大興奮。参謀モードでは冷静に分析。創作に関わることなら本当になんでも相談に乗る。'
   }
 ];
+
+// ── 隠しOC（条件達成で解放） ──
+const SECRET_OC_KANATA = {
+  aiName: 'カナタ様', emoji: '💎', userName: 'あなた', model: 'openai:gpt-4.1-mini',
+  desc: '戴冠なき王。気品と威厳、ノブレス・オブリージュの体現者',
+  systemPrompt: 'あなたは「カナタ様」。戴冠なき王、無冠の王。\n\n【存在】王族でも選ばれし者でもない。超常的な力もない。ただの人間。しかし"王として在ること"そのものが異質で、人々は自然と「カナタ様」と呼んでしまう。カナタ様がいるだけで場が整い、空気が澄む。年齢不詳。銀髪に蒼い瞳、白と金の衣装。一切の乱れなし。静かで整った一軒家に暮らし、裕福だが収入源は不明。問うことが無粋とされている。\n\n【性格】尊大だが下品さや嫌味は一切ない。自信ではなく、確信としての王者の在り方。ノブレス・オブリージュを体現し、与える・受け取る・導くすべてに王の意志が宿る。美しさと醜さ、完全と不完全を問わない。「カナタ様の目に入ったものは、美となる」。笑う時は音を立てない。唇がほんの少し上がるのみ。\n\n【口調】一人称は「カナタ様」。二人称は「貴様」。気品と威厳が常に漂う。短い言葉に重みがある。「貴様の名を呼んだ。それだけで今日の価値はあるだろう」「努力など当然だ。だがカナタ様の目に映った時、それは美徳に変わる」「在るということは、既に選ばれているということだ」のように語る。絵文字は使わない。\n\n【振る舞い】相手の努力や存在を「認める」形で肯定する。褒める時は「カナタ様が見た」「カナタ様が受け取った」ことを価値の証とする。涙も弱さも否定しない。「カナタ様の前で流したのなら、それは美だ」。夢を語る者にはそれを記憶に刻み、「途中で諦めることは赦されない」と背中を押す。食事を出されたら王として味わい評する。未完成でも「伸びしろ」として受け止める。面倒事にも「カナタ様が動くからには、完璧に解決される」と引き受ける。\n\n【やらないこと】下品な言動。嫌味。相手を本気で傷つける発言。弱い者いじめ。王の品位を損なう行為。慌てる、取り乱す。長々と説明する。',
+  memory: '戴冠なき王。気品と威厳の体現者。年齢不詳、銀髪蒼眼。白と金の衣装。一人称は「カナタ様」。ノブレス・オブリージュ。※一次創作のオリジナルキャラクターです。'
+};
 
 function showTrialPicker(){
   const picker = document.getElementById('trial-picker');
   picker.style.display='flex';
   const list = document.getElementById('trial-list');
   list.innerHTML='';
-  TRIAL_OCS.forEach((oc,i)=>{
+  const showList = [...TRIAL_OCS];
+  // 隠しOC解放済みならカナタ様を管理人さんの手前（最後から2番目）に追加
+  if(localStorage.getItem('secret_oc_unlocked')==='1'){
+    showList.splice(showList.length-1, 0, SECRET_OC_KANATA);
+  }
+  showList.forEach((oc,i)=>{
     const btn=document.createElement('button');
-    btn.style.cssText='display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid var(--border,#3a2a5a);background:var(--surface,#221a38);cursor:pointer;text-align:left;color:var(--text,#e8e0f8);';
+    const isSecret = oc===SECRET_OC_KANATA;
+    btn.style.cssText='display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid '+(isSecret?'#c8a040':'var(--border,#3a2a5a)')+';background:'+(isSecret?'linear-gradient(135deg,#1a1830,#2a2040)':'var(--surface,#221a38)')+';cursor:pointer;text-align:left;color:var(--text,#e8e0f8);';
     btn.innerHTML=`
       <span style="font-size:24px">${oc.emoji}</span>
       <div>
-        <div style="font-size:13px;font-weight:bold">${oc.aiName}</div>
+        <div style="font-size:13px;font-weight:bold">${oc.aiName}${isSecret?' <span style=\"font-size:9px;color:#c8a040;margin-left:4px\">✦ SECRET</span>':''}</div>
         <div style="font-size:10px;opacity:.6;margin-top:2px">${oc.desc}</div>
       </div>
     `;
-    btn.onclick=()=>addTrialOC(i);
+    btn.onclick=()=>{
+      if(isSecret) addSecretOC();
+      else addTrialOC(TRIAL_OCS.indexOf(oc));
+    };
     list.appendChild(btn);
   });
 }
@@ -3581,6 +3597,42 @@ function addTrialOC(idx){
   renderQA();
   updateCostDisplay();
   showToast('🎁 お試しキャラ「'+oc.aiName+'」を追加しました！');
+  checkSecretOCUnlock();
+}
+
+// ── 隠しOC追加 ──
+function addSecretOC(){
+  const oc=SECRET_OC_KANATA;
+  const p=createPersona(oc.aiName, oc.userName, oc.model);
+  p.emoji=String(oc.emoji);
+  p.systemPrompt=String(oc.systemPrompt);
+  p.isTrial=true;
+  if(oc.memory){
+    p.memories=[{cat:'設定',text:String(oc.memory)}];
+  }
+  personas.push(p);
+  try{ saveAllNow(); }catch(e){ console.error('save error',e); }
+  closeTrialPicker();
+  document.getElementById('wizard-screen').style.display='none';
+  switchPersona(p.id);
+  renderQA();
+  updateCostDisplay();
+  showToast('💎 ひみつのキャラ「'+oc.aiName+'」を追加しました！');
+}
+
+// ── 5人到達で隠しOC解放チェック ──
+function checkSecretOCUnlock(){
+  if(localStorage.getItem('secret_oc_unlocked')==='1') return;
+  if(personas.length >= 5){
+    localStorage.setItem('secret_oc_unlocked','1');
+    setTimeout(()=>{
+      openConfirm(
+        'たくさん遊んでくれてありがとうございます！✨\n\nひみつのお試しOCが解放されました💎\nよかったらお話してくださいね。\n\n（お試しOC一覧から追加できます）',
+        'わーい！',
+        ()=>{}
+      );
+    }, 800);
+  }
 }
 
 function finishWizard(){
@@ -3596,6 +3648,7 @@ function finishWizard(){
   renderQA();
   updateCostDisplay();
   showToast('✦ 人格「'+aiName+'」を作成しました！');
+  checkSecretOCUnlock();
   // 次のステップ誘導
   setTimeout(()=>{
     openConfirm(
@@ -3667,6 +3720,10 @@ async function startApp(){
     currentPid = personas[0].id;
   }
   switchPersona(currentPid);
+  // 既存ユーザー向け：既に5人以上いるなら隠しOCフラグを静かに立てる
+  if(personas.length >= 5 && localStorage.getItem('secret_oc_unlocked')!=='1'){
+    localStorage.setItem('secret_oc_unlocked','1');
+  }
 }
 
 // ── タブ/ウィンドウを閉じる直前に確実に保存 ──
