@@ -883,6 +883,7 @@ let personas   = [];   // [{id, aiName, userName, model, systemPrompt, memories,
 let currentPid = null; // current persona id
 let currentSid = null; // current session id
 let isLoading  = false;
+let sendAbortController = null; // #35 送信中断用
 let isComposing= false;
 let isRallying = false;
 let rallyAbort = false;
@@ -1992,6 +1993,20 @@ function renderMessages(){
     bubble.style.borderColor=isSystem?t.border:isUser?t.userBorder:t.aiBorder;
     bubble.style.color=displayContent.startsWith('⚠')?'#e05555':isUser?t.userText:t.text;
     bubble.textContent=displayContent;
+
+    // #36 ユーザーメッセージ: 長押し/右クリックでコピー・書き直しメニュー
+    if(isUser && !isSystem){
+      let pressTimer=null;
+      const showMsgMenu=(e)=>{
+        e.preventDefault();
+        openMsgContextMenu(idx, msg, e.clientX||e.touches?.[0]?.clientX||0, e.clientY||e.touches?.[0]?.clientY||0);
+      };
+      bubble.addEventListener('contextmenu', showMsgMenu);
+      bubble.addEventListener('touchstart',(e)=>{pressTimer=setTimeout(()=>showMsgMenu(e),500);},{passive:false});
+      bubble.addEventListener('touchend',()=>clearTimeout(pressTimer));
+      bubble.addEventListener('touchmove',()=>clearTimeout(pressTimer));
+      bubble.style.cursor='context-menu';
+    }
     if(displayContent.startsWith('⚠')){
       const helpLink=document.createElement('span');
       helpLink.style.cssText='display:block;margin-top:6px;font-size:10px;color:#e05555;opacity:.8;text-decoration:underline;cursor:pointer;';
@@ -2241,15 +2256,20 @@ async function send(){
   document.getElementById('title').textContent=sess.title;
   renderMessages();
   renderSessions();
+  sendAbortController=new AbortController();
   try{
-    const reply=await callAPI(provider,model,buildSystemPrompt(p),trimHistory(sess.msgs));
-    // 疑似ストリーミング
+    const reply=await callAPI(provider,model,buildSystemPrompt(p),trimHistory(sess.msgs),sendAbortController.signal);
     await pseudoStream(sess,reply,p.aiName);
   } catch(e){
-    sess.msgs.push({role:'assistant',content:'⚠ エラー: '+e.message,personaName:p.aiName,timestamp:Date.now()});
+    if(e.name==='AbortError'){
+      sess.msgs.push({role:'system-info',content:'■ 生成を停止しました',timestamp:Date.now()});
+    } else {
+      sess.msgs.push({role:'assistant',content:'⚠ エラー: '+e.message,personaName:p.aiName,timestamp:Date.now()});
+    }
     saveAllNow();
     renderMessages();
   }
+  sendAbortController=null;
   sess.updatedAt=Date.now();
   saveAllNow();
   setLoading(false);
@@ -2303,6 +2323,51 @@ async function pseudoStream(sess, fullText, aiName){
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
+// ── メッセージコンテキストメニュー（#36） ──
+function openMsgContextMenu(msgIdx, msg, x, y){
+  let old=document.getElementById('msg-ctx-menu');
+  if(old) old.remove();
+  const t=THEMES[currentTheme];
+  const menu=document.createElement('div');
+  menu.id='msg-ctx-menu';
+  menu.style.cssText=`position:fixed;z-index:99999;background:${t.bg};border:1px solid ${t.border};border-radius:10px;padding:6px 0;box-shadow:0 4px 16px rgba(0,0,0,.15);min-width:140px;`;
+  // 画面からはみ出さないよう位置調整
+  menu.style.left=Math.min(x, window.innerWidth-160)+'px';
+  menu.style.top=Math.min(y, window.innerHeight-120)+'px';
+
+  const items=[
+    {label:'📋 コピー', action:()=>{navigator.clipboard.writeText(msg.content).then(()=>showToast('コピーしました')).catch(()=>showToast('⚠ コピーに失敗'));}},
+    {label:'✏️ 書き直し', action:()=>{
+      const input=document.getElementById('input');
+      input.value=msg.content;
+      input.focus();
+      // 元のメッセージとそれ以降を削除
+      const sess=currentSession();
+      if(sess){
+        sess.msgs.splice(msgIdx);
+        saveAllNow();
+        renderMessages();
+      }
+      showToast('入力欄にコピーしました。編集して再送信してね');
+    }},
+  ];
+  items.forEach(it=>{
+    const btn=document.createElement('button');
+    btn.textContent=it.label;
+    btn.style.cssText=`display:block;width:100%;text-align:left;padding:8px 16px;border:none;background:none;cursor:pointer;font-size:13px;color:${t.text};font-family:inherit;`;
+    btn.onmouseenter=()=>btn.style.background=t.surface;
+    btn.onmouseleave=()=>btn.style.background='none';
+    btn.onclick=()=>{menu.remove();it.action();};
+    menu.appendChild(btn);
+  });
+  document.body.appendChild(menu);
+  // 画面タップで閉じる
+  setTimeout(()=>{
+    const closer=(e)=>{if(!menu.contains(e.target)){menu.remove();document.removeEventListener('click',closer);}};
+    document.addEventListener('click',closer);
+  },10);
+}
+
 function setLoading(v,aiName){
   isLoading=v;
   const typing=document.getElementById('typing');
@@ -2320,7 +2385,18 @@ function updateSendBtn(){
   const t=THEMES[currentTheme];
   const btn=document.getElementById('send-btn');
   const input=document.getElementById('input');
-  // ユーザー参加ラリーの待機中は入力を有効にする
+  // loading中は停止ボタンに変身
+  if(isLoading && sendAbortController){
+    btn.disabled=false;
+    btn.textContent='■ 停止';
+    btn.style.background='#e05555';
+    btn.style.opacity='1';
+    btn.onclick=()=>{if(sendAbortController)sendAbortController.abort();};
+    return;
+  }
+  // 通常状態
+  btn.textContent='送信 ↑';
+  btn.onclick=()=>send();
   const disabled=(isLoading||(isRallying&&!rallyUserWaiting))||!input.value.trim();
   btn.disabled=disabled;
   btn.style.background=disabled?t.border:t.sendBtn;
@@ -3186,9 +3262,10 @@ function showPwError(msg){
 const GATE_PASSWORD = 'api-required';
 
 function checkGatePassword(){
-  const val = document.getElementById('pw-gate-input').value;
+  const val = document.getElementById('pw-gate-input').value.trim().toLowerCase();
   if(val === GATE_PASSWORD){
     sessionStorage.setItem('ai_gate','1');
+    localStorage.setItem('ai_gate_passed','1');
     document.getElementById('pw-gate').style.display='none';
     document.getElementById('pw-box').style.display='flex';
     initStep2();
@@ -3223,10 +3300,16 @@ function bindPasswordEvents(){
   }
 }
 
-function initPasswordScreen(){
-  // アカウントがある人（ユーザーPW設定済み）はゲートPWスキップ
+async function initPasswordScreen(){
+  // アカウントがある人はゲートPWスキップ
   const hasAccount = localStorage.getItem('ai_user_pw_hash') || localStorage.getItem('ai_user_pw');
-  if(hasAccount || sessionStorage.getItem('ai_gate')==='1'){
+  const gatePassed = localStorage.getItem('ai_gate_passed')==='1';
+  // IndexedDBに人格データがあるかもチェック
+  let hasIDBData = false;
+  try{ const d=await idbGet('ai_personas'); if(d && d.length>0) hasIDBData=true; }catch(e){}
+  if(hasAccount || hasIDBData || gatePassed || sessionStorage.getItem('ai_gate')==='1'){
+    // 既存ユーザーは永続フラグも立てる（次回以降も確実にスキップ）
+    localStorage.setItem('ai_gate_passed','1');
     document.getElementById('pw-gate').style.display='none';
     document.getElementById('pw-box').style.display='flex';
     initStep2();
@@ -3558,7 +3641,7 @@ window.addEventListener('beforeunload', ()=>{ try{ saveAllNow(); }catch(e){} });
       document.getElementById('pw-screen').style.display='none';
       await startApp();
     } else {
-      initPasswordScreen();
+      await initPasswordScreen();
     }
   } catch(e){
     // 起動エラーを画面に表示（デバッグ用）
