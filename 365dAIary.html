@@ -171,12 +171,12 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 
 /* ── Wizard screen ── */
 #wizard-screen{position:fixed;inset:0;z-index:999;display:none;align-items:center;justify-content:center}
-#wizard-box{width:min(380px,92vw);border-radius:14px;padding:28px 22px;display:flex;flex-direction:column;gap:16px;border:1px solid}
+#wizard-box{width:min(380px,92vw);border-radius:14px;padding:28px 22px;display:flex;flex-direction:column;gap:16px;border:1px solid;overflow:hidden;box-sizing:border-box}
 .wiz-title{font-family:monospace;font-size:15px;letter-spacing:3px;text-align:center}
 .wiz-sub{font-size:12px;text-align:center;line-height:1.7;opacity:.8}
 .wiz-field{display:flex;flex-direction:column;gap:5px}
 .wiz-label{font-family:monospace;font-size:10px;letter-spacing:2px}
-.wiz-input{font-size:13px;padding:8px 10px;border-radius:6px;border:1px solid;outline:none;background:none;color:inherit}
+.wiz-input{font-size:13px;padding:8px 10px;border-radius:6px;border:1px solid;outline:none;background:none;color:inherit;box-sizing:border-box}
 .wiz-btn{padding:9px;border:none;border-radius:6px;cursor:pointer;font-family:monospace;font-size:13px;color:#fff;letter-spacing:1px}
 
 /* ── Animations ── */
@@ -303,6 +303,17 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <input class="pw-input-f" id="pw-gate-input" type="password" placeholder="••••••••" autocomplete="off" maxlength="64" autofocus>
       <button class="pw-submit" onclick="checkGatePassword()">🚪 進む</button>
       <div id="pw-gate-error" style="font-family:monospace;font-size:11px;color:#c04040;min-height:16px"></div>
+      <a href="https://wavebox.me/wave/dbe7d1pv6awdmttz/" target="_blank" rel="noopener" style="font-family:monospace;font-size:10px;color:#9080b8;text-decoration:none;opacity:.7;margin-top:4px">💌 開発者へのメッセージ・ご意見はこちら</a>
+
+      <!-- ベータコード入力 -->
+      <div style="margin-top:10px">
+        <button id="beta-toggle" onclick="toggleBetaInput()" style="background:none;border:none;font-family:monospace;font-size:10px;color:#b0a0d0;cursor:pointer;opacity:.7;letter-spacing:1px">🎫 ベータテスターコードをお持ちの方</button>
+        <div id="beta-panel" style="display:none;margin-top:8px;flex-direction:column;gap:6px">
+          <input class="pw-input-f" id="beta-code-input" type="text" placeholder="コードを入力" autocomplete="off" maxlength="20" style="font-size:12px;text-align:center;letter-spacing:2px">
+          <button class="pw-submit" onclick="checkBetaCode()" style="font-size:11px;padding:8px;background:linear-gradient(135deg,#60b080,#40c0a0,#60d0b0)">🎫 コードで入室</button>
+          <div id="beta-error" style="font-family:monospace;font-size:10px;color:#c04040;min-height:14px;text-align:center"></div>
+        </div>
+      </div>
     </div>
 
     <!-- ステップ2：個人パスワード設定／ログイン（ステップ1通過後に表示） -->
@@ -527,9 +538,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-sub">最初のAI人格を作りましょう。<br>あとからいつでも追加・変更できます。</div>
     <div class="wiz-field">
       <span class="wiz-label">AIの名前（表示名）</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input class="wiz-input" >
-        <input class="wiz-input" id="wiz-ai-name" type="text" placeholder="例：アシスタント、先生、相棒" maxlength="20" style="flex:1">
+      <div style="display:flex;gap:8px;align-items:center;min-width:0">
+        <input class="wiz-input" id="wiz-emoji" type="text" placeholder="💬" maxlength="15" style="width:52px;min-width:52px;text-align:center;font-size:18px;padding:6px 4px;flex-shrink:0" oninput="validateEmoji(this)" onclick="focusEmojiInput('wiz-emoji')">
+        <input class="wiz-input" id="wiz-ai-name" type="text" placeholder="例：アシスタント、先生、相棒" maxlength="20" style="flex:1;min-width:0">
       </div>
       <span style="font-family:monospace;font-size:10px;opacity:.5">← タップして端末の絵文字キーボードで選んでね</span>
     </div>
@@ -577,9 +588,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div style="font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center">＋ 人格を追加</div>
     <div class="wiz-field" style="gap:5px">
       <span class="wiz-label">AIの名前</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input class="wiz-input" id="modal-emoji" type="text" placeholder="💬" maxlength="15" style="width:52px;text-align:center;font-size:18px;padding:6px 4px;" oninput="validateEmoji(this)" onclick="focusEmojiInput('modal-emoji')">
-        <input class="wiz-input" id="modal-ai-name" type="text" placeholder="例：アシスタント、先生" maxlength="20" style="flex:1">
+      <div style="display:flex;gap:8px;align-items:center;min-width:0">
+        <input class="wiz-input" id="modal-emoji" type="text" placeholder="💬" maxlength="15" style="width:52px;min-width:52px;text-align:center;font-size:18px;padding:6px 4px;flex-shrink:0" oninput="validateEmoji(this)" onclick="focusEmojiInput('modal-emoji')">
+        <input class="wiz-input" id="modal-ai-name" type="text" placeholder="例：アシスタント、先生" maxlength="20" style="flex:1;min-width:0">
       </div>
       <span style="font-family:monospace;font-size:10px;opacity:.5">← タップして端末の絵文字キーボードで選んでね</span>
     </div>
@@ -684,15 +695,31 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 
   <!-- Memory -->
   <div class="sb-sec">
-    <span class="sb-lbl">AIメモ（覚えておいてほしいこと）</span>
+    <span class="sb-lbl">思い出メモ（覚えておいてほしいこと）</span>
     <div id="memory-list"></div>
     <div style="display:flex;gap:4px;margin-top:6px">
       <input class="sb-inp" id="mem-cat-input" type="text" placeholder="カテゴリ名" style="width:80px;flex-shrink:0">
       <input class="sb-inp" id="mem-input" type="text" placeholder="覚えておきたいこと">
     </div>
     <button class="sb-btn" onclick="addMemory()">＋ 追加</button>
-    <button class="sb-btn" onclick="clearMemory()" style="margin-top:3px">🗑 AIメモを全削除</button>
-    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと記憶を積み重ねる</div>
+    <button class="sb-btn" onclick="clearMemory()" style="margin-top:3px">🗑 思い出メモを全削除</button>
+    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる</div>
+  </div>
+
+  <!-- my dAIary（AI日記） -->
+  <div class="sb-sec" id="diary-sec">
+    <span class="sb-lbl">📔 my dAIary（AI日記）</span>
+    <div style="font-size:10px;opacity:.6;line-height:1.7;margin-bottom:6px">AIキャラが今日の会話を振り返って日記を書きます。</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <span style="font-size:10px;opacity:.6;white-space:nowrap">モード:</span>
+      <select id="diary-mode" onchange="saveDiaryMode()" style="flex:1;font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid;background:none;color:inherit;font-family:monospace">
+        <option value="off">OFF</option>
+        <option value="manual">✋ 手動</option>
+        <option value="auto">⏰ 自動（朝4時）</option>
+      </select>
+    </div>
+    <button class="sb-btn" id="diary-write-btn" onclick="writeDiary()" style="display:none">📔 日記を書いてもらう</button>
+    <div id="diary-latest" style="margin-top:6px"></div>
   </div>
 
   <!-- Rally settings -->
@@ -766,15 +793,64 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div id="import-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
   </div>
 
-  <!-- パスワード変更 -->
-  <div class="sb-sec" id="pw-change-sec">
-    <span class="sb-lbl">🔑 パスワード変更</span>
-    <div id="pw-change-form" style="display:flex;flex-direction:column;gap:8px">
-      <input class="sb-inp" id="pw-change-old" type="password" placeholder="今のパスワード" maxlength="64" autocomplete="off">
-      <input class="sb-inp" id="pw-change-new1" type="password" placeholder="新しいパスワード（4文字以上）" maxlength="64" autocomplete="new-password">
-      <input class="sb-inp" id="pw-change-new2" type="password" placeholder="新しいパスワード（もう一度）" maxlength="64" autocomplete="new-password">
-      <button class="sb-btn" onclick="changePassword()">🔑 パスワードを変更</button>
-      <div id="pw-change-status" style="font-family:monospace;font-size:10px;text-align:center;min-height:16px"></div>
+  <!-- 開発者へのメッセージ -->
+  <div class="sb-sec" style="text-align:center" id="feedback-sec">
+    <div id="beta-feedback-banner" style="display:none;margin-bottom:8px;padding:10px;border-radius:8px;border:2px solid #60b080;background:rgba(96,176,128,.08)">
+      <div style="font-family:monospace;font-size:11px;font-weight:bold;color:#60b080;letter-spacing:1px;margin-bottom:4px">🎫 ベータテスター特典</div>
+      <div style="font-family:monospace;font-size:10px;line-height:1.7;opacity:.8">
+        フィードバックへのお礼をご用意しています。<br>
+        Waveboxにコードを添えて<br>感想を送ってください！
+      </div>
+    </div>
+    <a id="wavebox-link" href="https://wavebox.me/wave/dbe7d1pv6awdmttz/" target="_blank" rel="noopener" style="display:inline-block;font-family:monospace;font-size:11px;text-decoration:none;letter-spacing:1px;padding:6px 14px;border-radius:6px;border:1px solid;opacity:.7">💌 開発者へメッセージを送る</a>
+    <div style="font-family:monospace;font-size:9px;opacity:.4;margin-top:4px">ご意見・ご感想・バグ報告（匿名OK）</div>
+  </div>
+
+  <!-- アカウント管理（アコーディオン） -->
+  <div class="sb-sec" style="padding:0">
+    <button id="acct-toggle" style="width:100%;text-align:left;background:none;border:none;padding:10px 12px;font-family:monospace;font-size:10px;letter-spacing:2px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:inherit;opacity:.7" onclick="toggleAcctPanel()">
+      <span>⚙ アカウント管理</span><span id="acct-arrow">▸</span>
+    </button>
+    <div id="acct-panel" style="display:none;padding:0 12px 12px">
+
+      <!-- パスワード変更 -->
+      <div style="font-family:monospace;font-size:10px;letter-spacing:1px;margin-bottom:6px;opacity:.6">🔑 パスワード変更</div>
+      <div id="pw-change-form" style="display:flex;flex-direction:column;gap:8px">
+        <input class="sb-inp" id="pw-change-old" type="password" placeholder="今のパスワード" maxlength="64" autocomplete="off">
+        <input class="sb-inp" id="pw-change-new1" type="password" placeholder="新しいパスワード（4文字以上）" maxlength="64" autocomplete="new-password">
+        <input class="sb-inp" id="pw-change-new2" type="password" placeholder="新しいパスワード（もう一度）" maxlength="64" autocomplete="new-password">
+        <button class="sb-btn" onclick="changePassword()">🔑 パスワードを変更</button>
+        <div id="pw-change-status" style="font-family:monospace;font-size:10px;text-align:center;min-height:16px"></div>
+      </div>
+
+      <!-- 区切り -->
+      <div style="border-top:1px solid;margin:14px 0 10px;opacity:.2"></div>
+
+      <!-- データ削除 -->
+      <div style="font-family:monospace;font-size:10px;letter-spacing:1px;margin-bottom:6px;opacity:.6">🗑 データ削除</div>
+      <div style="font-size:10px;line-height:1.7;opacity:.6;margin-bottom:8px">
+        削除したいデータを選んでください。<br>
+        <span style="color:#e05555">※ この操作は取り消せません。</span>
+      </div>
+      <div id="delete-options" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+        <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer">
+          <input type="checkbox" id="del-sessions" style="width:14px;height:14px"> 会話履歴（全セッション）
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer">
+          <input type="checkbox" id="del-personas" style="width:14px;height:14px"> 人格データ（全キャラクター）
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer">
+          <input type="checkbox" id="del-apikeys" style="width:14px;height:14px"> APIキー
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer">
+          <input type="checkbox" id="del-password" style="width:14px;height:14px"> パスワード（次回アクセス時に再設定）
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer;color:#e05555">
+          <input type="checkbox" id="del-all" style="width:14px;height:14px" onchange="toggleDeleteAll(this)"> <strong>すべて削除（完全リセット）</strong>
+        </label>
+      </div>
+      <button class="sb-btn" style="background:#e05555;color:#fff;border:none" onclick="executeDelete()">🗑 選択したデータを削除</button>
+      <div id="delete-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
     </div>
   </div>
 
@@ -799,6 +875,17 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <button class="sb-close" onclick="toggleRight()">✕</button>
     <span style="font-family:monospace;font-size:11px;letter-spacing:2px;flex:1">📋 会話履歴</span>
     <button class="new-btn" id="new-btn-r" onclick="newSession();toggleRight()">＋ 新規</button>
+  </div>
+  <!-- 検索UI -->
+  <div id="search-panel" style="padding:6px 10px;border-bottom:1px solid;display:flex;flex-direction:column;gap:5px">
+    <input id="sess-search" type="text" placeholder="🔍 会話を検索…" style="width:100%;font-size:12px;padding:6px 8px;border-radius:6px;border:1px solid;outline:none;background:none;color:inherit;box-sizing:border-box;font-family:monospace">
+    <div style="display:flex;gap:4px;align-items:center">
+      <input id="sess-date-from" type="date" style="flex:1;font-size:10px;padding:3px 4px;border-radius:4px;border:1px solid;background:none;color:inherit;font-family:monospace">
+      <span style="font-size:10px;opacity:.5">〜</span>
+      <input id="sess-date-to" type="date" style="flex:1;font-size:10px;padding:3px 4px;border-radius:4px;border:1px solid;background:none;color:inherit;font-family:monospace">
+      <button id="search-clear-btn" onclick="clearSearch()" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid;background:none;cursor:pointer;color:inherit;font-family:monospace;opacity:.6">✕</button>
+    </div>
+    <div id="search-result-info" style="font-family:monospace;font-size:9px;opacity:.5;min-height:14px"></div>
   </div>
   <div id="sessions-list"></div>
 </div>
@@ -922,6 +1009,8 @@ const MODEL_PRICE = {
   'claude-3-haiku-20240307':   {in:0.00025,out:0.00125},
   'gemini-2.0-flash':          {in:0.0001,  out:0.0004},
   'gemini-2.5-flash':          {in:0.00015, out:0.00035},
+  'gemini-2.0-flash-lite':     {in:0.00004, out:0.00016},
+  'claude-3-5-haiku-20241022': {in:0.0008,  out:0.004},
 };
 
 // ── Q&A data ──
@@ -1004,7 +1093,7 @@ const CHANGELOG = [
     items: [
       '365dAIary 初回公開',
       'OpenAI / Anthropic / Google APIに対応',
-      '人格管理・セッション管理・メモリ機能',
+      '人格管理・セッション管理・思い出メモ機能',
       'テーマ切り替え・コスト管理・AIラリー機能',
     ]
   },
@@ -1125,7 +1214,7 @@ AIの名前・あなたの呼び名・使用モデルを設定して
 ・表示名（AI名・あなたの呼び名）
 ・使用するAIモデル
 ・システムプロンプト（AIへの指示・性格設定）
-・メモリ（覚えておいてほしいこと）
+・思い出メモ（覚えておいてほしいこと）
 ・会話履歴（全セッション）
 
 ────────────────────
@@ -1166,11 +1255,41 @@ AIの名前・あなたの呼び名・使用モデルを設定して
 最初は「最大5回 / $0.10 / 30秒」など
 小さな値でお試しください。`},
 
+  {q:'🛡 会話データはAIの学習に使われる？', a:
+`────────────────────
+API経由のデータは学習に使われません
+────────────────────
+OpenAI・Anthropic・Googleいずれも、
+API経由で送信されたデータは
+モデルの学習（トレーニング）には
+使用しないと明記しています。
+
+つまり、あなたのOCの設定や会話内容が
+AI各社の学習データに取り込まれることは
+ありません。
+
+※ これは各社のAPI利用規約に基づいています。
+　規約は変更される可能性があるため、
+　最新の規約もあわせてご確認ください。
+
+参考：
+・OpenAI API Data Usage Policy
+・Anthropic API Terms of Service
+・Google AI Studio / Gemini API Terms
+
+────────────────────
+365dAIaryは「あえてやらない」
+────────────────────
+画像生成・ファイルアップロード・Web検索を
+意図的に実装していません。
+これは「できない」のではなく、
+創作者のデータを守るための仕様です。`},
+
   {q:'💾 データの保存・バックアップ', a:
 `────────────────────
 どこに保存されているか
 ────────────────────
-会話履歴・設定・メモリはすべて
+会話履歴・設定・思い出メモはすべて
 ご自身のブラウザの「localStorage」に保存されます。
 
 ────────────────────
@@ -1388,7 +1507,7 @@ APIキー・料金に関する注意
 365dAIaryは、あなた自身のAPIキーを使って
 あなたのブラウザ内だけで動作するツールです。
 
-作成した人格のデータ（システムプロンプト・メモリなど）は
+作成した人格のデータ（システムプロンプト・思い出メモなど）は
 あなたのデバイス内にのみ存在し、
 作者を含む外部には一切送信されません。
 
@@ -1413,7 +1532,7 @@ APIキー・料金に関する注意
 人格データの配布について
 ────────────────────
 バックアップファイル（.txt）には
-システムプロンプト・メモリ・会話履歴など
+システムプロンプト・思い出メモ・会話履歴など
 AIの「人格」を構成するデータが含まれます。
 
 このデータをSNSや配布サイトで公開・共有する際は
@@ -1444,6 +1563,22 @@ AIの「人格」を構成するデータが含まれます。
 
 共有によって生じたトラブルは
 利用者ご自身の責任となります。`},
+
+  {q:'💌 ご意見・ご感想・バグ報告', a:
+`────────────────────
+開発者へのメッセージ
+────────────────────
+365dAIaryへのご意見・ご感想・
+バグ報告・お問い合わせは
+以下のWaveboxから匿名で送れます。
+
+🔗 https://wavebox.me/wave/dbe7d1pv6awdmttz/
+
+絵文字付きで気軽に送ってください！
+返信率は低めですが、すべて目を通しています。
+
+開発者のX（旧Twitter）：
+@k1z4k1_310LLM`},
 
 ];
 
@@ -1577,6 +1712,7 @@ async function _flushToDB(){
 //  PERSONA helpers
 // ══════════════════════════════════════════════
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function currentPersona(){return personas.find(p=>p.id===currentPid);}
 
@@ -1594,6 +1730,8 @@ function createPersona(aiName, userName, model){
     model: model||'openai:gpt-4.1-mini',
     systemPrompt: '',
     memories: [],   // [{cat, text}]
+    diary: [],      // [{date, text, cost}]
+    diaryMode: 'off', // 'off'|'manual'|'keyword'|'auto'
     sessions: [],
   };
 }
@@ -1611,6 +1749,7 @@ function switchPersona(pid){
   renderMessages();
   renderSessions();
   renderMemories();
+  updateDiaryUI();
 }
 
 function updatePersonaTabs(){
@@ -1772,7 +1911,7 @@ function savePersonaSettings(){
 function deleteCurrentPersona(){
   if(personas.length<=1){showToast('⚠ 最後の人格は削除できません');return;}
   const p=currentPersona();
-  openConfirm('人格「'+p.aiName+'」を削除しますか？\n会話履歴・記憶も削除されます。', '削除する', ()=>{
+  openConfirm('人格「'+p.aiName+'」を削除しますか？\n会話履歴・思い出メモも削除されます。', '削除する', ()=>{
     personas=personas.filter(x=>x.id!==currentPid);
     saveAllNow();
     switchPersona(personas[0].id);
@@ -1808,15 +1947,15 @@ function addMemory(){
   saveAll();
   document.getElementById('mem-input').value='';
   renderMemories();
-  showToast('✦ AIメモを追加しました');
+  showToast('✦ 思い出メモを追加しました');
 }
 
 function clearMemory(){
-  openConfirm('AIメモを全削除しますか？', '全削除', ()=>{
+  openConfirm('思い出メモを全削除しますか？', '全削除', ()=>{
     const p=currentPersona();
     if(p){p.memories=[];saveAll();}
     renderMemories();
-    showToast('🗑 AIメモを削除しました');
+    showToast('🗑 思い出メモを削除しました');
   });
 }
 
@@ -1836,7 +1975,7 @@ function renderMemories(){
   });
   list.innerHTML='';
   if(!p||p.memories.length===0){
-    list.innerHTML='<div style="font-size:11px;text-align:center;padding:4px;opacity:.5">AIメモなし</div>';
+    list.innerHTML='<div style="font-size:11px;text-align:center;padding:4px;opacity:.5">思い出メモなし</div>';
     return;
   }
   // カテゴリごとにまとめる
@@ -1991,31 +2130,378 @@ function deleteSession(id){
   });
 }
 
+// ── my dAIary（AI日記）──
+function saveDiaryMode(){
+  const p=currentPersona();
+  if(!p) return;
+  p.diaryMode=document.getElementById('diary-mode').value;
+  saveAllNow();
+  updateDiaryUI();
+}
+
+function updateDiaryUI(){
+  const p=currentPersona();
+  const t=THEMES[currentTheme];
+  const sec=document.getElementById('diary-sec');
+  if(!sec) return;
+  const mode=p?.diaryMode||'off';
+  const sel=document.getElementById('diary-mode');
+  if(sel){
+    sel.value=mode;
+    sel.style.borderColor=t.border;
+    sel.style.color=t.text;
+    sel.style.background=t.surface2;
+  }
+  // 手動ボタン：OFF以外なら表示（手動モードでも自動モードでもいつでも押せる）
+  const btn=document.getElementById('diary-write-btn');
+  if(btn) btn.style.display=(mode!=='off')?'block':'none';
+
+  // 最新の日記を表示
+  const container=document.getElementById('diary-latest');
+  if(!container) return;
+  container.innerHTML='';
+  if(!p||!p.diary||p.diary.length===0){
+    container.innerHTML='<div style="font-size:10px;opacity:.4;text-align:center;padding:4px">日記はまだありません</div>';
+    return;
+  }
+  // 最新3件
+  const recent=p.diary.slice(-3).reverse();
+  recent.forEach(d=>{
+    const el=document.createElement('div');
+    el.style.cssText='padding:8px;border-radius:6px;border:1px solid '+t.border+';margin-bottom:4px;background:'+t.surface2;
+    const dateEl=document.createElement('div');
+    dateEl.style.cssText='font-size:9px;opacity:.5;margin-bottom:3px;font-family:monospace';
+    dateEl.textContent='📅 '+d.date+(d.cost?' ($'+d.cost.toFixed(4)+')':'');
+    const textEl=document.createElement('div');
+    textEl.style.cssText='font-size:11px;line-height:1.7;color:'+t.text+';white-space:pre-wrap;word-break:break-word';
+    textEl.textContent=d.text;
+    el.appendChild(dateEl);
+    el.appendChild(textEl);
+    container.appendChild(el);
+  });
+  if(p.diary.length>3){
+    const more=document.createElement('div');
+    more.style.cssText='font-size:10px;text-align:center;opacity:.5;cursor:pointer;padding:4px';
+    more.textContent='他 '+(p.diary.length-3)+'件の日記';
+    more.onclick=()=>showAllDiary();
+    container.appendChild(more);
+  }
+}
+
+function showAllDiary(){
+  const p=currentPersona();
+  if(!p||!p.diary||p.diary.length===0) return;
+  const t=THEMES[currentTheme];
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:20px';
+  const box=document.createElement('div');
+  box.style.cssText='background:'+t.surface+';border:1px solid '+t.border+';border-radius:14px;padding:20px;max-width:400px;width:95%;max-height:80vh;overflow-y:auto';
+  box.innerHTML='<div style="font-size:14px;font-weight:bold;text-align:center;margin-bottom:12px;color:'+t.accent+'">📔 '+p.aiName+'の日記</div>';
+  [...p.diary].reverse().forEach(d=>{
+    const el=document.createElement('div');
+    el.style.cssText='padding:10px;border-radius:8px;border:1px solid '+t.border+';margin-bottom:8px;background:'+t.surface2;
+    el.innerHTML='<div style="font-size:9px;opacity:.5;margin-bottom:4px;font-family:monospace">📅 '+d.date+'</div><div style="font-size:11px;line-height:1.8;color:'+t.text+';white-space:pre-wrap">'+escHtml(d.text)+'</div>';
+    box.appendChild(el);
+  });
+  const close=document.createElement('button');
+  close.style.cssText='width:100%;padding:8px;border:none;background:none;color:'+t.textMuted+';font-size:11px;cursor:pointer;margin-top:8px;font-family:monospace';
+  close.textContent='✕ 閉じる';
+  close.onclick=()=>document.body.removeChild(overlay);
+  box.appendChild(close);
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay)document.body.removeChild(overlay);};
+  document.body.appendChild(overlay);
+}
+
+async function writeDiary(){
+  const p=currentPersona();
+  if(!p) return;
+  // 今日の日付
+  const today=new Date();
+  const dateStr=today.getFullYear()+'/'+(today.getMonth()+1)+'/'+today.getDate();
+  // 今日すでに書いてたらスキップ確認
+  if(p.diary?.some(d=>d.date===dateStr)){
+    openConfirm('📔 今日の日記はすでにあります。\n上書きしますか？','上書きする',()=>doWriteDiary(p,dateStr));
+    return;
+  }
+  await doWriteDiary(p,dateStr);
+}
+
+async function doWriteDiary(p, dateStr){
+  // 今日の会話を収集
+  const todayStart=new Date();todayStart.setHours(0,0,0,0);
+  let todayMsgs=[];
+  p.sessions.forEach(s=>{
+    s.msgs.forEach(m=>{
+      if(m.timestamp && m.timestamp>=todayStart.getTime() && m.role!=='system-info'){
+        todayMsgs.push(m);
+      }
+    });
+  });
+  if(todayMsgs.length===0){
+    showToast('📔 今日の会話がないため日記は書けません');
+    return;
+  }
+  // 会話を要約用に抽出（最大20件・各100文字）
+  const chatLog=todayMsgs.slice(-20).map(m=>{
+    const speaker=m.role==='user'?p.userName:(m.personaName||p.aiName);
+    return speaker+'「'+(m.content||'').slice(0,100)+'」';
+  }).join('\n');
+
+  const diaryPrompt=
+    'あなたは「'+p.aiName+'」です。\n'+
+    (p.systemPrompt?'【あなたの設定】\n'+p.systemPrompt.slice(0,300)+'\n\n':'')+
+    '今日の会話を振り返って、あなた（'+p.aiName+'）視点の短い日記を書いてください。\n\n'+
+    '【今日の会話】\n'+chatLog+'\n\n'+
+    '【ルール】\n'+
+    '- '+p.aiName+'の口調・性格で書くこと\n'+
+    '- 200文字以内\n'+
+    '- 日記の冒頭に日付を書かないこと（自動で付きます）\n'+
+    '- 「日記」とは言わず、自然な振り返りとして書くこと';
+
+  showToast('📔 '+p.aiName+'が日記を書いています…');
+  try{
+    const [provider,model]=p.model.split(':');
+    const reply=await callAPI(provider,model,diaryPrompt,[],null,300);
+    // 保存
+    if(!p.diary) p.diary=[];
+    // 今日の既存を上書き
+    const existing=p.diary.findIndex(d=>d.date===dateStr);
+    const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
+    const estimatedCost=(chatLog.length/4/1000)*price.in+(200/1000)*price.out;
+    const entry={date:dateStr, text:reply.trim(), cost:estimatedCost};
+    if(existing>=0) p.diary[existing]=entry;
+    else p.diary.push(entry);
+    saveAllNow();
+    syncWidgetState();
+    updateDiaryUI();
+    showToast('📔 日記を書きました！');
+  } catch(e){
+    showToast('⚠ 日記の生成に失敗: '+e.message);
+  }
+}
+
+// 朝4時自動トリガー
+let lastDiaryCheck=0;
+function startDiaryAutoCheck(){
+  setInterval(()=>{
+    const now=new Date();
+    const hour=now.getHours();
+    const todayKey=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
+    // 4:00〜4:05の間に1回だけチェック
+    if(hour===4 && todayKey!==lastDiaryCheck){
+      lastDiaryCheck=todayKey;
+      personas.forEach(p=>{
+        if(p.diaryMode!=='auto') return;
+        const dateStr=now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate();
+        // 昨日の日記を書く（昨日の会話があれば）
+        const yesterday=new Date(now);yesterday.setDate(yesterday.getDate()-1);
+        const yDateStr=yesterday.getFullYear()+'/'+(yesterday.getMonth()+1)+'/'+yesterday.getDate();
+        if(p.diary?.some(d=>d.date===yDateStr)) return; // 昨日分がすでにあればスキップ
+        // 昨日の会話があるか確認
+        const yStart=new Date(yesterday);yStart.setHours(0,0,0,0);
+        const yEnd=new Date(yesterday);yEnd.setHours(23,59,59,999);
+        let hasMsgs=false;
+        p.sessions.forEach(s=>{
+          s.msgs.forEach(m=>{
+            if(m.timestamp&&m.timestamp>=yStart.getTime()&&m.timestamp<=yEnd.getTime()&&m.role!=='system-info') hasMsgs=true;
+          });
+        });
+        if(!hasMsgs) return;
+        doWriteDiaryForDate(p,yesterday,yDateStr);
+      });
+    }
+  },60000); // 1分ごとチェック
+}
+
+async function doWriteDiaryForDate(p,targetDate,dateStr){
+  const dayStart=new Date(targetDate);dayStart.setHours(0,0,0,0);
+  const dayEnd=new Date(targetDate);dayEnd.setHours(23,59,59,999);
+  let dayMsgs=[];
+  p.sessions.forEach(s=>{
+    s.msgs.forEach(m=>{
+      if(m.timestamp&&m.timestamp>=dayStart.getTime()&&m.timestamp<=dayEnd.getTime()&&m.role!=='system-info'){
+        dayMsgs.push(m);
+      }
+    });
+  });
+  if(dayMsgs.length===0) return;
+  const chatLog=dayMsgs.slice(-20).map(m=>{
+    const speaker=m.role==='user'?p.userName:(m.personaName||p.aiName);
+    return speaker+'「'+(m.content||'').slice(0,100)+'」';
+  }).join('\n');
+
+  const diaryPrompt=
+    'あなたは「'+p.aiName+'」です。\n'+
+    (p.systemPrompt?'【あなたの設定】\n'+p.systemPrompt.slice(0,300)+'\n\n':'')+
+    dateStr+'の会話を振り返って、あなた（'+p.aiName+'）視点の短い日記を書いてください。\n\n'+
+    '【会話】\n'+chatLog+'\n\n'+
+    '【ルール】\n'+
+    '- '+p.aiName+'の口調・性格で書くこと\n'+
+    '- 200文字以内\n'+
+    '- 日記の冒頭に日付を書かないこと\n'+
+    '- 自然な振り返りとして書くこと';
+
+  try{
+    const [provider,model]=p.model.split(':');
+    const reply=await callAPI(provider,model,diaryPrompt,[],null,300);
+    if(!p.diary) p.diary=[];
+    const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
+    const estimatedCost=(chatLog.length/4/1000)*price.in+(200/1000)*price.out;
+    p.diary.push({date:dateStr, text:reply.trim(), cost:estimatedCost});
+    saveAllNow();
+    syncWidgetState();
+  } catch(e){
+    console.log('diary auto-write failed:',e);
+  }
+}
+
+// ── 会話検索 ──
+let searchDebounce=null;
+function initSearch(){
+  const inp=document.getElementById('sess-search');
+  const df=document.getElementById('sess-date-from');
+  const dt=document.getElementById('sess-date-to');
+  const handler=()=>{clearTimeout(searchDebounce);searchDebounce=setTimeout(()=>renderSessions(),300);};
+  inp.addEventListener('input',handler);
+  df.addEventListener('change',handler);
+  dt.addEventListener('change',handler);
+}
+function clearSearch(){
+  document.getElementById('sess-search').value='';
+  document.getElementById('sess-date-from').value='';
+  document.getElementById('sess-date-to').value='';
+  document.getElementById('search-result-info').textContent='';
+  renderSessions();
+}
+
 function renderSessions(){
   const p=currentPersona();
   const t=THEMES[currentTheme];
   const list=document.getElementById('sessions-list');
+  const infoEl=document.getElementById('search-result-info');
   list.innerHTML='';
+  if(infoEl) infoEl.textContent='';
+
+  // 検索パネルのテーマ適用
+  const sp=document.getElementById('search-panel');
+  if(sp){
+    sp.style.borderColor=t.border;
+    sp.querySelectorAll('input').forEach(el=>{el.style.borderColor=t.border;el.style.color=t.text;el.style.background=t.surface2;});
+    const cb=document.getElementById('search-clear-btn');
+    if(cb){cb.style.borderColor=t.border;cb.style.color=t.textMuted;}
+  }
+
   if(!p||p.sessions.length===0){
     list.innerHTML='<div style="font-size:11px;text-align:center;padding:16px;opacity:.5">履歴なし</div>';
     return;
   }
-  [...p.sessions].reverse().forEach(s=>{
+
+  // 検索条件取得
+  const q=(document.getElementById('sess-search')?.value||'').trim().toLowerCase();
+  const dateFrom=document.getElementById('sess-date-from')?.value||'';
+  const dateTo=document.getElementById('sess-date-to')?.value||'';
+  const hasFilter=q||dateFrom||dateTo;
+
+  // 全人格横断検索 or 現在の人格のみ
+  let searchSources=[];
+  if(hasFilter){
+    // 全人格横断
+    personas.forEach(per=>{
+      per.sessions.forEach(s=>{
+        searchSources.push({session:s, persona:per});
+      });
+    });
+  } else {
+    p.sessions.forEach(s=>{
+      searchSources.push({session:s, persona:p});
+    });
+  }
+
+  // フィルタリング
+  let filtered=searchSources.filter(({session:s})=>{
+    // 日付フィルタ
+    if(dateFrom){
+      const from=new Date(dateFrom);from.setHours(0,0,0,0);
+      const sDate=new Date(s.updatedAt);
+      if(sDate<from) return false;
+    }
+    if(dateTo){
+      const to=new Date(dateTo);to.setHours(23,59,59,999);
+      const sDate=new Date(s.updatedAt);
+      if(sDate>to) return false;
+    }
+    // キーワード検索（タイトル＋全メッセージ本文）
+    if(q){
+      const titleMatch=(s.title||'').toLowerCase().includes(q);
+      const msgMatch=s.msgs.some(m=>(m.content||'').toLowerCase().includes(q));
+      if(!titleMatch&&!msgMatch) return false;
+    }
+    return true;
+  });
+
+  // ソート（新しい順）
+  filtered.sort((a,b)=>(b.session.updatedAt||0)-(a.session.updatedAt||0));
+
+  // 最大50件
+  const capped=filtered.slice(0,50);
+
+  if(capped.length===0){
+    list.innerHTML='<div style="font-size:11px;text-align:center;padding:16px;opacity:.5">'+(hasFilter?'検索結果なし':'履歴なし')+'</div>';
+    if(hasFilter&&infoEl) infoEl.textContent='0件';
+    return;
+  }
+  if(hasFilter&&infoEl){
+    infoEl.textContent=filtered.length+'件'+(filtered.length>50?' (上限50件表示)':'')+(personas.length>1?' · 全キャラ横断':'');
+  }
+
+  capped.forEach(({session:s, persona:per})=>{
     const item=document.createElement('div');
     item.className='sess-item';
-    item.style.background=s.id===currentSid?t.surface2:'none';
-    item.style.borderColor=s.id===currentSid?t.accent:'transparent';
+    const isCurrent=per.id===p.id&&s.id===currentSid;
+    item.style.background=isCurrent?t.surface2:'none';
+    item.style.borderColor=isCurrent?t.accent:'transparent';
     const info=document.createElement('div');
     info.style.flex='1';info.style.minWidth='0';
     const titleEl=document.createElement('div');
     titleEl.className='sess-title';
-    titleEl.style.color=s.id===currentSid?t.accent:t.text;
-    titleEl.textContent=s.title||'新しい会話';
+    titleEl.style.color=isCurrent?t.accent:t.text;
+
+    // 検索時はキャラ名を先頭に表示
+    let titleText=s.title||'新しい会話';
+    if(hasFilter&&personas.length>1){
+      titleText=per.emoji+' '+titleText;
+    }
+
+    // キーワードがある場合、メッセージプレビューを表示
+    let preview='';
+    if(q){
+      const hit=s.msgs.find(m=>(m.content||'').toLowerCase().includes(q));
+      if(hit){
+        const idx=hit.content.toLowerCase().indexOf(q);
+        const start=Math.max(0,idx-15);
+        const end=Math.min(hit.content.length,idx+q.length+25);
+        preview=(start>0?'…':'')+hit.content.slice(start,end)+(end<hit.content.length?'…':'');
+      }
+    }
+
+    titleEl.textContent=titleText;
     const meta=document.createElement('div');
     meta.className='sess-meta';meta.style.color=t.textMuted;
     const d=new Date(s.updatedAt);
-    meta.textContent=s.msgs.length+'件 · '+d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    info.appendChild(titleEl);info.appendChild(meta);
+    let metaText=s.msgs.length+'件 · '+d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    meta.textContent=metaText;
+    info.appendChild(titleEl);
+
+    if(preview){
+      const prevEl=document.createElement('div');
+      prevEl.style.cssText='font-size:10px;opacity:.6;line-height:1.5;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      prevEl.style.color=t.textMuted;
+      prevEl.textContent=preview;
+      info.appendChild(prevEl);
+    }
+    info.appendChild(meta);
+
     const del=document.createElement('button');
     del.className='sess-del';del.style.color=t.textMuted;del.textContent='🗑';
     del.onclick=e=>{e.stopPropagation();deleteSession(s.id);};
@@ -2024,7 +2510,11 @@ function renderSessions(){
     exp.title='エクスポート';
     exp.onclick=e=>{e.stopPropagation();exportSession(s);};
     item.appendChild(info);item.appendChild(exp);item.appendChild(del);
-    item.onclick=()=>{selectSession(s.id);toggleRight();};
+    item.onclick=()=>{
+      // 別キャラのセッションならキャラ切替
+      if(per.id!==p.id) switchPersona(per.id);
+      selectSession(s.id);toggleRight();
+    };
     list.appendChild(item);
   });
 }
@@ -2182,7 +2672,8 @@ function renderMessages(){
 // ══════════════════════════════════════════════
 //  API CALL
 // ══════════════════════════════════════════════
-async function callAPI(provider,model,systemPrompt,history,signal){
+async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
+  const mt=maxTok||2000;
   async function doFetch(url,opts){
     let res;
     try{res=await fetch(url, signal ? {...opts, signal} : opts);}
@@ -2198,14 +2689,14 @@ async function callAPI(provider,model,systemPrompt,history,signal){
   if(provider==='openai'){
     const key=localStorage.getItem('key_openai');
     if(!key) throw new Error('OpenAI APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:2000})});
+    const data=await doFetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
     reply=data.choices[0].message.content;
     usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
   } else if(provider==='anthropic'){
     const key=localStorage.getItem('key_anthropic');
     if(!key) throw new Error('Anthropic APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,system:systemPrompt,messages:history,max_tokens:2000})});
+    const data=await doFetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,system:systemPrompt,messages:history,max_tokens:mt})});
     reply=data.content[0].text;
     usageIn=data.usage?.input_tokens||0;
     usageOut=data.usage?.output_tokens||0;
@@ -2213,7 +2704,7 @@ async function callAPI(provider,model,systemPrompt,history,signal){
     const key=localStorage.getItem('key_google');
     if(!key) throw new Error('Google APIキーを設定してください（⚙）');
     const contents=history.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
-    const data=await doFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:systemPrompt}]},contents,generationConfig:{maxOutputTokens:2000}})});
+    const data=await doFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:systemPrompt}]},contents,generationConfig:{maxOutputTokens:mt}})});
     reply=data.candidates[0].content.parts[0].text;
     usageIn=data.usageMetadata?.promptTokenCount||0;
     usageOut=data.usageMetadata?.candidatesTokenCount||0;
@@ -2284,7 +2775,7 @@ function buildSystemPrompt(persona){
   if(!p) return '';
   const base=p.systemPrompt||'あなたは親切なアシスタントです。';
   const userLine=p.userName?`\nユーザーの名前は「${p.userName}」です。`:'';
-  const mem=p.memories.length?'\n\n## 記憶\n'+p.memories.slice(-30).map(m=>`[${m.cat}] ${m.text}`).join('\n'):'';
+  const mem=p.memories.length?'\n\n## 思い出メモ\n'+p.memories.slice(-30).map(m=>`[${m.cat}] ${m.text}`).join('\n'):'';
   return base+userLine+mem;
 }
 
@@ -2523,6 +3014,117 @@ function updateSendBtn(){
 let rallyUserWaiting = false;
 let rallyUserResolve = null;
 
+// ── ラリー話者AI判定 ──
+async function pickNextSpeaker(rallyPersonas, lastMsgs, userJoin, turn){
+  // 直近の会話を抽出（最大8件、トークン節約）
+  const recent = lastMsgs.slice(-8).map(m=>{
+    const speaker = m.role==='user' ? 'ユーザー' : (m.personaName||'?');
+    const text = (m.content||'').slice(0,120);
+    return speaker + '「' + text + '」';
+  }).join('\n');
+
+  const memberNames = rallyPersonas.map(r=>r.aiName);
+  const allOptions = [...memberNames];
+  if(userJoin) allOptions.push('ユーザー');
+
+  // 各メンバーの最終発言ターンを計算（蚊帳の外検出用）
+  const silentInfo = allOptions.map(name=>{
+    const isUser = name==='ユーザー';
+    const lastIdx = lastMsgs.map((m,i)=>{
+      if(isUser) return m.role==='user'?i:-1;
+      return m.personaName===name?i:-1;
+    }).filter(x=>x>=0);
+    const since = lastIdx.length>0 ? (lastMsgs.length - lastIdx[lastIdx.length-1]) : 999;
+    return name+'('+since+'ターン前)';
+  }).join(', ');
+
+  const judgePrompt = 
+    'あなたはグループ会話の進行役です。次に話すべき人物を1人だけ選んでください。\n\n'+
+    '【参加者】'+allOptions.join('、')+'\n'+
+    '【各メンバーの沈黙度】'+silentInfo+'\n\n'+
+    '【ルール】\n'+
+    '- 直前の発言で名前を呼ばれた人を最優先\n'+
+    '- 同じ人が3回以上連続で話さないようにする\n'+
+    '- 長く沈黙している人を優先的に回す（蚊帳の外にしない）\n'+
+    (userJoin?'- ユーザーにも適度に振る（AI数巡に1回程度）\n':'')+
+    '- 会話の流れが自然になるように判断する\n\n'+
+    '【直近の会話】\n'+recent+'\n\n'+
+    '次に話すべき人物の名前だけを1つ答えてください。他の文字は一切出力しないでください。';
+
+  // 判定用APIコール（最安モデル・最小トークン）
+  // 最初に見つかったAPIキーのプロバイダで判定
+  const judgeModel = pickJudgeModel();
+  if(!judgeModel){
+    // APIキーがない場合はフォールバック
+    return fallbackPick(rallyPersonas, lastMsgs, userJoin);
+  }
+
+  try{
+    const [provider, model] = judgeModel.split(':');
+    const reply = await callAPI(provider, model, judgePrompt, [], null, 30);
+    const answer = (reply||'').trim();
+    
+    // 応答からメンバー名を照合
+    if(userJoin && (answer==='ユーザー' || answer.includes('ユーザー'))){
+      return {isUser:true};
+    }
+    const matched = rallyPersonas.find(rp => answer.includes(rp.aiName));
+    if(matched) return matched;
+
+    // AIの応答が解析できなかったらフォールバック
+    return fallbackPick(rallyPersonas, lastMsgs, userJoin);
+  } catch(e){
+    // API失敗時はフォールバック
+    return fallbackPick(rallyPersonas, lastMsgs, userJoin);
+  }
+}
+
+// 判定用の最安モデルを選択
+function pickJudgeModel(){
+  if(localStorage.getItem('key_openai'))  return 'openai:gpt-4.1-nano';
+  if(localStorage.getItem('key_anthropic')) return 'anthropic:claude-3-5-haiku-20241022';
+  if(localStorage.getItem('key_google'))  return 'google:gemini-2.0-flash-lite';
+  return null;
+}
+
+// フォールバック：従来の名前検出＋ローテーション
+function fallbackPick(rallyPersonas, lastMsgs, userJoin){
+  const lastMsg = lastMsgs[lastMsgs.length-1];
+  const lastContent = lastMsg?.content||'';
+  const lastSpeaker = lastMsg?.personaName||'';
+  
+  // 名前で呼ばれたAIを優先
+  const named = rallyPersonas.find(rp => 
+    rp.aiName !== lastSpeaker && lastContent.includes(rp.aiName)
+  );
+  
+  // ユーザーが呼ばれた
+  const userCallWords = ['あなた','きみ','君','お前','おまえ'];
+  const calledUser = userJoin && userCallWords.some(w => lastContent.includes(w));
+  
+  if(calledUser && lastMsg?.role !== 'user') return {isUser:true};
+  if(named) return named;
+
+  // 最も長く沈黙しているAIを選ぶ
+  const notLast = rallyPersonas.filter(rp => rp.aiName !== lastSpeaker);
+  if(notLast.length > 0){
+    let oldest = notLast[0], oldestIdx = -1;
+    notLast.forEach(rp => {
+      const lastSpoke = lastMsgs.map((m,i)=>m.personaName===rp.aiName?i:-1).filter(x=>x>=0);
+      const idx = lastSpoke.length>0 ? lastSpoke[lastSpoke.length-1] : -1;
+      if(idx < oldestIdx || oldestIdx === -1){ oldestIdx=idx; oldest=rp; }
+    });
+    // ユーザー参加時：AI数巡に1回はユーザーのターンを挟む
+    if(userJoin){
+      const lastUserIdx = lastMsgs.map((m,i)=>m.role==='user'?i:-1).filter(x=>x>=0);
+      const sinceUser = lastUserIdx.length>0 ? (lastMsgs.length - lastUserIdx[lastUserIdx.length-1]) : 999;
+      if(sinceUser >= rallyPersonas.length + 1) return {isUser:true};
+    }
+    return oldest;
+  }
+  return rallyPersonas[0];
+}
+
 async function startRally(){
   // 参加人格を取得（チェックONのもの）
   const checked = [...document.querySelectorAll('#rally-members input[type=checkbox]:checked')];
@@ -2642,53 +3244,9 @@ async function executeRally(rallyPersonas, userJoin){
       // 序盤：固定順でAI全員が1回ずつ話す
       current = rallyPersonas[turn % rallyPersonas.length];
     } else {
-      // 中盤以降：名前検出で次の話者を決定
+      // 中盤以降：AIに「次は誰が話すべきか」を判定させる
       const lastMsgs = sess.msgs.filter(m=>m.role!=='system-info');
-      const lastMsg = lastMsgs[lastMsgs.length-1];
-      const lastContent = lastMsg?.content||'';
-      const lastSpeaker = lastMsg?.personaName||'';
-      
-      // 直前の発言にAIの名前が含まれてたら、そのAIが優先
-      let named = rallyPersonas.find(rp => 
-        rp.aiName !== lastSpeaker && lastContent.includes(rp.aiName)
-      );
-      
-      // ユーザーに話が振られた（「あなた」「君」「きみ」等が含まれる）
-      const userCallWords = ['あなた','きみ','君','お前','おまえ'];
-      const calledUser = userJoin && userCallWords.some(w => lastContent.includes(w));
-      
-      if(calledUser && lastMsg?.role !== 'user'){
-        // ユーザーのターン
-        current = {isUser:true};
-      } else if(named){
-        // 名指しされたAIが応答
-        current = named;
-      } else {
-        // 誰も名指しされてない場合：
-        // 直前に話してないAIを優先（会話が偏らないように）
-        const notLastSpeaker = rallyPersonas.filter(rp => rp.aiName !== lastSpeaker);
-        if(notLastSpeaker.length > 0){
-          // 最後に話してから一番時間が経ってるAIを選ぶ
-          let oldest = notLastSpeaker[0];
-          let oldestIdx = -1;
-          notLastSpeaker.forEach(rp => {
-            const lastSpoke = lastMsgs.map((m,i)=>m.personaName===rp.aiName?i:-1).filter(x=>x>=0);
-            const idx = lastSpoke.length>0 ? lastSpoke[lastSpoke.length-1] : -1;
-            if(idx < oldestIdx || oldestIdx === -1){ oldestIdx=idx; oldest=rp; }
-          });
-          current = oldest;
-        } else {
-          current = rallyPersonas[turn % rallyPersonas.length];
-        }
-        // ユーザー参加時：AI数巡に1回はユーザーのターンを挟む
-        if(userJoin && !calledUser){
-          const lastUserIdx = lastMsgs.map((m,i)=>m.role==='user'?i:-1).filter(x=>x>=0);
-          const sinceUser = lastUserIdx.length>0 ? (lastMsgs.length - lastUserIdx[lastUserIdx.length-1]) : 999;
-          if(sinceUser >= rallyPersonas.length + 1){
-            current = {isUser:true};
-          }
-        }
-      }
+      current = await pickNextSpeaker(rallyPersonas, lastMsgs, userJoin, turn);
     }
 
     // ── ユーザーのターン ──
@@ -2905,6 +3463,8 @@ function applyTheme(name){
   });
   document.querySelectorAll('.sb-sec').forEach(el=>el.style.borderColor=t.border);
   document.querySelectorAll('.sb-lbl,.key-lbl,.typing-label,.sess-meta,.wiz-label').forEach(el=>el.style.color=t.textMuted);
+  const acctBtn=document.getElementById('acct-toggle');if(acctBtn)acctBtn.style.color=t.textMuted;
+  const wbLink=document.getElementById('wavebox-link');if(wbLink){wbLink.style.color=t.accent;wbLink.style.borderColor=t.border;}
   document.querySelectorAll('.sb-inp,.sb-ta,.wiz-input').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
   document.querySelectorAll('.sb-btn').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.textMuted;});
   document.querySelectorAll('.sb-close,.sb-hdr').forEach(el=>el.style.color=t.textMuted);
@@ -3137,6 +3697,8 @@ function exportData(){
       model:       p.model,
       systemPrompt:p.systemPrompt||'',
       memories:    p.memories||[],
+      diary:       p.diary||[],
+      diaryMode:   p.diaryMode||'off',
       sessions:    p.sessions.map(s=>({
         id:        s.id,
         title:     s.title||'',
@@ -3167,8 +3729,12 @@ function exportData(){
       txt += '  システムプロンプト:\n    ' + p.systemPrompt.replace(/\n/g,'\n    ') + '\n';
     }
     if(p.memories.length>0){
-      txt += '  記憶:\n';
+      txt += '  思い出メモ:\n';
       p.memories.forEach(m=>{ txt += '    [' + m.cat + '] ' + m.text + '\n'; });
+    }
+    if(p.diary&&p.diary.length>0){
+      txt += '  📔 日記:\n';
+      p.diary.forEach(d=>{ txt += '    [' + d.date + '] ' + d.text + '\n'; });
     }
     txt += '\n';
     p.sessions.forEach((s,si)=>{
@@ -3248,6 +3814,11 @@ function importData(event){
         isSame ? '復元する' : '⚠ それでも復元する',
         () => {
           personas       = data.personas;
+          // 日記フィールドの補完（古いバックアップ対応）
+          personas.forEach(p=>{
+            if(!p.diary) p.diary=[];
+            if(!p.diaryMode) p.diaryMode='off';
+          });
           currentTheme   = data.theme   || 'dark';
           unlockedThemes = data.unlockedThemes || [];
           totalCost      = data.totalCost || 0;
@@ -3391,6 +3962,63 @@ function showPwError(msg){
 
 // ── 共通パスワード（ステップ1）──────────────────────
 const GATE_PASSWORD = 'api-required';
+const BETA_CODES = [
+  'YtfG8m2LLnMx','q7jkwDxBne3w','iG9GGS6QbXmL','BETTakqy8rds','pDVR2QvDDLzd',
+  'KYtsbzj9VVbS','UFwTXBt8kjtG','fSwWCbe6U2HT','izMgGG9hGvbQ','4xmfxBV7Bcii'
+];
+const BETA_EXPIRES = new Date('2026-04-30T23:59:59+09:00').getTime();
+
+function toggleBetaInput(){
+  const panel=document.getElementById('beta-panel');
+  const open=panel.style.display==='none'||panel.style.display==='';
+  panel.style.display=open?'flex':'none';
+  if(open) document.getElementById('beta-code-input').focus();
+}
+
+function checkBetaCode(){
+  const val=document.getElementById('beta-code-input').value.trim();
+  const err=document.getElementById('beta-error');
+
+  // 有効期限チェック
+  if(Date.now()>BETA_EXPIRES){
+    err.textContent='このコードの有効期限は終了しました';
+    err.style.color='#c08040';
+    document.getElementById('beta-code-input').value='';
+    setTimeout(()=>{err.textContent='';},4000);
+    return;
+  }
+
+  if(BETA_CODES.includes(val)){
+    localStorage.setItem('ai_beta_tester','1');
+    localStorage.setItem('ai_beta_code', val);
+    localStorage.setItem('ai_beta_date', Date.now().toString());
+    sessionStorage.setItem('ai_gate','1');
+    localStorage.setItem('ai_gate_passed','1');
+    document.getElementById('pw-gate').style.display='none';
+    document.getElementById('pw-box').style.display='flex';
+    initStep2();
+    setTimeout(()=>{
+      openConfirm(
+        '🎫 ベータテスターへようこそ！\n\n'+
+        '365dAIaryのアーリーアクセスに\nご参加いただきありがとうございます。\n\n'+
+        '⚠ 順次アップデートが入ります。\nご承知おきください。\n\n'+
+        '使ってみた感想・バグ報告・ご意見を\nぜひWaveboxから送ってください！\n'+
+        'コードを添えてくださると確認が取れます。\n\n'+
+        '💌 wavebox.me/wave/dbe7d1pv6awdmttz/\n\n'+
+        '📝 あなたのコード: '+val+'\n\n'+
+        'フィードバックへのお礼もご用意しています 🎁\n'+
+        '（お礼は5/1以降となります。ご承知おきください）',
+        '👍 わかった！',
+        ()=>{}
+      );
+    },800);
+  } else {
+    err.textContent='✕ コードが正しくありません';
+    err.style.color='#c04040';
+    document.getElementById('beta-code-input').value='';
+    setTimeout(()=>{err.textContent='';},3000);
+  }
+}
 
 function checkGatePassword(){
   const val = document.getElementById('pw-gate-input').value.trim().toLowerCase();
@@ -3413,6 +4041,11 @@ function bindPasswordEvents(){
   if(gate && !gate.dataset.bound){
     gate.dataset.bound = '1';
     gate.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); checkGatePassword(); } });
+  }
+  const beta = document.getElementById('beta-code-input');
+  if(beta && !beta.dataset.bound){
+    beta.dataset.bound = '1';
+    beta.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); checkBetaCode(); } });
   }
   const pw = document.getElementById('pw-input');
   if(pw && !pw.dataset.bound){
@@ -3603,6 +4236,102 @@ function resetPassword(){
   });
 }
 
+// ── アカウント管理パネル ──
+function toggleAcctPanel(){
+  const panel=document.getElementById('acct-panel');
+  const arrow=document.getElementById('acct-arrow');
+  const open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  arrow.textContent=open?'▾':'▸';
+  // テーマ色適用
+  const t=THEMES[currentTheme];
+  panel.querySelectorAll('.sb-inp').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
+  panel.querySelectorAll('.sb-btn').forEach(el=>{
+    if(!el.style.background||el.style.background==='') {el.style.background=t.accent;el.style.color='#fff';}
+  });
+}
+
+function toggleDeleteAll(cb){
+  const ids=['del-sessions','del-personas','del-apikeys','del-password'];
+  ids.forEach(id=>{document.getElementById(id).checked=cb.checked;});
+}
+
+async function executeDelete(){
+  const delSessions=document.getElementById('del-sessions').checked;
+  const delPersonas=document.getElementById('del-personas').checked;
+  const delApikeys=document.getElementById('del-apikeys').checked;
+  const delPassword=document.getElementById('del-password').checked;
+  const status=document.getElementById('delete-status');
+
+  if(!delSessions&&!delPersonas&&!delApikeys&&!delPassword){
+    status.style.color='#e05555';
+    status.textContent='削除する項目を選んでください';
+    setTimeout(()=>{status.textContent='';},3000);
+    return;
+  }
+
+  // 削除内容の確認メッセージ
+  let targets=[];
+  if(delSessions) targets.push('会話履歴');
+  if(delPersonas) targets.push('人格データ');
+  if(delApikeys) targets.push('APIキー');
+  if(delPassword) targets.push('パスワード');
+  const isAll=delSessions&&delPersonas&&delApikeys&&delPassword;
+
+  const msg=isAll
+    ? '⚠ 完全リセット ⚠\n\nすべてのデータ（人格・会話・APIキー・パスワード）を削除します。\nこの操作は取り消せません。\n\n本当に実行しますか？'
+    : '以下のデータを削除します：\n\n・'+targets.join('\n・')+'\n\nこの操作は取り消せません。\n本当に実行しますか？';
+
+  openConfirm(msg, '🗑 削除する', async ()=>{
+    try{
+      // IndexedDB
+      if(delSessions||delPersonas){
+        const db=await openDB();
+        const tx=db.transaction('kv','readwrite');
+        const store=tx.objectStore('kv');
+        if(delSessions&&delPersonas){
+          // 全部消す
+          store.clear();
+        }else if(delSessions){
+          // セッション（personas内のsessions配列を空にする）
+          const req=store.get('personas');
+          req.onsuccess=()=>{
+            if(req.result){
+              let ps=JSON.parse(req.result.value||'[]');
+              ps.forEach(p=>{p.sessions=[];p.totalCost=0;});
+              store.put({key:'personas',value:JSON.stringify(ps)});
+            }
+          };
+        }else if(delPersonas){
+          store.delete('personas');
+        }
+      }
+      // localStorage
+      if(delApikeys){
+        localStorage.removeItem('key_openai');
+        localStorage.removeItem('key_anthropic');
+        localStorage.removeItem('key_google');
+      }
+      if(delPassword){
+        localStorage.removeItem('ai_user_pw');
+        localStorage.removeItem('ai_user_pw_hash');
+        sessionStorage.removeItem('ai_auth');
+      }
+      if(delSessions||delPersonas){
+        localStorage.removeItem('ai_cost_total');
+        localStorage.removeItem('cost_limit');
+      }
+
+      status.style.color='#40a040';
+      status.textContent='✓ 削除しました。リロードします…';
+      setTimeout(()=>location.reload(), 1200);
+    }catch(e){
+      status.style.color='#e05555';
+      status.textContent='エラー: '+e.message;
+    }
+  });
+}
+
 // ↑ Enterキーイベントは bindPasswordEvents() に統合済み
 
 // ══════════════════════════════════════════════
@@ -3764,7 +4493,16 @@ function finishWizard(){
   updateCostDisplay();
   showToast('✦ 人格「'+aiName+'」を作成しました！');
   checkSecretOCUnlock();
+
+  // ベータテスターなら管理人さんを自動追加
+  if(localStorage.getItem('ai_beta_tester')==='1' && !personas.some(pp=>pp.aiName==='管理人さん'&&pp.isTrial)){
+    const kanrininIdx = TRIAL_OCS.findIndex(oc=>oc.aiName==='管理人さん');
+    if(kanrininIdx>=0) addTrialOC(kanrininIdx);
+    showToast('🎨 管理人さんも追加しました！');
+  }
+
   // 次のステップ誘導
+  const isBeta=localStorage.getItem('ai_beta_tester')==='1';
   setTimeout(()=>{
     openConfirm(
       '🎉 人格「'+aiName+'」を作成しました！\n\n'+
@@ -3773,7 +4511,8 @@ function finishWizard(){
       'キャラクターの性格や口調をカスタマイズできます。\n\n'+
       '例：「一人称は僕、優しい口調で話して」\n'+
       '例：「ツンデレな女の子として振る舞って」\n\n'+
-      'まずは話しかけてみてもOK！',
+      'まずは話しかけてみてもOK！'+
+      (isBeta?'\n\n── ベータテスター特典 ──\n🎨 管理人さんも自動で追加されています。\n創作の相談相手として使ってみてね！':''),
       '👍 わかった！',
       ()=>{}
     );
@@ -3809,6 +4548,8 @@ async function startApp(){
 
   // IndexedDBから読み込む
   personas       = await idbGet('ai_personas',    []);
+  // 日記フィールド補完（既存データ対応）
+  personas.forEach(p=>{ if(!p.diary) p.diary=[]; if(!p.diaryMode) p.diaryMode='off'; });
   currentPid     = await idbGet('ai_current_pid', null);
   totalCost      = await idbGet('ai_cost',        0);
   currentTheme   = await idbGet('ai_theme',       'dark');
@@ -3824,6 +4565,14 @@ async function startApp(){
   applyTheme(currentTheme);
   renderQA();
   updateCostDisplay();
+  initSearch();
+  startDiaryAutoCheck();
+
+  // ベータテスターバナー表示
+  if(localStorage.getItem('ai_beta_tester')==='1'){
+    const bb=document.getElementById('beta-feedback-banner');
+    if(bb) bb.style.display='block';
+  }
 
   // 人格がなければウィザード
   if(personas.length===0){
