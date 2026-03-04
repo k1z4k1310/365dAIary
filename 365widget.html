@@ -167,7 +167,7 @@ html,body{
 }
 .clock-glow-inner{
   position:absolute;inset:-20%;
-  background:radial-gradient(circle at 50% 50%, var(--accent-glow) 0%, transparent 60%);
+  background:radial-gradient(circle at 50% 50%, var(--accent2-border, var(--accent-glow)) 0%, transparent 60%);
   animation:pulse-glow 3s ease-in-out infinite;
 }
 @keyframes pulse-glow{0%,100%{opacity:.5;transform:scale(1);}50%{opacity:.9;transform:scale(1.06);}}
@@ -176,11 +176,11 @@ html,body{
   letter-spacing:0.04em;color:var(--text);
   font-variant-numeric:tabular-nums;position:relative;
 }
-.clock-colon{color:var(--accent);animation:colon-blink 1s step-end infinite;}
+.clock-colon{color:var(--accent2, var(--accent));animation:colon-blink 1s step-end infinite;}
 @keyframes colon-blink{0%,100%{opacity:1;}50%{opacity:.1;}}
 .clock-deco{
   width:48px;height:1px;margin:14px auto;
-  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  background:linear-gradient(90deg,transparent,var(--accent2, var(--accent)),transparent);
   opacity:.4;
 }
 .clock-date{
@@ -189,8 +189,8 @@ html,body{
   display:flex;align-items:center;justify-content:center;gap:8px;
 }
 .day-pill{
-  background:var(--accent-dim);border:1px solid var(--accent-glow);
-  color:var(--accent);border-radius:6px;
+  background:var(--accent2-dim, var(--accent-dim));border:1px solid var(--accent2-border, var(--accent-glow));
+  color:var(--accent2, var(--accent));border-radius:6px;
   padding:2px 8px;font-size:11px;
 }
 
@@ -266,7 +266,7 @@ html,body{
   font-size:10px;
 }
 .cdot{font-size:7px;line-height:1;margin-top:1px;}
-.cal-cell.has-chat .cdot::after{content:'●';color:var(--accent);}
+.cal-cell.has-chat .cdot::after{content:'●';color:var(--accent2, var(--accent));}
 .cal-cell.has-special .cdot::after{content:'★';color:#d4af37;}
 .cal-cell.has-chat.has-special .cdot::after{content:'★';color:#d4af37;}
 .cal-cell.other-month .cnum{opacity:.2;}
