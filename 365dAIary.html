@@ -311,8 +311,8 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <div id="pw-subtitle">パスワードを入力してください</div>
       <div id="pw-setup-mode" style="display:none;flex-direction:column;gap:10px">
         <div style="font-size:12px;color:#7060a0;line-height:1.8">
-          はじめまして！パスワードを設定してください。<br>
-          <span style="font-size:11px;color:#a898c8">このブラウザ専用のパスワードです。</span>
+          はじめまして！あなた専用のパスワードを決めてください。<br>
+          <span style="font-size:11px;color:#a898c8">次回以降このパスワードでログインします。</span>
         </div>
         <input class="pw-input-f" id="pw-new1" type="password" placeholder="新しいパスワード（4文字以上）" autocomplete="new-password" maxlength="64">
         <input class="pw-input-f" id="pw-new2" type="password" placeholder="もう一度入力" autocomplete="new-password" maxlength="64">
@@ -761,6 +761,18 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <input type="file" id="import-file" accept=".txt,.json" style="display:none" onchange="importData(event)">
     </label>
     <div id="import-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
+  </div>
+
+  <!-- パスワード変更 -->
+  <div class="sb-sec" id="pw-change-sec">
+    <span class="sb-lbl">🔑 パスワード変更</span>
+    <div id="pw-change-form" style="display:flex;flex-direction:column;gap:8px">
+      <input class="sb-inp" id="pw-change-old" type="password" placeholder="今のパスワード" maxlength="64" autocomplete="off">
+      <input class="sb-inp" id="pw-change-new1" type="password" placeholder="新しいパスワード（4文字以上）" maxlength="64" autocomplete="new-password">
+      <input class="sb-inp" id="pw-change-new2" type="password" placeholder="新しいパスワード（もう一度）" maxlength="64" autocomplete="new-password">
+      <button class="sb-btn" onclick="changePassword()">🔑 パスワードを変更</button>
+      <div id="pw-change-status" style="font-family:monospace;font-size:10px;text-align:center;min-height:16px"></div>
+    </div>
   </div>
 
   <!-- Q&A -->
@@ -3301,15 +3313,11 @@ function bindPasswordEvents(){
 }
 
 async function initPasswordScreen(){
-  // アカウントがある人はゲートPWスキップ
+  // ゲートPWスキップ条件：ユーザーPW設定済み or ゲート通過済みフラグ
   const hasAccount = localStorage.getItem('ai_user_pw_hash') || localStorage.getItem('ai_user_pw');
   const gatePassed = localStorage.getItem('ai_gate_passed')==='1';
-  // IndexedDBに人格データがあるかもチェック
-  let hasIDBData = false;
-  try{ const d=await idbGet('ai_personas'); if(d && d.length>0) hasIDBData=true; }catch(e){}
-  if(hasAccount || hasIDBData || gatePassed || sessionStorage.getItem('ai_gate')==='1'){
-    // 既存ユーザーは永続フラグも立てる（次回以降も確実にスキップ）
-    localStorage.setItem('ai_gate_passed','1');
+  const sessionGate = sessionStorage.getItem('ai_gate')==='1';
+  if(hasAccount || gatePassed || sessionGate){
     document.getElementById('pw-gate').style.display='none';
     document.getElementById('pw-box').style.display='flex';
     initStep2();
@@ -3330,11 +3338,11 @@ async function initPasswordScreen(){
 
 function initStep2(){
   if(!hasUserPassword()){
-    document.getElementById('pw-subtitle').textContent='はじめまして！パスワードを設定してください';
+    document.getElementById('pw-subtitle').textContent='はじめまして！あなた専用のパスワードを決めてください';
     document.getElementById('pw-setup-mode').style.display='flex';
     document.getElementById('pw-login-mode').style.display='none';
   } else {
-    document.getElementById('pw-subtitle').textContent='パスワードを入力してください';
+    document.getElementById('pw-subtitle').textContent='以前あなたが決めたパスワードを入力してください';
     document.getElementById('pw-setup-mode').style.display='none';
     document.getElementById('pw-login-mode').style.display='flex';
   }
@@ -3433,6 +3441,38 @@ async function checkPassword(){
     showPwError('✕ パスワードが違います');
     document.getElementById('pw-input').value='';
   }
+}
+
+async function changePassword(){
+  const status=document.getElementById('pw-change-status');
+  const oldPw=document.getElementById('pw-change-old').value;
+  const newPw1=document.getElementById('pw-change-new1').value;
+  const newPw2=document.getElementById('pw-change-new2').value;
+  status.style.color='#c04040';
+  if(!oldPw){status.textContent='今のパスワードを入力してください';return;}
+  if(!newPw1||newPw1.length<4){status.textContent='新しいパスワードは4文字以上にしてください';return;}
+  if(newPw1!==newPw2){status.textContent='新しいパスワードが一致しません';return;}
+  // 旧パスワード照合
+  const storedHash=localStorage.getItem('ai_user_pw_hash');
+  const storedPlain=localStorage.getItem('ai_user_pw');
+  let oldOk=false;
+  if(storedHash){
+    const oldHash=await hashPassword(oldPw);
+    oldOk=(oldHash===storedHash);
+  } else if(storedPlain){
+    oldOk=(oldPw===storedPlain);
+  }
+  if(!oldOk){status.textContent='今のパスワードが違います';return;}
+  // 新パスワード保存
+  const newHash=await hashPassword(newPw1);
+  localStorage.setItem('ai_user_pw_hash',newHash);
+  localStorage.removeItem('ai_user_pw');
+  document.getElementById('pw-change-old').value='';
+  document.getElementById('pw-change-new1').value='';
+  document.getElementById('pw-change-new2').value='';
+  status.style.color='#40a040';
+  status.textContent='✓ パスワードを変更しました';
+  setTimeout(()=>{status.textContent='';},3000);
 }
 
 function resetPassword(){
