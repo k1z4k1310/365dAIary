@@ -19,6 +19,9 @@
   --accent:#8060d0;
   --accent-glow:rgba(128,96,208,0.3);
   --accent-dim:rgba(128,96,208,0.1);
+  --accent2:#8060d0;
+  --accent2-dim:rgba(128,96,208,0.1);
+  --accent2-border:rgba(128,96,208,0.25);
   --bg:#ede8f8;
   --bg2:#e4ddf4;
   --surface:rgba(128,96,208,0.06);
@@ -68,7 +71,7 @@ html,body{
 
 /* ═══ SHARED ═══ */
 .card{
-  background:#fefeff;
+  background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--radius);
   padding:16px;margin-bottom:12px;
@@ -106,7 +109,7 @@ html,body{
 .home-link-item{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 14px;
-  background:#fefeff;border:1px solid var(--border);
+  background:var(--surface);border:1px solid var(--border);
   border-radius:12px;cursor:pointer;
   transition:background .12s;
 }
@@ -195,7 +198,7 @@ html,body{
 .persona-badge{
   display:flex;align-items:center;gap:12px;
   padding:14px;
-  background:rgba(128,96,208,0.1);border:1px solid rgba(128,96,208,0.25);
+  background:var(--accent2-dim, var(--accent-dim));border:1px solid var(--accent2-border, var(--accent-glow));
   border-radius:12px;margin-bottom:10px;
 }
 .persona-emoji{font-size:32px;line-height:1;}
@@ -203,15 +206,15 @@ html,body{
 .persona-sub{font-size:11px;color:var(--text-sub);margin-top:2px;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
 .stat-box{
-  background:#fefeff;border:1px solid var(--border);
+  background:var(--surface, #fefeff);border:1px solid var(--border);
   border-radius:12px;padding:14px;text-align:center;
 }
-.stat-val{font-size:24px;font-weight:200;color:var(--accent);font-variant-numeric:tabular-nums;}
+.stat-val{font-size:24px;font-weight:200;color:var(--accent2, var(--accent));font-variant-numeric:tabular-nums;}
 .stat-lbl{font-size:10px;color:var(--text-muted);margin-top:4px;letter-spacing:0.05em;}
 .persona-row{
   display:flex;align-items:center;gap:10px;
   padding:9px 12px;border-radius:10px;margin-bottom:5px;
-  border:1px solid var(--border);background:#fefeff;
+  border:1px solid var(--border);background:var(--surface);
 }
 .p-emoji{font-size:18px;}
 .p-name{font-size:12px;flex:1;color:var(--text);}
@@ -223,7 +226,7 @@ html,body{
 .launch-btn{
   display:flex;align-items:center;gap:12px;
   padding:14px 16px;
-  background:#fefeff;border:1px solid var(--border);
+  background:var(--surface);border:1px solid var(--border);
   border-radius:14px;cursor:pointer;
   transition:background .12s,border-color .12s;
   text-decoration:none;color:inherit;
@@ -271,7 +274,7 @@ html,body{
 .special-item{
   display:flex;align-items:center;gap:8px;
   padding:9px 10px;border-radius:9px;
-  background:#fefeff;border:1px solid var(--border);
+  background:var(--surface);border:1px solid var(--border);
   margin-bottom:6px;font-size:11px;
 }
 .s-star{color:#d4af37;font-size:13px;}
@@ -279,12 +282,12 @@ html,body{
 .s-date{color:var(--text-muted);}
 .s-del{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:2px 4px;}
 .add-form{
-  background:#fefeff;border:1px solid var(--border);
+  background:var(--surface);border:1px solid var(--border);
   border-radius:12px;padding:14px;
   display:flex;flex-direction:column;gap:8px;
 }
 .add-form input{
-  background:#fefeff;
+  background:var(--surface);
   border:1px solid var(--border);border-radius:8px;
   padding:9px 10px;color:var(--text);font-size:12px;
   font-family:var(--font);width:100%;
@@ -297,7 +300,7 @@ html,body{
 
 /* ── Widget Help ── */
 .whelp-card{
-  background:#fefeff;border:1px solid var(--border);
+  background:var(--surface);border:1px solid var(--border);
   border-radius:10px;margin-bottom:7px;overflow:hidden;
 }
 .whelp-head{
@@ -496,7 +499,7 @@ html,body{
       <div style="position:relative;margin-bottom:14px;">
         <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-muted);pointer-events:none;">🔍</span>
         <input id="whelp-search" type="text" placeholder="症状やエラーを入力…"
-          style="width:100%;padding:9px 12px 9px 32px;background:#fefeff;border:1px solid var(--border);border-radius:9px;font-size:12px;font-family:inherit;color:var(--text);outline:none;"
+          style="width:100%;padding:9px 12px 9px 32px;background:var(--surface);border:1px solid var(--border);border-radius:9px;font-size:12px;font-family:inherit;color:var(--text);outline:none;"
           oninput="whelpFilter()">
       </div>
 
@@ -634,7 +637,7 @@ const W_THEMES = {
   vampire:  {name:'🧛 ヴァンパイア', bg:'#0e0808',   surface:'#1a0c0c', border:'#401818', text:'#e8d0d0', textMuted:'#806060', accent:'#c03030'},
   yumekawa: {name:'🌸 ゆめかわ',    bg:'#fef0ff',   surface:'#f8e4ff', border:'#dfa0f0', text:'#502060', textMuted:'#a070c0', accent:'#c060e0'},
   vitamin:  {name:'🍊 ビタミン',    bg:'#fff6ec',   surface:'#ffedd8', border:'#f0b060', text:'#402810', textMuted:'#b08040', accent:'#40b0d0'},
-  rival:    {name:'⚔ ライバル',     bg:'#fff0f0',   surface:'#ffe8e8', border:'#f0a0a0', text:'#200000', textMuted:'#a05050', accent:'#e01010'},
+  rival:    {name:'⚔ ライバル',     bg:'#fff0f0',   surface:'#ffe8e8', border:'#f0a0a0', text:'#200000', textMuted:'#a05050', accent:'#e01010', accent2:'#4090e0'},
   forest:   {name:'🌿 フォレスト',  bg:'#f0f8ec',   surface:'#e4f0d8', border:'#90c078', text:'#1a3010', textMuted:'#608040', accent:'#e080a8'},
   awa:      {name:'🫧 泡色',        bg:'#fefeff',   surface:'#f8f0ff', border:'#d8c0f8', text:'#302050', textMuted:'#9080b8', accent:'#8060d0'},
   yoru:     {name:'🌙 夜色',        bg:'#04080f',   surface:'#080e1c', border:'#1c2840', text:'#c8d8f0', textMuted:'#506080', accent:'#d0a820'},
@@ -682,6 +685,15 @@ function applyThemeFull(themeKey){
     root.style.setProperty('--accent',      hex);
     root.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.35)`);
     root.style.setProperty('--accent-dim',  `rgba(${r},${g},${b},0.13)`);
+  }
+  // accent2（サブカラー：ライバルの青など）
+  const hex2 = t.accent2 || t.accent;
+  root.style.setProperty('--accent2', hex2);
+  const rm2=hex2.match(/#([0-9a-fA-F]{6})/);
+  if(rm2){
+    const r2=parseInt(rm2[1].slice(0,2),16),g2=parseInt(rm2[1].slice(2,4),16),b2=parseInt(rm2[1].slice(4,6),16);
+    root.style.setProperty('--accent2-dim', `rgba(${r2},${g2},${b2},0.13)`);
+    root.style.setProperty('--accent2-border', `rgba(${r2},${g2},${b2},0.25)`);
   }
   // 背景・サーフェス・ボーダー
   root.style.setProperty('--bg',      t.bg);
@@ -755,7 +767,7 @@ function buildThemeGrid(){
       <div class="theme-swatch" style="background:${t.bg};border-color:${t.border};">
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:3px;gap:2px;">
           <div style="height:3px;border-radius:2px;background:${t.accent};opacity:.9;"></div>
-          <div style="height:2px;border-radius:2px;background:${t.text};opacity:.3;"></div>
+          ${t.accent2 ? `<div style="height:2px;border-radius:2px;background:${t.accent2};opacity:.7;"></div>` : `<div style="height:2px;border-radius:2px;background:${t.text};opacity:.3;"></div>`}
         </div>
       </div>
       <div class="theme-name" style="color:${t.text === '#202020' || t.text.startsWith('#1') || t.text.startsWith('#0') ? '#444' : '#bbb'}">${t.name}</div>
