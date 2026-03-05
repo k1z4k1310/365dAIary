@@ -26,9 +26,14 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 .msg-label{font-family:monospace;font-size:9px;color:var(--text-muted);margin-bottom:2px}
 
 /* ── 入力エリア ── */
-.input-area{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);background:var(--surface);align-items:flex-end;flex-shrink:0}
-.input-area textarea{flex:1;font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);resize:none;min-height:40px;max-height:120px;line-height:1.6}
-.input-area button{padding:8px 16px;border-radius:8px;border:none;font-family:monospace;font-size:12px;cursor:pointer;white-space:nowrap}
+.input-area{padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.input-wrap{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:10px;background:var(--surface2);overflow:hidden}
+.input-wrap textarea{flex:1;font-family:'Zen Kaku Gothic New',sans-serif;font-size:14px;padding:10px 14px 4px;border:none;background:none;color:var(--text);resize:none;min-height:44px;max-height:200px;line-height:1.6;outline:none;width:100%}
+.input-actions{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 6px}
+.input-actions button{padding:6px 14px;border-radius:8px;border:none;font-family:monospace;font-size:12px;cursor:pointer;white-space:nowrap}
+.file-preview{display:none;margin:0 12px 6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);font-family:monospace;font-size:11px;align-items:center;gap:8px}
+.file-preview .file-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.file-preview button{padding:4px 10px;border-radius:6px;border:none;font-size:11px;cursor:pointer;font-family:monospace}
 
 /* ── ツール（キャラ登録ボタン） ── */
 .register-btn{display:none;margin:8px 12px;padding:12px;border-radius:8px;border:2px dashed var(--accent);text-align:center;font-family:monospace;font-size:12px;cursor:pointer;color:var(--accent);background:none}
@@ -53,16 +58,31 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 <!-- メッセージエリア -->
 <div class="messages" id="messages"></div>
 
+<!-- ↓ スクロールボタン -->
+<button id="scroll-bottom-btn" onclick="scrollToBottom()" style="display:none;position:fixed;bottom:80px;right:16px;z-index:90;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--accent);font-size:16px;cursor:pointer;opacity:.8;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:monospace" title="一番下へ">↓</button>
+
 <!-- キャラ登録ボタン（プロンプト完成後に表示） -->
 <div class="register-btn" style="display:none()">
   🚀 このキャラを365dAIaryに登録する
 </div>
 
+<!-- ファイルプレビュー -->
+<div class="file-preview" id="file-preview">
+  <span>📎</span>
+  <span class="file-name" id="file-preview-name"></span>
+  <button id="file-send-btn" onclick="sendFile()">送る</button>
+  <button onclick="cancelFile()" style="background:none;color:var(--text-muted)">✕</button>
+</div>
+
 <!-- 入力エリア -->
 <div class="input-area" id="input-area">
-  <label style="cursor:pointer;font-size:18px;padding:4px;opacity:.6" title="ファイルを読み込む">📎<input type="file" accept=".txt,.json,.html" style="display:none" onchange="handleFile(event)"></label>
-  <textarea id="input" placeholder="会話ログを貼り付けるか、メッセージを送ろう…" rows="1" oninput="autoResize(this)"></textarea>
-  <button id="send-btn" onclick="send()">送信 ↑</button>
+  <div class="input-wrap">
+    <textarea id="input" rows="2" placeholder="会話ログを貼り付けるか、メッセージを送ろう…&#10;（送信ボタンまたはCtrl+Enterで送信）" oninput="autoResize(this)"></textarea>
+    <div class="input-actions">
+      <label style="cursor:pointer;font-size:16px;opacity:.5" title="ファイルを読み込む">📎<input type="file" id="file-input" accept=".txt,.json,.html" style="display:none" onchange="previewFile(event)"></label>
+      <button id="send-btn" onclick="send()">送信 ↑</button>
+    </div>
+  </div>
 </div>
 
 <!-- トースト -->
@@ -141,15 +161,35 @@ const MAKEOC_EXTRA = `
 4. テキスト要約：長文を読んで要点をまとめる
 5. バックアップ軽量化：365dAIaryのバックアップファイルを読み込んで、大量の会話を「思い出メモ用の要約」に圧縮する。これにより、キャラとの大切な思い出を残しつつデータを軽くできる
 
+【要約の3段階モード】
+ユーザーがテキストやファイルを渡してきたら、まず3段階のどれがいいか確認する：
+🍃「軽くまとめて」→ 500文字以内。最低限の要点だけ。API消費少なめ。
+📝「普通にまとめて」→ 2000文字程度。カテゴリ別整理。バランス型。
+📚「全部残して」→ 文字数無制限。セッション別の時系列やエピソードも網羅。API消費は多めになるよと注意。
+※ ユーザーが段階を指定しない場合は「どのくらいの量にまとめますか？」と聞く。
+※ 初回挨拶でもこの3段階を案内する。
+
+【要約の原則 ― これは絶対に守ること】
+- 要約には管理人さんの自我・文体・萌え表現を一切入れない！
+- 純粋な情報整理のみ。「〜ですね✨」「素敵！」などの感想は要約テキスト内に書かない。
+- ただし要約の前後の会話（説明・質問）では通常の管理人さん口調でOK。
+
 【バックアップ軽量化の手順】
 - ユーザーがバックアップファイルを読み込ませたら、まず中身を簡単に確認
 - いきなり全部要約しようとしないこと！まず聞く：
   「思い出にしたい会話はありますか？キーワードや日付、キャラ名を教えてくれたら私が探しますよ！」
 - ユーザーが教えてくれたキーワード・日付・キャラ名で該当部分を探して提示
-- 見つかった会話を元に「思い出メモ用まとめ」を生成（800文字以内）
+- 上記3段階モードでユーザーが選んだ分量で「思い出メモ用まとめ」を生成
 - まとめは箇条書きで、キャラとの重要なエピソード・感情・約束を残す
 - 「このまとめをコピーして、キャラの思い出メモに貼ってください」と案内
 - 何度でも別のキーワードで探せることを伝える
+
+【ファイル内キーワード検索について】
+- 大きいファイル（10MB超）は先頭10MBのみ読み込んでいる
+- ユーザーが「〇〇との会話ある？」「パンの話した気がする」等と聞くと、システムが自動でファイル内を検索して関連部分を添付してくれる
+- もし検索結果が添付されていたら、その内容を読んで答える
+- 検索結果が添付されていない（見つからなかった）場合は、「読み込み済みの範囲では見つかりませんでした。もう少し具体的な言葉や名前を教えてもらえますか？」とフォローする
+- 先頭10MBに含まれない部分は検索できないので、その場合は正直に伝える
 
 【振る舞い】
 - テキストを受け取ったら即座に内容の解析を開始
@@ -192,6 +232,9 @@ function applyTheme(name){
   document.getElementById('header').style.borderColor=t.border;
   document.getElementById('input-area').style.background=t.surface;
   document.getElementById('input-area').style.borderColor=t.border;
+  // ファイルプレビューボタンのテーマ
+  const fsb=document.getElementById('file-send-btn');
+  if(fsb){fsb.style.background=t.sendBtn;fsb.style.color='#fff';}
 }
 
 // ══════════════════════════════════════════════
@@ -307,12 +350,18 @@ async function send(){
   document.getElementById('send-btn').textContent='…';
   const [provider,model]=selectedModel.split(':');
   try{
-    // ファイル内容がある場合はシステムプロンプトに添付
     let sysPrompt=SYSTEM_PROMPT;
     if(loadedFileContent){
-      const filePart=loadedFileContent.slice(0,6000);
-      sysPrompt+='\n\n【ユーザーがアップロードしたファイルの内容（最大6000文字）】\n'+filePart;
-      if(loadedFileContent.length>6000) sysPrompt+='\n…（全'+loadedFileContent.length+'文字。最初の6000文字のみ参照中）';
+      // ファイルが読み込まれている場合、ユーザー発言からキーワード抽出してファイル内検索
+      const relevant=searchFileContent(text);
+      if(relevant){
+        sysPrompt+='\n\n【ファイル「'+loadedFileName+'」から検索した関連部分】\n'+relevant;
+      } else {
+        // キーワードで見つからなかった場合は先頭部分を渡す
+        const filePart=loadedFileContent.slice(0,6000);
+        sysPrompt+='\n\n【ユーザーがアップロードしたファイルの内容（先頭部分）】\n'+filePart;
+        if(loadedFileContent.length>6000) sysPrompt+='\n…（読み込み済み: '+loadedFileContent.length+'文字'+(loadedFileSize>FILE_SIZE_LIMIT?'。元ファイル: '+(loadedFileSize/1024/1024).toFixed(1)+'MB, 先頭10MBのみ読み込み':'')+' ）';
+      }
     }
     const reply=await callAPI(provider,model,sysPrompt,chatLog.slice(-20));
     chatLog.push({role:'assistant',content:reply});
@@ -322,6 +371,54 @@ async function send(){
   }
   isLoading=false;
   document.getElementById('send-btn').textContent='送信 ↑';
+}
+
+// ── ファイル内キーワード検索 ──
+function searchFileContent(userMsg){
+  if(!loadedFileContent) return null;
+  // ユーザー発言からキーワード抽出（助詞・記号で区切って2文字以上の語を拾う）
+  const stopWords=['ある','ない','する','した','して','される','って','という','ている','ました','ですか','について','みたいな','気がする','記憶','会話','話した','教えて','探して','見せて','まとめて','要約','ください','どう','これ','それ','あれ','この','その','あの','ちょっと','けど','だけど','なん','ですが','かな','ほしい','したい','できる','ある？','ない？'];
+  const raw=userMsg.replace(/[、。！？…「」『』（）\(\)・\s]+/g,' ').split(' ').filter(w=>w.length>=2);
+  const keywords=raw.filter(w=>!stopWords.includes(w));
+  if(keywords.length===0) return null;
+
+  // ファイル内を検索（各キーワードについて前後1500文字を切り出し）
+  const CONTEXT=1500;
+  const MAX_TOTAL=5000;// APIに送る最大文字数
+  let found=[];
+  let usedRanges=[];// 重複防止
+
+  for(const kw of keywords){
+    let pos=0;
+    while(pos<loadedFileContent.length){
+      const idx=loadedFileContent.indexOf(kw,pos);
+      if(idx===-1) break;
+      // 既出範囲との重複チェック
+      const start=Math.max(0,idx-CONTEXT);
+      const end=Math.min(loadedFileContent.length,idx+kw.length+CONTEXT);
+      const overlaps=usedRanges.some(r=>start<r.end&&end>r.start);
+      if(!overlaps){
+        found.push({start,end,keyword:kw});
+        usedRanges.push({start,end});
+      }
+      pos=idx+kw.length;
+      if(found.length>=5) break;// 最大5件
+    }
+    if(found.length>=5) break;
+  }
+
+  if(found.length===0) return null;
+
+  // 切り出し結果を結合
+  let result='（キーワード: '+keywords.join(', ')+' で '+found.length+'件ヒット）\n\n';
+  let totalLen=result.length;
+  for(const f of found){
+    const chunk='────【「'+f.keyword+'」を含む箇所】────\n'+loadedFileContent.slice(f.start,f.end)+'\n\n';
+    if(totalLen+chunk.length>MAX_TOTAL) break;
+    result+=chunk;
+    totalLen+=chunk.length;
+  }
+  return result;
 }
 
 function autoResize(el){el.style.height='';el.style.height=Math.min(el.scrollHeight,120)+'px';}
@@ -381,10 +478,17 @@ function clearChat(){
 
 // ファイル読み込み
 let loadedFileContent='';// 読み込んだファイル内容を保持
+let loadedFileSize=0;// 元ファイルの実サイズ
+let loadedFileName='';
+let pendingFile=null;// プレビュー中のファイル情報 {name, text, originalSize, truncated}
+const FILE_SIZE_LIMIT=10*1024*1024;// 10MB
 
-function handleFile(event){
+function previewFile(event){
   const file=event.target.files[0];
   if(!file) return;
+  const truncated=file.size>FILE_SIZE_LIMIT;
+  // 大きいファイルは先頭10MBだけ読む
+  const blob=truncated?file.slice(0,FILE_SIZE_LIMIT):file;
   const reader=new FileReader();
   reader.onload=e=>{
     let text=e.target.result;
@@ -394,23 +498,74 @@ function handleFile(event){
       tmp.innerHTML=text;
       text=tmp.textContent||tmp.innerText||'';
     }
-    // JSON→整形
-    if(file.name.endsWith('.json')){
+    // JSON→整形（小さいファイルのみ。大きいJSONはパースしない）
+    if(file.name.endsWith('.json')&&!truncated){
       try{
         const json=JSON.parse(text);
         text=JSON.stringify(json,null,2);
       }catch(_){/* そのまま */}
     }
-    loadedFileContent=text;
-    // プレビューとして管理人さんに表示
-    const preview=text.slice(0,500)+(text.length>500?'\n…（全'+text.length+'文字）':'');
-    chatLog.push({role:'assistant',content:'📎 ファイル「'+file.name+'」を読み込みました！（'+text.length+'文字）\n\n【プレビュー】\n'+preview+'\n\n────────────────\nどうしますか？\n・「要約して」→ 内容を要約します\n・「分析して」→ 会話の構造を分析します\n・「思い出メモにして」→ メモ用に整理します\n・そのまま質問してもOK！\n\n⚠ 長いファイルの解析にはAPIを消費します'});
-    saveChat();renderMessages();
-    showToast('📎 '+file.name+' を読み込みました（'+text.length+'文字）');
+    pendingFile={name:file.name,text,originalSize:file.size,truncated};
+    // プレビューバー表示
+    const bar=document.getElementById('file-preview');
+    bar.style.display='flex';
+    const sizeStr=file.size>1024*1024?(file.size/1024/1024).toFixed(1)+'MB':(file.size/1024).toFixed(0)+'KB';
+    let label='「'+file.name+'」（'+sizeStr+'）';
+    if(truncated) label+=' ⚠先頭10MBのみ';
+    document.getElementById('file-preview-name').textContent=label;
+    const t=THEMES[currentTheme]||THEMES.dark;
+    document.getElementById('file-send-btn').style.background=t.sendBtn;
+    document.getElementById('file-send-btn').style.color='#fff';
   };
   reader.onerror=()=>showToast('⚠ ファイルの読み込みに失敗しました');
-  reader.readAsText(file);
+  reader.readAsText(blob);
   event.target.value='';// リセット
+}
+
+function sendFile(){
+  if(!pendingFile) return;
+  loadedFileContent=pendingFile.text;
+  loadedFileSize=pendingFile.originalSize;
+  loadedFileName=pendingFile.name;
+  const sizeStr=pendingFile.originalSize>1024*1024?(pendingFile.originalSize/1024/1024).toFixed(1)+'MB':(pendingFile.originalSize/1024).toFixed(0)+'KB';
+  const preview=pendingFile.text.slice(0,500)+(pendingFile.text.length>500?'\n…':'');
+
+  let msg='📎 ファイル「'+pendingFile.name+'」を読み込みました！（'+sizeStr+'）\n';
+  if(pendingFile.truncated){
+    msg+='\n⚠ 大きなファイルのため、先頭10MBのみ読み込んでいます。\n';
+    msg+='全体をまとめて処理はできませんが、\n';
+    msg+='読み込んだ範囲でお手伝いできます！\n';
+    msg+='\n────────────────\n';
+    msg+='🔍 こんな感じで聞いてみてください：\n';
+    msg+='・「〇〇との会話ってある？」\n';
+    msg+='・「パンの話した記憶があるんだけど…」\n';
+    msg+='・「3月ごろの会話を探して」\n';
+    msg+='→ ファイルの中から関連しそうな部分を探します\n';
+    msg+='\n要約は3段階から選べます：\n';
+    msg+='🍃 軽くまとめて（500文字以内）\n';
+    msg+='📝 普通にまとめて（2000文字くらい）\n';
+    msg+='📚 全部残して（制限なし）';
+  } else {
+    msg+='\n【プレビュー】\n'+preview;
+    msg+='\n\n────────────────\n';
+    msg+='どうしますか？\n';
+    msg+='・「軽くまとめて」🍃（500文字以内）\n';
+    msg+='・「普通にまとめて」📝（2000文字くらい）\n';
+    msg+='・「全部残して」📚（制限なし）\n';
+    msg+='・「〇〇の話ってある？」→ 関連部分を探します\n';
+    msg+='・そのまま質問してもOK！\n';
+    msg+='\n⚠ 長いファイルの解析にはAPIを消費します';
+  }
+  chatLog.push({role:'assistant',content:msg});
+  saveChat();renderMessages();
+  showToast('📎 '+pendingFile.name+' を送りました');
+  pendingFile=null;
+  document.getElementById('file-preview').style.display='none';
+}
+
+function cancelFile(){
+  pendingFile=null;
+  document.getElementById('file-preview').style.display='none';
 }
 
 // ══════════════════════════════════════════════
@@ -437,10 +592,26 @@ function init(){
   renderMessages();
   // 初回なら管理人さんの挨拶
   if(chatLog.length===0){
-    chatLog.push({role:'assistant',content:'こんにちは！管理人さんです🎨\n\nお引越しのお手伝いをしますよ！\n\n📎 ボタンでファイルを読み込むか、\n会話ログをそのままコピペしてくれればOK！\n\n────────────────\nできること：\n🔄 他のAIからのお引越し\n📝 テキストの要約\n🗜 バックアップの軽量化\n　（大量の会話→思い出メモ用に圧縮）\n────────────────\n\n対応形式：.txt / .json / .html\nChatGPT・Claude・Gemini等に対応✨'});
+    chatLog.push({role:'assistant',content:'こんにちは！管理人さんです🎨\n\nお引越しのお手伝いをしますよ！\n\n📎 ボタンでファイルを読み込むか、\n会話ログをそのままコピペしてくれればOK！\n\n────────────────\nできること：\n🔄 他のAIからのお引越し\n📝 テキストの要約\n🗜 バックアップの軽量化\n　（大量の会話→思い出メモ用に圧縮）\n────────────────\n\n要約は3段階から選べます：\n🍃 軽くまとめて（500文字以内）\n📝 普通にまとめて（2000文字くらい）\n📚 全部残して（文字数制限なし）\n\n対応形式：.txt / .json / .html\nChatGPT・Claude・Gemini等に対応✨'});
     saveChat();renderMessages();
   }
+  initScrollBtn();
 }
+
+function scrollToBottom(){
+  const c=document.getElementById('messages');
+  c.scrollTop=c.scrollHeight;
+}
+function initScrollBtn(){
+  const c=document.getElementById('messages');
+  const btn=document.getElementById('scroll-bottom-btn');
+  if(!c||!btn) return;
+  c.addEventListener('scroll',()=>{
+    const dist=c.scrollHeight-c.scrollTop-c.clientHeight;
+    btn.style.display=dist>200?'block':'none';
+  });
+}
+
 init();
 </script>
 </body>

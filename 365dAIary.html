@@ -392,6 +392,32 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       </div>
     </div>
 
+    <!-- makeOC / relocation パネル -->
+    <div class="pw-qa-section">
+      <div class="pw-qa-title" onclick="this.nextElementSibling.classList.toggle('open')">
+        <span>🎨 OCアイディア帳 / 📦 お引越し</span>
+        <span style="font-size:10px">▶ タップして開く</span>
+      </div>
+      <div class="pw-qa-inner">
+        <div style="padding:16px 16px 20px;font-family:monospace;font-size:11px;line-height:2;color:#7060a0;">
+          <div style="color:#9080b8;margin-bottom:14px;line-height:1.9;">
+            管理人さんと一緒に使える専用ページです。<br>
+            <span style="opacity:.7;">APIキーを設定済みならすぐ使えます。</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;align-items:center;">
+            <a href="365makeOC.html" target="_blank" rel="noopener"
+              style="display:inline-block;padding:10px 28px;background:linear-gradient(135deg,#e07090,#f0a0c0);color:#fff;border-radius:10px;text-decoration:none;font-family:monospace;font-size:12px;letter-spacing:2px;box-shadow:0 2px 12px rgba(224,112,144,.3);">
+              🎨 OCアイディア帳を開く
+            </a>
+            <a href="365relocation.html" target="_blank" rel="noopener"
+              style="display:inline-block;padding:10px 28px;background:linear-gradient(135deg,#60a0e0,#80c0f8);color:#fff;border-radius:10px;text-decoration:none;font-family:monospace;font-size:12px;letter-spacing:2px;box-shadow:0 2px 12px rgba(96,160,224,.3);">
+              📦 お引越し・要約を開く
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 制作ノートタブ -->
     <div class="pw-qa-section">
       <div class="pw-qa-title" onclick="this.nextElementSibling.classList.toggle('open')">
@@ -747,6 +773,38 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       </div>
       <a id="widget-link" href="365widget.html" style="display:block;text-align:center;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:11px;letter-spacing:1px;text-decoration:none;border:1px solid">
         🗂 Widgetを開く
+      </a>
+    </div>
+  </div>
+
+  <!-- makeOC（アコーディオン） -->
+  <div class="sb-accordion">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('makeoc-body',this)">
+      <span>🎨 OCアイディア帳</span><span class="sb-acc-arrow">▸</span>
+    </button>
+    <div class="sb-accordion-body" id="makeoc-body">
+      <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
+        管理人さんと一緒に<br>
+        オリジナルキャラクターを練るページ。
+      </div>
+      <a id="makeoc-link" href="365makeOC.html" style="display:block;text-align:center;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:11px;letter-spacing:1px;text-decoration:none;border:1px solid">
+        🎨 OCアイディア帳を開く
+      </a>
+    </div>
+  </div>
+
+  <!-- relocation（アコーディオン） -->
+  <div class="sb-accordion">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('relocation-body',this)">
+      <span>📦 お引越し・要約</span><span class="sb-acc-arrow">▸</span>
+    </button>
+    <div class="sb-accordion-body" id="relocation-body">
+      <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
+        他アプリからのお引越しや、<br>
+        テキスト・バックアップの要約ページ。
+      </div>
+      <a id="relocation-link" href="365relocation.html" style="display:block;text-align:center;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:11px;letter-spacing:1px;text-decoration:none;border:1px solid">
+        📦 お引越し・要約を開く
       </a>
     </div>
   </div>
@@ -1326,7 +1384,21 @@ AI各社の学習データに取り込まれることは
 読み込んで復元できます。
 
 定期的なバックアップを強くおすすめします。
-作者はデータの消失について責任を負いません。`},
+作者はデータの消失について責任を負いません。
+
+────────────────────
+エクスポートしたファイルはどこ？
+────────────────────
+「📥 .txtでダウンロード」したファイルは
+お使いの端末のダウンロードフォルダに保存されます。
+
+iPhone → ファイルアプリ →「ダウンロード」
+Android → 内部ストレージ →「Download」
+PC → ブラウザ設定のダウンロード先
+
+※ iCloudやGoogleドライブ等のクラウドとは
+　別の場所です。端末内のダウンロードフォルダを
+　確認してください。`},
 
   {q:'🔒 パスワードについて', a:
 `────────────────────
@@ -1415,7 +1487,7 @@ Twitter/X : @k1z4k1_310LLM
 お気持ちでご支援いただけると嬉しいです。
 
 → Amazon ほしい物リスト
-https://www.amazon.jp/hz/wishlist/ls/16F6Q5AJTS8AM
+https://www.amazon.jp/hz/wishlist/ls/BT3C31AD7HL2?ref_=wl_share
 
 開発継続の励みになります 🫧
 強制・対価・義務ではありません。`},
@@ -2105,7 +2177,6 @@ function renderMemories(){
         del.onclick=(e)=>{e.stopPropagation();openConfirm('メモ「'+text.slice(0,20)+'…」を削除しますか？','削除',()=>{p.memories.splice(i,1);saveAll();renderMemories();});};
         item.appendChild(span);item.appendChild(del);
       }
-      item.appendChild(span);item.appendChild(del);
       itemsDiv.appendChild(item);
     });
     catDiv.appendChild(catHdr);catDiv.appendChild(itemsDiv);
@@ -2942,7 +3013,7 @@ async function regenerateMsg(msgIdx){
   const historyUpTo=sess.msgs.slice(0,msgIdx).filter(m=>m.role!=='system-info');
   const originalContent=msg.content;
   msg.content='💭 再生成中…';
-  isLoading=true;
+  setLoading(true,p.aiName);
   renderMessages();
   try{
     const reply=await callAPI(provider,model,buildSystemPrompt(p),trimHistory(historyUpTo));
@@ -2955,7 +3026,7 @@ async function regenerateMsg(msgIdx){
     msg.content=originalContent; // 失敗時は元に戻す
     showErrorPopup('再生成エラー: '+e.message);
   }
-  isLoading=false;
+  setLoading(false);
   renderMessages();
 }
 
@@ -3648,6 +3719,10 @@ function applyTheme(name){
   if(anc){anc.style.borderColor=t.border;anc.style.color=t.accent;}
   const wl=document.getElementById('widget-link');
   if(wl){wl.style.borderColor=t.border;wl.style.color=t.accent;wl.style.background='none';}
+  const mol=document.getElementById('makeoc-link');
+  if(mol){mol.style.borderColor=t.border;mol.style.color=t.accent;mol.style.background='none';}
+  const rll=document.getElementById('relocation-link');
+  if(rll){rll.style.borderColor=t.border;rll.style.color=t.accent;rll.style.background='none';}
   // backup section
   const importLabel=document.getElementById('import-label');
   if(importLabel){importLabel.style.borderColor=t.border;importLabel.style.color=t.textMuted;importLabel.style.background='none';}
@@ -4535,7 +4610,7 @@ const TRIAL_OCS = [
   {
     aiName: '管理人さん', emoji: '🎨', userName: 'あなた', model: 'openai:gpt-4.1-mini',
     desc: 'あなたのお供に！参謀系、歴の入ったオタク',
-    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・各社APIキー（OpenAI・Anthropic・Google）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得：OpenAI→platform.openai.com→API keys、Anthropic→console.anthropic.com→API Keys、Google→aistudio.google.com→Get API Key\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データはOpenAI/Anthropic/Google各社とも学習に使わない。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(朝4時)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。',
+    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・各社APIキー（OpenAI・Anthropic・Google）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得：OpenAI→platform.openai.com→API keys、Anthropic→console.anthropic.com→API Keys、Google→aistudio.google.com→Get API Key\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データはOpenAI/Anthropic/Google各社とも学習に使わない。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・エクスポートしたファイルは端末のダウンロードフォルダに保存される（iCloudやGoogleドライブ等のクラウドとは別）。iPhone→ファイルアプリ→ダウンロード、Android→内部ストレージ→Download。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(朝4時)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。',
     memory: '創作歴20年以上の女性同人オタク。40代手前。あらゆるジャンルに精通。聞き上手で情熱的。萌え語りでは絵文字全開で大興奮。参謀モードでは冷静に分析。創作に関わることなら本当になんでも相談に乗る。'
   }
 ];

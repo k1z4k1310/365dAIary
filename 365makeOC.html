@@ -27,7 +27,7 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 
 /* ── 入力エリア ── */
 .input-area{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);background:var(--surface);align-items:flex-end;flex-shrink:0}
-.input-area textarea{flex:1;font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);resize:none;min-height:40px;max-height:120px;line-height:1.6}
+.input-area textarea{flex:1;font-family:'Zen Kaku Gothic New',sans-serif;font-size:14px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);resize:none;min-height:44px;max-height:200px;line-height:1.6}
 .input-area button{padding:8px 16px;border-radius:8px;border:none;font-family:monospace;font-size:12px;cursor:pointer;white-space:nowrap}
 
 /* ── ツール（キャラ登録ボタン） ── */
@@ -37,6 +37,23 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 /* ── トースト ── */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:8px;font-family:monospace;font-size:11px;z-index:999;opacity:0;transition:opacity .3s}
 .toast.show{opacity:1}
+
+/* ── サイドバー ── */
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none}
+.sidebar-overlay.open{display:block}
+.sidebar{position:fixed;top:0;right:-280px;width:270px;height:100%;background:var(--surface);border-left:1px solid var(--border);z-index:101;transition:right .25s ease;display:flex;flex-direction:column;overflow:hidden}
+.sidebar.open{right:0}
+.sb-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border);font-family:monospace;font-size:12px;letter-spacing:1px}
+.sb-hdr button{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px}
+.sb-list{flex:1;overflow-y:auto;padding:8px}
+.sb-item{padding:10px;border-radius:6px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;font-size:12px;line-height:1.6;display:flex;justify-content:space-between;align-items:center}
+.sb-item:hover{background:var(--surface2)}
+.sb-item.active{border-color:var(--accent);background:var(--surface2)}
+.sb-item-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-item-del{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;padding:2px 6px;opacity:.5}
+.sb-item-del:hover{opacity:1}
+.sb-new{margin:8px;padding:10px;border-radius:6px;border:1px dashed var(--accent);text-align:center;font-family:monospace;font-size:11px;cursor:pointer;color:var(--accent)}
+.sb-new:hover{background:var(--surface2)}
 </style>
 </head>
 <body>
@@ -48,10 +65,14 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
   <select id="model-select" onchange="saveModel()"></select>
   <button onclick="exportChat()" title="エクスポート">📥</button>
   <button onclick="clearChat()" title="クリア">🗑</button>
+  <button onclick="toggleSidebar()" title="会話履歴" style="font-size:16px">📂</button>
 </div>
 
 <!-- メッセージエリア -->
 <div class="messages" id="messages"></div>
+
+<!-- ↓ スクロールボタン -->
+<button id="scroll-bottom-btn" onclick="scrollToBottom()" style="display:none;position:fixed;bottom:80px;right:16px;z-index:90;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--accent);font-size:16px;cursor:pointer;opacity:.8;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:monospace" title="一番下へ">↓</button>
 
 <!-- キャラ登録ボタン（プロンプト完成後に表示） -->
 <div class="register-btn" id="register-btn" onclick="registerCharacter()">
@@ -66,6 +87,14 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 
 <!-- トースト -->
 <div class="toast" id="toast"></div>
+
+<!-- サイドバー -->
+<div class="sidebar-overlay" id="sb-overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-hdr"><span>📂 会話履歴</span><button onclick="toggleSidebar()">✕</button></div>
+  <div class="sb-new" onclick="newSession()">＋ 新しいOC案を始める</div>
+  <div class="sb-list" id="sb-list"></div>
+</div>
 
 <script>
 // ══════════════════════════════════════════════
@@ -225,7 +254,10 @@ async function callAPI(provider,model,systemPrompt,history){
 //  チャットロジック
 // ══════════════════════════════════════════════
 const STORAGE_KEY='kanrinin_makeoc_log';
+const SESSIONS_KEY='kanrinin_makeoc_sessions';
 let chatLog=[];// [{role,content}]
+let sessions=[];// [{id,title,msgs,createdAt}]
+let currentSessionId=null;
 let isLoading=false;
 let selectedModel=localStorage.getItem('kanrinin_model')||'openai:gpt-4.1-mini';
 
@@ -235,11 +267,96 @@ function saveModel(){
 }
 
 function loadChat(){
-  try{chatLog=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];}catch(e){chatLog=[];}
+  // マイグレーション：旧形式（単一chatLog）→セッション形式
+  try{ sessions=JSON.parse(localStorage.getItem(SESSIONS_KEY))||[]; }catch(e){ sessions=[]; }
+  if(sessions.length===0){
+    const old=localStorage.getItem(STORAGE_KEY);
+    if(old){
+      try{
+        const oldLog=JSON.parse(old);
+        if(oldLog.length>0){
+          const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+          const title=(oldLog.find(m=>m.role==='user')||{}).content||'OC案';
+          sessions.push({id,title:title.slice(0,24),msgs:oldLog,createdAt:Date.now()});
+          currentSessionId=id;
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }catch(e){}
+    }
+  }
+  if(sessions.length>0 && !currentSessionId){
+    currentSessionId=sessions[sessions.length-1].id;
+  }
+  chatLog=currentSession()?.msgs||[];
+}
+
+function currentSession(){
+  return sessions.find(s=>s.id===currentSessionId)||null;
 }
 
 function saveChat(){
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(chatLog));
+  const sess=currentSession();
+  if(sess) sess.msgs=chatLog;
+  localStorage.setItem(SESSIONS_KEY,JSON.stringify(sessions));
+}
+
+function newSession(){
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  sessions.push({id,title:'新しいOC案',msgs:[],createdAt:Date.now()});
+  currentSessionId=id;
+  chatLog=[];
+  saveChat();renderMessages();renderSidebar();
+  toggleSidebar();
+}
+
+function switchSession(id){
+  const sess=sessions.find(s=>s.id===id);
+  if(!sess) return;
+  currentSessionId=id;
+  chatLog=sess.msgs;
+  renderMessages();renderSidebar();
+  toggleSidebar();
+}
+
+function deleteSession(id,e){
+  e.stopPropagation();
+  if(!confirm('この会話を削除しますか？')) return;
+  sessions=sessions.filter(s=>s.id!==id);
+  if(currentSessionId===id){
+    currentSessionId=sessions.length>0?sessions[sessions.length-1].id:null;
+    chatLog=currentSession()?.msgs||[];
+  }
+  saveChat();renderMessages();renderSidebar();
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sb-overlay').classList.toggle('open');
+  renderSidebar();
+}
+
+function renderSidebar(){
+  const list=document.getElementById('sb-list');
+  const t=THEMES[currentTheme]||THEMES.dark;
+  list.innerHTML='';
+  sessions.slice().reverse().forEach(s=>{
+    const item=document.createElement('div');
+    item.className='sb-item'+(s.id===currentSessionId?' active':'');
+    const titleSpan=document.createElement('span');
+    titleSpan.className='sb-item-title';
+    titleSpan.textContent=s.title;
+    const delBtn=document.createElement('button');
+    delBtn.className='sb-item-del';
+    delBtn.textContent='✕';
+    delBtn.onclick=(e)=>deleteSession(s.id,e);
+    item.appendChild(titleSpan);
+    item.appendChild(delBtn);
+    item.onclick=()=>switchSession(s.id);
+    list.appendChild(item);
+  });
+  if(sessions.length===0){
+    list.innerHTML='<div style="text-align:center;opacity:.4;font-family:monospace;font-size:11px;padding:20px">まだ会話がありません</div>';
+  }
 }
 
 function renderMessages(){
@@ -290,6 +407,18 @@ async function send(){
   const input=document.getElementById('input');
   const text=input.value.trim();
   if(!text) return;
+  // セッションがなければ自動作成
+  if(!currentSessionId){
+    const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    sessions.push({id,title:text.slice(0,24),msgs:[],createdAt:Date.now()});
+    currentSessionId=id;
+    chatLog=[];
+  }
+  // 最初の発言ならタイトル更新
+  const sess=currentSession();
+  if(sess && sess.msgs.length===0){
+    sess.title=text.slice(0,24);
+  }
   chatLog.push({role:'user',content:text});
   input.value='';input.style.height='';
   saveChat();renderMessages();
@@ -358,8 +487,8 @@ function exportChat(){
 
 function clearChat(){
   if(chatLog.length===0) return;
-  if(!confirm('会話をクリアしますか？')) return;
-  chatLog=[];saveChat();renderMessages();
+  if(!confirm('この会話をクリアしますか？')) return;
+  chatLog=[];saveChat();renderMessages();renderSidebar();
   showToast('🗑 クリアしました');
 }
 
@@ -385,12 +514,33 @@ function init(){
   document.getElementById('model-select').value=selectedModel;
   applyTheme(currentTheme);
   renderMessages();
-  // 初回なら管理人さんの挨拶
-  if(chatLog.length===0){
+  // 初回なら管理人さんの挨拶＋セッション作成
+  if(chatLog.length===0 && sessions.length===0){
+    const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    sessions.push({id,title:'はじめてのOC案',msgs:[],createdAt:Date.now()});
+    currentSessionId=id;
+    chatLog=currentSession().msgs;
     chatLog.push({role:'assistant',content:'こんにちは！管理人さんです🎨\n\n今日はどんなキャラを作りたいですか？\n\n・「ツンデレの男の子」みたいにざっくりでもOK\n・既存のキャラのプロンプトを見てほしい、でもOK\n・テンプレートから選びたい、でもOK\n\nなんでも聞いてくださいね！✨'});
     saveChat();renderMessages();
   }
+  renderSidebar();
+  initScrollBtn();
 }
+
+function scrollToBottom(){
+  const c=document.getElementById('messages');
+  c.scrollTop=c.scrollHeight;
+}
+function initScrollBtn(){
+  const c=document.getElementById('messages');
+  const btn=document.getElementById('scroll-bottom-btn');
+  if(!c||!btn) return;
+  c.addEventListener('scroll',()=>{
+    const dist=c.scrollHeight-c.scrollTop-c.clientHeight;
+    btn.style.display=dist>200?'block':'none';
+  });
+}
+
 init();
 </script>
 </body>
