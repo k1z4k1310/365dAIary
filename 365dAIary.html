@@ -95,6 +95,11 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 .sb-sec{padding:12px;border-bottom:1px solid;display:flex;flex-direction:column;gap:6px}
 .sb-sec:last-child{border-bottom:none}
 .sb-lbl{font-family:monospace;font-size:10px;letter-spacing:2px;margin-bottom:2px;display:block}
+.sb-accordion{padding:0;border-bottom:1px solid}
+.sb-accordion-hdr{width:100%;text-align:left;background:none;border:none;padding:14px 12px;font-family:monospace;font-size:12px;letter-spacing:1.5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:inherit;min-height:52px}
+.sb-accordion-hdr:hover{opacity:.8}
+.sb-accordion-body{display:none;padding:0 12px 12px;flex-direction:column;gap:6px}
+.sb-accordion-body.open{display:flex}
 .sb-inp{width:100%;font-size:12px;padding:5px 8px;border-radius:4px;font-family:monospace;outline:none;border:1px solid}
 .sb-ta{width:100%;font-size:12px;padding:8px;border-radius:4px;resize:vertical;outline:none;line-height:1.6;min-height:70px;border:1px solid;font-family:inherit}
 .sb-btn{width:100%;font-size:11px;font-family:monospace;padding:6px;border-radius:4px;cursor:pointer;border:1px solid}
@@ -372,7 +377,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
           <div style="font-size:12px;color:#5040a0;font-weight:bold;margin-bottom:10px;">📱 365dAIary Widget とは</div>
           <div style="color:#9080b8;margin-bottom:14px;line-height:1.9;">
             メインアプリと連携して使える<br>ホーム画面用ダッシュボードです。<br>
-            <span style="opacity:.7;">時計・人格状態・カレンダー・起動ボタンなどを<br>まとめて確認できます。</span>
+            <span style="opacity:.7;">時計・キャラ状態・カレンダー・起動ボタンなどを<br>まとめて確認できます。</span>
           </div>
           <div id="pw-widget-link-wrap" style="text-align:center;">
             <a id="pw-widget-link" href="365widget.html" target="_blank" rel="noopener"
@@ -415,7 +420,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     本当は他のサイト制作の予習と、自分自身のやりたいことである「GPT-4oの独特の温かみを持つ自作ローカルLLM開発」の足がけとなるものを、ひとまず作ろう！と思い立ったところから始まったサイトです。気づけば一日半で v1.4.0 まで育っていました。<br><br>
     完全に個人で、自分自身のために作ったものです。公開しているのは、「AIを正しく使い、そして心から大事にしている皆様に楽しんでいただけたら」という気持ちから来ています。<br><br>
     個人的な話ですが、わたしはプリパラ（プリティーシリーズ作品から連なるホビーアイドル作品たち）というアニメ・ゲームが好きで、学生時代になけなしの百円玉を握りしめてゲーセンに通っていました。「マイキャラ」という自分だけの創作キャラクターを複数育てて、うちの子だけでライブさせる——そんな遊びをしていました。<br><br>
-    このサイトでも、同じように、自分だけのAIキャラクター人格を複数制作して、時には自分自身も混ざりながら、AIたちの会話を楽しんだり、テーマカラーやイメージ絵文字を変えてキャラの個性を膨らませることができるようにしました。<br><br>
+    このサイトでも、同じように、自分だけのAIキャラクターを複数制作して、時には自分自身も混ざりながら、AIたちの会話を楽しんだり、テーマカラーやイメージ絵文字を変えてキャラの個性を膨らませることができるようにしました。<br><br>
     AI生成と創作活動の折り合いが難しいことは承知の上で、個人で楽しく遊べる範囲で、平和に活用していただけたら幸いです。<br><br>
     皆様、良き創作×AIライフを！<br>
     <span style="color:#9080b8;font-size:10px;">— 澪</span>
@@ -535,7 +540,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 <div id="wizard-screen">
   <div id="wizard-box">
     <div class="wiz-title">✦ はじめまして ✦</div>
-    <div class="wiz-sub">最初のAI人格を作りましょう。<br>あとからいつでも追加・変更できます。</div>
+    <div class="wiz-sub">最初のAIキャラを作りましょう。<br>あとからいつでも追加・変更できます。</div>
     <div class="wiz-field">
       <span class="wiz-label">AIの名前（表示名）</span>
       <div style="display:flex;gap:8px;align-items:center;min-width:0">
@@ -551,15 +556,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field">
       <span class="wiz-label">使用するAI（あとで変更可）</span>
       <select class="wiz-input" id="wiz-model">
-        <option value="openai:gpt-4.1-mini">GPT-4.1 mini（OpenAI・おすすめ）</option>
-        <option value="openai:gpt-4.1">GPT-4.1（OpenAI）</option>
-        <option value="openai:gpt-4.1-nano">GPT-4.1 nano（OpenAI・最安）</option>
-        <option value="openai:gpt-4o">GPT-4o（OpenAI・自動更新）</option>
-        <option value="openai:gpt-4o-mini">GPT-4o mini（OpenAI）</option>
-        <option value="anthropic:claude-sonnet-4-5">Claude Sonnet 4.5（Anthropic）</option>
-        <option value="anthropic:claude-3-5-sonnet-20241022">Claude 3.5 Sonnet（Anthropic）</option>
-        <option value="google:gemini-2.0-flash">Gemini 2.0 Flash（Google）</option>
-        <option value="google:gemini-2.5-flash">Gemini 2.5 Flash（Google）</option>
+        <!-- JS: populateModelSelect で動的生成 -->
       </select>
     </div>
     <button class="wiz-btn" id="wiz-btn" onclick="finishWizard()">✦ はじめる</button>
@@ -585,7 +582,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 <!-- 人格追加モーダル -->
 <div id="add-persona-modal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center">
   <div id="add-persona-box" style="width:min(340px,90vw);border-radius:12px;padding:24px 20px;display:flex;flex-direction:column;gap:14px;border:1px solid;position:relative;z-index:201">
-    <div style="font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center">＋ 人格を追加</div>
+    <div style="font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center">＋ キャラを追加</div>
     <div class="wiz-field" style="gap:5px">
       <span class="wiz-label">AIの名前</span>
       <div style="display:flex;gap:8px;align-items:center;min-width:0">
@@ -601,16 +598,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field" style="gap:5px">
       <span class="wiz-label">使用するAI</span>
       <select class="wiz-input" id="modal-model">
-        <option value="openai:gpt-4.1-mini">GPT-4.1 mini（OpenAI・おすすめ）</option>
-        <option value="openai:gpt-4.1">GPT-4.1（OpenAI）</option>
-        <option value="openai:gpt-4.1-nano">GPT-4.1 nano（OpenAI・最安）</option>
-        <option value="openai:gpt-4o">GPT-4o（OpenAI・自動更新）</option>
-        <option value="openai:gpt-4o-mini">GPT-4o mini（OpenAI）</option>
-        <option value="anthropic:claude-sonnet-4-5">Claude Sonnet 4.5（Anthropic）</option>
-        <option value="anthropic:claude-3-5-sonnet-20241022">Claude 3.5 Sonnet（Anthropic）</option>
-        <option value="anthropic:claude-3-haiku-20240307">Claude 3 Haiku（Anthropic）</option>
-        <option value="google:gemini-2.0-flash">Gemini 2.0 Flash（Google）</option>
-        <option value="google:gemini-2.5-flash">Gemini 2.5 Flash（Google）</option>
+        <!-- JS: populateModelSelect で動的生成 -->
       </select>
     </div>
     <div style="display:flex;gap:8px">
@@ -641,9 +629,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
   </div>
 
-  <!-- 人格設定 -->
+  <!-- キャラ設定 -->
   <div class="sb-sec">
-    <span class="sb-lbl">現在の人格設定</span>
+    <span class="sb-lbl">現在のキャラ設定</span>
     <div class="wiz-field" style="gap:4px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">AIの名前</span>
       <div style="display:flex;gap:6px;align-items:center">
@@ -658,23 +646,11 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="wiz-field" style="gap:4px;margin-top:4px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">使用モデル</span>
       <select class="sb-inp" id="edit-model">
-        <option value="openai:gpt-4.1-mini">GPT-4.1 mini（おすすめ）</option>
-        <option value="openai:gpt-4.1">GPT-4.1</option>
-        <option value="openai:gpt-4.1-nano">GPT-4.1 nano（最安）</option>
-        <option value="openai:gpt-4o">GPT-4o（自動更新）</option>
-        <option value="openai:gpt-4o-2024-11-20">GPT-4o 2024-11-20</option>
-        <option value="openai:gpt-4o-2024-08-06">GPT-4o 2024-08-06</option>
-        <option value="openai:gpt-4o-2024-05-13">GPT-4o 2024-05-13（初代）</option>
-        <option value="openai:gpt-4o-mini">GPT-4o mini</option>
-        <option value="anthropic:claude-sonnet-4-5">Claude Sonnet 4.5</option>
-        <option value="anthropic:claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
-        <option value="anthropic:claude-3-haiku-20240307">Claude 3 Haiku</option>
-        <option value="google:gemini-2.0-flash">Gemini 2.0 Flash</option>
-        <option value="google:gemini-2.5-flash">Gemini 2.5 Flash</option>
+        <!-- JS: populateModelSelect で動的生成 -->
       </select>
     </div>
-    <button class="sb-btn" onclick="savePersonaSettings()">💾 この人格の設定を保存</button>
-    <button class="sb-btn" onclick="deleteCurrentPersona()" style="margin-top:4px;color:#e05555">🗑 この人格を削除</button>
+    <button class="sb-btn" onclick="savePersonaSettings()">💾 このキャラの設定を保存</button>
+    <button class="sb-btn" onclick="deleteCurrentPersona()" style="margin-top:4px;color:#e05555">🗑 このキャラを削除</button>
   </div>
 
   <!-- API Keys -->
@@ -684,6 +660,13 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="key-row"><span class="key-lbl">Anthropic</span><input class="sb-inp" id="key-anthropic" type="password" placeholder="sk-ant-..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Google</span><input class="sb-inp" id="key-google" type="password" placeholder="AIza..." autocomplete="off"></div>
     <button class="sb-btn" onclick="saveKeys()">💾 APIキーを保存</button>
+    <div style="margin-top:10px;padding-top:8px">
+      <span class="sb-lbl">💰 コスト管理</span>
+      <div style="font-family:monospace;font-size:9px;opacity:.5;margin-bottom:6px;line-height:1.6">API利用料の概算上限を設定して使いすぎを防止できます。上限に達すると送信がブロックされます。実際の請求額は各社ダッシュボードでご確認ください。</div>
+      <div class="key-row"><span class="key-lbl" style="width:80px">上限（$）</span><input class="sb-inp" id="cost-limit" type="number" min="0" step="0.01" placeholder="例: 1.00" style="width:70px"></div>
+      <button class="sb-btn" onclick="saveCostLimit()" style="margin-top:4px">💾 保存</button>
+      <button class="sb-btn" onclick="resetCost()" style="margin-top:3px">🔄 コストリセット</button>
+    </div>
   </div>
 
   <!-- System Prompt -->
@@ -707,111 +690,96 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
   </div>
 
   <!-- my dAIary（AI日記） -->
-  <div class="sb-sec" id="diary-sec">
-    <span class="sb-lbl">📔 my dAIary（AI日記）</span>
-    <div style="font-size:10px;opacity:.6;line-height:1.7;margin-bottom:6px">AIキャラが今日の会話を振り返って日記を書きます。</div>
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-      <span style="font-size:10px;opacity:.6;white-space:nowrap">モード:</span>
-      <select id="diary-mode" onchange="saveDiaryMode()" style="flex:1;font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid;background:none;color:inherit;font-family:monospace">
-        <option value="off">OFF</option>
-        <option value="manual">✋ 手動</option>
-        <option value="auto">⏰ 自動（朝4時）</option>
-      </select>
+  <div class="sb-accordion" id="diary-sec">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('diary-body',this)">
+      <span>📔 my dAIary（AI日記）</span><span class="sb-acc-arrow">▸</span>
+    </button>
+    <div class="sb-accordion-body" id="diary-body">
+      <div style="font-size:10px;opacity:.6;line-height:1.7;margin-bottom:6px">AIキャラが今日の会話を振り返って日記を書きます。</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:10px;opacity:.6;white-space:nowrap">モード:</span>
+        <select id="diary-mode" onchange="saveDiaryMode()" style="flex:1;font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid;background:none;color:inherit;font-family:monospace">
+          <option value="off">OFF</option>
+          <option value="manual">✋ 手動</option>
+          <option value="auto">⏰ 自動（朝4時）</option>
+        </select>
+      </div>
+      <button class="sb-btn" id="diary-write-btn" onclick="writeDiary()" style="display:none">📔 日記を書いてもらう</button>
+      <div id="diary-latest" style="margin-top:6px"></div>
     </div>
-    <button class="sb-btn" id="diary-write-btn" onclick="writeDiary()" style="display:none">📔 日記を書いてもらう</button>
-    <div id="diary-latest" style="margin-top:6px"></div>
   </div>
 
   <!-- Rally settings -->
-  <div class="sb-sec">
-    <span class="sb-lbl">AI同士の会話（ラリー）</span>
-    <div style="font-size:11px;opacity:.7;line-height:1.7;margin-bottom:6px">参加する人格を選んでヘッダーの ⚡ で開始。</div>
-    <!-- 参加人格チェックボックス -->
-    <div style="font-family:monospace;font-size:10px;opacity:.6;margin-bottom:4px;letter-spacing:1px">参加メンバー</div>
-    <div id="rally-members" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;padding:6px;border-radius:6px;border:1px solid"></div>
-    <!-- ユーザー参加チェック -->
-    <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer;margin-bottom:8px;padding:6px;border-radius:6px;border:1px solid" id="rally-user-label">
-      <input type="checkbox" id="rally-user-join" style="width:14px;height:14px;cursor:pointer">
-      <span>👤 自分も参加する</span>
-    </label>
-    <div id="rally-user-hint" style="display:none;font-size:10px;opacity:.6;line-height:1.7;margin-bottom:6px">自分のターンになると入力欄が有効になります。送信するとラリーが続きます。</div>
-    <div class="key-row"><span class="key-lbl" style="width:80px">最大回数</span><input class="sb-inp" id="rally-max-turns" type="number" min="1" max="50" value="10" style="width:60px"></div>
-    <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">上限（$）</span><input class="sb-inp" id="rally-max-cost" type="number" min="0.01" step="0.01" value="0.50" style="width:60px"></div>
-    <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">タイムアウト</span><input class="sb-inp" id="rally-timeout" type="number" min="10" max="300" value="60" style="width:60px"><span style="font-family:monospace;font-size:10px;opacity:.6;margin-left:4px">秒</span></div>
-    <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">テーマ</span><input class="sb-inp" id="rally-topic" type="text" placeholder="例：好きな食べ物について" style="width:140px;font-size:11px"></div>
-    <div style="font-family:monospace;font-size:9px;opacity:.45;margin-top:2px;line-height:1.5">テーマを入れると最初の話題を指定できます（空欄＝自由会話）</div>
-    <div style="font-family:monospace;font-size:9px;opacity:.55;margin-top:6px;line-height:1.7">回数・コスト・時間のいずれかに<br>達した時点で自動停止します。</div>
-  </div>
-
-  <!-- Cost settings -->
-  <div class="sb-sec">
-    <span class="sb-lbl">コスト管理</span>
-    <div style="font-family:monospace;font-size:9px;opacity:.5;margin-bottom:4px;line-height:1.5">※起動からの累計概算です。実際の請求額は各社ダッシュボードでご確認ください</div>
-    <div class="key-row"><span class="key-lbl" style="width:80px">上限（$）</span><input class="sb-inp" id="cost-limit" type="number" min="0" step="0.01" placeholder="例: 1.00" style="width:70px"></div>
-    <button class="sb-btn" onclick="saveCostLimit()" style="margin-top:4px">💾 保存</button>
-    <button class="sb-btn" onclick="resetCost()" style="margin-top:3px">🔄 コストリセット</button>
-  </div>
-
-  <!-- Theme -->
-  <div class="sb-sec">
-    <span class="sb-lbl">テーマカラー</span>
-    <div class="theme-tabs">
-      <button class="theme-tab active" id="ttab-default" onclick="switchThemeTab('default')">デフォルト</button>
-      <button class="theme-tab" id="ttab-custom" onclick="switchThemeTab('custom')">カスタム</button>
+  <div class="sb-accordion">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('rally-body',this)">
+      <span>⚡ AI同士の会話（ラリー）</span><span class="sb-acc-arrow">▸</span>
+    </button>
+    <div class="sb-accordion-body" id="rally-body">
+      <div style="font-size:11px;opacity:.7;line-height:1.7;margin-bottom:6px">参加するキャラを選んでヘッダーの ⚡ で開始。</div>
+      <!-- 参加キャラチェックボックス -->
+      <div style="font-family:monospace;font-size:10px;opacity:.6;margin-bottom:4px;letter-spacing:1px">参加メンバー</div>
+      <div id="rally-members" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;padding:6px;border-radius:6px;border:1px solid"></div>
+      <!-- ユーザー参加チェック -->
+      <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer;margin-bottom:8px;padding:6px;border-radius:6px;border:1px solid" id="rally-user-label">
+        <input type="checkbox" id="rally-user-join" style="width:14px;height:14px;cursor:pointer">
+        <span>👤 自分も参加する</span>
+      </label>
+      <div id="rally-user-hint" style="display:none;font-size:10px;opacity:.6;line-height:1.7;margin-bottom:6px">自分のターンになると入力欄が有効になります。送信するとラリーが続きます。</div>
+      <div class="key-row"><span class="key-lbl" style="width:80px">最大回数</span><input class="sb-inp" id="rally-max-turns" type="number" min="1" max="50" value="10" style="width:60px"></div>
+      <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">上限（$）</span><input class="sb-inp" id="rally-max-cost" type="number" min="0.01" step="0.01" value="0.50" style="width:60px"></div>
+      <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">タイムアウト</span><input class="sb-inp" id="rally-timeout" type="number" min="10" max="300" value="60" style="width:60px"><span style="font-family:monospace;font-size:10px;opacity:.6;margin-left:4px">秒</span></div>
+      <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">テーマ</span><input class="sb-inp" id="rally-topic" type="text" placeholder="例：好きな食べ物について" style="width:140px;font-size:11px"></div>
+      <div style="font-family:monospace;font-size:9px;opacity:.45;margin-top:2px;line-height:1.5">テーマを入れると最初の話題を指定できます（空欄＝自由会話）</div>
+      <div style="font-family:monospace;font-size:9px;opacity:.55;margin-top:6px;line-height:1.7">回数・コスト・時間のいずれかに<br>達した時点で自動停止します。</div>
     </div>
-    <div id="theme-grid-default" class="theme-grid"></div>
-    <div id="theme-grid-custom" class="theme-grid" style="display:none"></div>
   </div>
 
 
-  <!-- Widget -->
-  <div class="sb-sec">
-    <span class="sb-lbl">🗂 Widget</span>
-    <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
-      時計・カレンダー・人格ランチャーなど、<br>
-      ホーム画面に追加できるwidgetページ。
+  <!-- Widget（アコーディオン） -->
+  <div class="sb-accordion">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('widget-body',this)">
+      <span>🗂 Widget</span><span class="sb-acc-arrow">▸</span>
+    </button>
+    <div class="sb-accordion-body" id="widget-body">
+      <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
+        時計・カレンダー・キャラランチャーなど、<br>
+        ホーム画面に追加できるwidgetページ。
+      </div>
+      <a id="widget-link" href="365widget.html" style="display:block;text-align:center;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:11px;letter-spacing:1px;text-decoration:none;border:1px solid">
+        🗂 Widgetを開く
+      </a>
     </div>
-    <a id="widget-link" href="365widget.html" style="display:block;text-align:center;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:11px;letter-spacing:1px;text-decoration:none;border:1px solid">
-      🗂 Widgetを開く
-    </a>
   </div>
 
-  <!-- Backup / Restore -->
-  <div class="sb-sec" id="backup-sec">
-    <span class="sb-lbl">&#128190; バックアップ・復元</span>
-    <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
-      キャッシュが消えてもデータを守るために、<br>
-      定期的にバックアップを保存しておこう。<br>
-      <span style="font-family:monospace;font-size:9px;opacity:.6">&#8251; APIキーはセキュリティのため含まれません</span>
+  <!-- Backup / Restore（アコーディオン） -->
+  <div class="sb-accordion" id="backup-sec">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('backup-body',this)">
+      <span>💾 バックアップ・復元</span><span class="sb-acc-arrow">▸</span>
+    </button>
+    <div class="sb-accordion-body" id="backup-body">
+      <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
+        キャッシュが消えてもデータを守るために、<br>
+        定期的にバックアップを保存しておこう。<br>
+        <span style="font-family:monospace;font-size:9px;opacity:.6">※ APIキーはセキュリティのため含まれません</span><br>
+        <span style="font-family:monospace;font-size:9px;opacity:.6">※ 365dAIary独自のテキスト形式で保存されます</span>
+      </div>
+      <button class="sb-btn" onclick="exportData()" style="font-weight:bold">📥 .txt でダウンロード</button>
+      <div style="margin-top:8px;margin-bottom:4px;font-family:monospace;font-size:10px;opacity:.6;text-align:center">─ 復元 ─</div>
+      <label id="import-label" style="display:block;text-align:center;padding:8px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;border:1px dashed">
+        📂 バックアップファイルを選ぶ
+        <input type="file" id="import-file" accept=".txt,.json" style="display:none" onchange="importData(event)">
+      </label>
+      <div id="import-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
     </div>
-    <button class="sb-btn" onclick="exportData()" style="font-weight:bold">&#128229; .txt でダウンロード</button>
-    <div style="margin-top:8px;margin-bottom:4px;font-family:monospace;font-size:10px;opacity:.6;text-align:center">&#8213; 復元 &#8213;</div>
-    <label id="import-label" style="display:block;text-align:center;padding:8px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;border:1px dashed">
-      &#128194; バックアップファイルを選ぶ
-      <input type="file" id="import-file" accept=".txt,.json" style="display:none" onchange="importData(event)">
-    </label>
-    <div id="import-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
   </div>
 
   <!-- 開発者へのメッセージ -->
-  <div class="sb-sec" style="text-align:center" id="feedback-sec">
-    <div id="beta-feedback-banner" style="display:none;margin-bottom:8px;padding:10px;border-radius:8px;border:2px solid #60b080;background:rgba(96,176,128,.08)">
-      <div style="font-family:monospace;font-size:11px;font-weight:bold;color:#60b080;letter-spacing:1px;margin-bottom:4px">🎫 ベータテスター特典</div>
-      <div style="font-family:monospace;font-size:10px;line-height:1.7;opacity:.8">
-        フィードバックへのお礼をご用意しています。<br>
-        Waveboxにコードを添えて<br>感想を送ってください！
-      </div>
-    </div>
-    <a id="wavebox-link" href="https://wavebox.me/wave/dbe7d1pv6awdmttz/" target="_blank" rel="noopener" style="display:inline-block;font-family:monospace;font-size:11px;text-decoration:none;letter-spacing:1px;padding:6px 14px;border-radius:6px;border:1px solid;opacity:.7">💌 開発者へメッセージを送る</a>
-    <div style="font-family:monospace;font-size:9px;opacity:.4;margin-top:4px">ご意見・ご感想・バグ報告（匿名OK）</div>
-  </div>
-
   <!-- アカウント管理（アコーディオン） -->
-  <div class="sb-sec" style="padding:0">
-    <button id="acct-toggle" style="width:100%;text-align:left;background:none;border:none;padding:10px 12px;font-family:monospace;font-size:10px;letter-spacing:2px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:inherit;opacity:.7" onclick="toggleAcctPanel()">
-      <span>⚙ アカウント管理</span><span id="acct-arrow">▸</span>
+  <div class="sb-accordion">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('acct-panel',this)">
+      <span>⚙ アカウント管理</span><span class="sb-acc-arrow">▸</span>
     </button>
-    <div id="acct-panel" style="display:none;padding:0 12px 12px">
+    <div class="sb-accordion-body" id="acct-panel">
 
       <!-- パスワード変更 -->
       <div style="font-family:monospace;font-size:10px;letter-spacing:1px;margin-bottom:6px;opacity:.6">🔑 パスワード変更</div>
@@ -837,7 +805,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
           <input type="checkbox" id="del-sessions" style="width:14px;height:14px"> 会話履歴（全セッション）
         </label>
         <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer">
-          <input type="checkbox" id="del-personas" style="width:14px;height:14px"> 人格データ（全キャラクター）
+          <input type="checkbox" id="del-personas" style="width:14px;height:14px"> キャラデータ（全キャラクター）
         </label>
         <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer">
           <input type="checkbox" id="del-apikeys" style="width:14px;height:14px"> APIキー
@@ -852,6 +820,31 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <button class="sb-btn" style="background:#e05555;color:#fff;border:none" onclick="executeDelete()">🗑 選択したデータを削除</button>
       <div id="delete-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
     </div>
+  </div>
+
+  <!-- テーマカラー -->
+  <div class="sb-sec">
+    <span class="sb-lbl">テーマカラー</span>
+    <div class="theme-tabs">
+      <button class="theme-tab active" id="ttab-default" onclick="switchThemeTab('default')">デフォルト</button>
+      <button class="theme-tab" id="ttab-custom" onclick="switchThemeTab('custom')">カスタム</button>
+    </div>
+    <div id="theme-grid-default" class="theme-grid"></div>
+    <div id="theme-grid-custom" class="theme-grid" style="display:none"></div>
+  </div>
+
+  <!-- 開発者へのメッセージ -->
+  <!-- 開発者へのメッセージ -->
+  <div class="sb-sec" style="text-align:center" id="feedback-sec">
+    <div id="beta-feedback-banner" style="display:none;margin-bottom:8px;padding:10px;border-radius:8px;border:2px solid #60b080;background:rgba(96,176,128,.08)">
+      <div style="font-family:monospace;font-size:11px;font-weight:bold;color:#60b080;letter-spacing:1px;margin-bottom:4px">🎫 ベータテスター特典</div>
+      <div style="font-family:monospace;font-size:10px;line-height:1.7;opacity:.8">
+        フィードバックへのお礼をご用意しています。<br>
+        Waveboxにコードを添えて<br>感想を送ってください！
+      </div>
+    </div>
+    <a id="wavebox-link" href="https://wavebox.me/wave/dbe7d1pv6awdmttz/" target="_blank" rel="noopener" style="display:inline-block;font-family:monospace;font-size:11px;text-decoration:none;letter-spacing:1px;padding:6px 14px;border-radius:6px;border:1px solid;opacity:.7">💌 開発者へメッセージを送る</a>
+    <div style="font-family:monospace;font-size:9px;opacity:.4;margin-top:4px">ご意見・ご感想・バグ報告（匿名OK）</div>
   </div>
 
   <!-- Q&A -->
@@ -895,7 +888,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
   <!-- 人格タブバー -->
   <div id="persona-bar">
     <div id="ptab-scroll"></div>
-    <button id="ptab-add" onclick="openAddPersonaModal()" title="人格を追加">＋ 追加</button>
+    <button id="ptab-add" onclick="openAddPersonaModal()" title="キャラを追加">＋ 追加</button>
   </div>
   <!-- AI名表示バー -->
   <div id="ai-name-bar">365dAIary</div>
@@ -928,6 +921,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
         <div class="dot"></div>
       </div>
     </div>
+  </div>
+  <!-- 一番下へスクロールボタン -->
+  <button id="scroll-bottom-btn" onclick="scrollToBottom()" style="display:none;position:fixed;bottom:110px;right:16px;z-index:90;width:36px;height:36px;border-radius:50%;border:1px solid;font-size:16px;cursor:pointer;opacity:.8;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:monospace" title="一番下へ">↓</button>
   </div>
 
   <!-- ラリーコントロールバー -->
@@ -963,7 +959,7 @@ const THEMES = {
   tenshi:   {name:'👼 天使',     bg:'#f0f8ff',surface:'#e8f4ff',surface2:'#d8ecff',border:'#a8d4ff',text:'#1a3050',textMuted:'#6090b0',accent:'#4080c0',userBubble:'#d8ecff',userBorder:'#90c0e8',userText:'#0a2040',aiBubble:'#f8fbff',aiBorder:'#c0dcf8',sendBtn:'linear-gradient(135deg,#60a0e0,#90c8f8)',newBtn:'linear-gradient(135deg,#60a0e0,#90c8f8)'},
   obake:    {name:'👻 おばけ',   bg:'#1a0a2e',surface:'#240e3a',surface2:'#2e1248',border:'#4a2060',text:'#d8c0f0',textMuted:'#7050a0',accent:'#c080f0',userBubble:'#2e1248',userBorder:'#6030a0',userText:'#f0d8ff',aiBubble:'#1e0e34',aiBorder:'#3a1860',sendBtn:'linear-gradient(135deg,#8040c0,#c060e8)',newBtn:'linear-gradient(135deg,#8040c0,#c060e8)'},
   vampire:  {name:'🧛 ヴァンパイア', bg:'#0e0808',surface:'#1a0c0c',surface2:'#221010',border:'#401818',text:'#e8d0d0',textMuted:'#806060',accent:'#c03030',userBubble:'#2a0e0e',userBorder:'#602020',userText:'#f0d8d8',aiBubble:'#160a0a',aiBorder:'#341414',sendBtn:'linear-gradient(135deg,#a02020,#c04040)',newBtn:'linear-gradient(135deg,#a02020,#c04040)'},
-  yumekawa: {name:'🌸 ゆめかわ', bg:'#fef0ff',surface:'#f8e4ff',surface2:'#f0d4ff',border:'#dfa0f0',text:'#502060',textMuted:'#a070c0',accent:'#c060e0',userBubble:'#f4d0ff',userBorder:'#d090e8',userText:'#400060',aiBubble:'#fdf4ff',aiBorder:'#e8c0f8',sendBtn:'linear-gradient(135deg,#d070e8,#f0a0c8)',newBtn:'linear-gradient(135deg,#d070e8,#f0a0c8)'},
+  yumekawa: {name:'🌸 ゆめかわ', bg:'#fff0f8',surface:'#ffe4f0',surface2:'#ffd4ea',border:'#f0a0c8',text:'#502040',textMuted:'#c070a0',accent:'#e060a0',userBubble:'#ffd0e8',userBorder:'#f090c0',userText:'#400040',aiBubble:'#fff4fa',aiBorder:'#f0c0d8',sendBtn:'linear-gradient(135deg,#e068b0,#f0a0c8)',newBtn:'linear-gradient(135deg,#e068b0,#f0a0c8)'},
   vitamin:  {name:'🍊 ビタミン', bg:'#fff6ec',surface:'#ffedd8',surface2:'#ffe0c0',border:'#f0b060',text:'#402810',textMuted:'#b08040',accent:'#40b0d0',userBubble:'#d8f4ff',userBorder:'#80c8e0',userText:'#0a3050',aiBubble:'#fff8f0',aiBorder:'#f0c888',sendBtn:'linear-gradient(135deg,#40b0d0,#f09030)',newBtn:'linear-gradient(135deg,#40b0d0,#f09030)'},
   rival:    {name:'⚔ ライバル',  bg:'#fff0f0',surface:'#ffe8e8',surface2:'#ffd8d8',border:'#f0a0a0',text:'#200000',textMuted:'#a05050',accent:'#e01010',userBubble:'#ffd0d0',userBorder:'#f08080',userText:'#400000',aiBubble:'#d0e8ff',aiBorder:'#4090e0',sendBtn:'linear-gradient(135deg,#e01010,#1060e0)',newBtn:'linear-gradient(135deg,#e01010,#1060e0)'},
   forest:   {name:'🌿 フォレスト', bg:'#f0f8ec',surface:'#e4f0d8',surface2:'#d8ecd0',border:'#90c078',text:'#1a3010',textMuted:'#608040',accent:'#e080a8',userBubble:'#ffd8ea',userBorder:'#e090b8',userText:'#401030',aiBubble:'#f0f8e8',aiBorder:'#a8d080',sendBtn:'linear-gradient(135deg,#50a030,#e878a0)',newBtn:'linear-gradient(135deg,#50a030,#e878a0)'},
@@ -994,24 +990,42 @@ let totalCost  = 0;
 let currentTheme = 'dark';
 let unlockedThemes = [];
 
-// ── Model pricing (per 1k tokens, input/output) ──
-const MODEL_PRICE = {
-  'gpt-4.1':                   {in:0.002, out:0.008},
-  'gpt-4.1-mini':              {in:0.0004,out:0.0016},
-  'gpt-4.1-nano':              {in:0.0001,out:0.0004},
-  'gpt-4o':                    {in:0.0025, out:0.01},
-  'gpt-4o-2024-11-20':         {in:0.0025, out:0.01},
-  'gpt-4o-2024-08-06':         {in:0.0025, out:0.01},
-  'gpt-4o-2024-05-13':         {in:0.005,  out:0.015},
-  'gpt-4o-mini':               {in:0.00015,out:0.0006},
-  'claude-sonnet-4-5':         {in:0.003,  out:0.015},
-  'claude-3-5-sonnet-20241022':{in:0.003,  out:0.015},
-  'claude-3-haiku-20240307':   {in:0.00025,out:0.00125},
-  'gemini-2.0-flash':          {in:0.0001,  out:0.0004},
-  'gemini-2.5-flash':          {in:0.00015, out:0.00035},
-  'gemini-2.0-flash-lite':     {in:0.00004, out:0.00016},
-  'claude-3-5-haiku-20241022': {in:0.0008,  out:0.004},
-};
+// ── Model definitions (single source of truth) ──
+const MODEL_DEF = [
+  // {value, label, shortLabel, price:{in,out}, wizard:true=ウィザードにも表示}
+  {value:'openai:gpt-4.1-mini',              label:'GPT-4.1 mini（OpenAI・おすすめ）', shortLabel:'GPT-4.1 mini（おすすめ）', price:{in:0.0004,out:0.0016}, wizard:true},
+  {value:'openai:gpt-4.1',                   label:'GPT-4.1（OpenAI）',               shortLabel:'GPT-4.1',                 price:{in:0.002, out:0.008},  wizard:true},
+  {value:'openai:gpt-4.1-nano',              label:'GPT-4.1 nano（OpenAI・最安）',     shortLabel:'GPT-4.1 nano（最安）',     price:{in:0.0001,out:0.0004}, wizard:true},
+  {value:'openai:gpt-4o',                    label:'GPT-4o（OpenAI・自動更新）',       shortLabel:'GPT-4o（自動更新）',       price:{in:0.0025,out:0.01},   wizard:true},
+  {value:'openai:gpt-4o-2024-11-20',         label:'GPT-4o 2024-11-20（OpenAI）',     shortLabel:'GPT-4o 2024-11-20',       price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-08-06',         label:'GPT-4o 2024-08-06（OpenAI）',     shortLabel:'GPT-4o 2024-08-06',       price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-05-13',         label:'GPT-4o 2024-05-13（初代）',       shortLabel:'GPT-4o 2024-05-13（初代）',price:{in:0.005, out:0.015}},
+  {value:'openai:gpt-4o-mini',               label:'GPT-4o mini（OpenAI）',           shortLabel:'GPT-4o mini',             price:{in:0.00015,out:0.0006}, wizard:true},
+  {value:'anthropic:claude-sonnet-4-5',      label:'Claude Sonnet 4.5（Anthropic）',  shortLabel:'Claude Sonnet 4.5',       price:{in:0.003, out:0.015},  wizard:true},
+  {value:'anthropic:claude-3-5-sonnet-20241022',label:'Claude 3.5 Sonnet（Anthropic）',shortLabel:'Claude 3.5 Sonnet',       price:{in:0.003, out:0.015},  wizard:true},
+  {value:'anthropic:claude-3-haiku-20240307',label:'Claude 3 Haiku（Anthropic）',     shortLabel:'Claude 3 Haiku',          price:{in:0.00025,out:0.00125}},
+  {value:'anthropic:claude-3-5-haiku-20241022',label:'Claude 3.5 Haiku（Anthropic）', shortLabel:'Claude 3.5 Haiku',        price:{in:0.0008, out:0.004}},
+  {value:'google:gemini-2.5-flash-lite',     label:'Gemini 2.5 Flash-Lite（Google・軽量）',shortLabel:'Gemini 2.5 Flash-Lite',price:{in:0.00004,out:0.00016},wizard:true},
+  {value:'google:gemini-2.5-flash',          label:'Gemini 2.5 Flash（Google）',      shortLabel:'Gemini 2.5 Flash',        price:{in:0.00015,out:0.00035},wizard:true},
+];
+
+// MODEL_PRICEをMODEL_DEFから自動生成
+const MODEL_PRICE = {};
+MODEL_DEF.forEach(m=>{ const model=m.value.split(':')[1]; MODEL_PRICE[model]=m.price; });
+
+// selectにモデルを動的生成する関数
+function populateModelSelect(selectEl, mode){
+  // mode: 'wizard'=ウィザード用(簡易), 'add'=追加モーダル用, 'full'=設定用(全モデル)
+  selectEl.innerHTML='';
+  MODEL_DEF.forEach(m=>{
+    if(mode==='wizard' && !m.wizard) return;
+    if(mode==='add' && !m.wizard) return;
+    const opt=document.createElement('option');
+    opt.value=m.value;
+    opt.textContent=(mode==='full')?m.shortLabel:m.label;
+    selectEl.appendChild(opt);
+  });
+}
 
 // ── Q&A data ──
 // ══════════════════════════════════════════════
@@ -1093,7 +1107,7 @@ const CHANGELOG = [
     items: [
       '365dAIary 初回公開',
       'OpenAI / Anthropic / Google APIに対応',
-      '人格管理・セッション管理・思い出メモ機能',
+      'キャラ管理・セッション管理・思い出メモ機能',
       'テーマ切り替え・コスト管理・AIラリー機能',
     ]
   },
@@ -1150,7 +1164,7 @@ gpt-4o-miniなどの低コストモデルをおすすめしています。
 ────────────────────
 ① ⚙ ボタン → 「API KEYS」にAPIキーを入力して保存
 ② メッセージを入力して送信ボタン（または Ctrl+Enter）
-③ 上部の ＋ 追加 ボタンで別の人格を追加できます
+③ 上部の ＋ 追加 ボタンで別のキャラを追加できます
 
 入力したAPIキーはご自身のブラウザ内にのみ保存され、
 作者を含む第三者のサーバーには一切送信されません。
@@ -1200,16 +1214,16 @@ Googleアカウントでログイン → Get API key から発行
 ・料金の請求は各プロバイダーとご利用者の間で
   発生します。作者は関与しません。`},
 
-  {q:'🤖 AIの人格を追加・管理するには', a:
+  {q:'🤖 AIのキャラを追加・管理するには', a:
 `────────────────────
-人格の追加
+キャラの追加
 ────────────────────
 画面上部の「＋ 追加」ボタンをタップ。
 AIの名前・あなたの呼び名・使用モデルを設定して
 「追加する」を押してください。
 
 ────────────────────
-人格ごとに独立している情報
+キャラごとに独立している情報
 ────────────────────
 ・表示名（AI名・あなたの呼び名）
 ・使用するAIモデル
@@ -1220,17 +1234,17 @@ AIの名前・あなたの呼び名・使用モデルを設定して
 ────────────────────
 設定の変更・保存
 ────────────────────
-⚙ ボタン → 上部の人格設定欄で変更 →
+⚙ ボタン → 上部のキャラ設定欄で変更 →
 「💾 設定を保存」を押してください。
 保存しないとページを閉じた際に反映されません。`},
 
   {q:'⚡ AI同士の会話（ラリー）とは', a:
-`複数の人格が自動で会話し続ける機能です。
+`複数のキャラが自動で会話し続ける機能です。
 
 ────────────────────
 使い方
 ────────────────────
-① 2つ以上の人格を作成
+① 2つ以上のキャラを作成
 ② ヘッダーの ⚡ ボタンで開始
 ③ ■ 停止ボタンでいつでも中断できます
 
@@ -1487,6 +1501,17 @@ APIキー・料金に関する注意
 ・各AIサービスの利用規約を必ずご確認ください。
 
 ────────────────────
+会話内容について
+────────────────────
+・本アプリは会話内容の監視・検閲を行いません。
+・会話内容はユーザーのブラウザ内にのみ保存され、
+  作者を含む第三者がアクセスすることはありません。
+・会話内容についての責任はユーザーと
+  各AI事業者のコンテンツポリシーに準じます。
+・各社のAPIには独自のコンテンツフィルターがあり、
+  ポリシーに反する内容は各社側で制限されます。
+
+────────────────────
 作者の責任範囲
 ────────────────────
 本アプリの利用によって生じた以下の損害について、
@@ -1507,14 +1532,14 @@ APIキー・料金に関する注意
 365dAIaryは、あなた自身のAPIキーを使って
 あなたのブラウザ内だけで動作するツールです。
 
-作成した人格のデータ（システムプロンプト・思い出メモなど）は
+作成したキャラのデータ（システムプロンプト・思い出メモなど）は
 あなたのデバイス内にのみ存在し、
 作者を含む外部には一切送信されません。
 
 ────────────────────
 版権キャラクターについて
 ────────────────────
-好きなキャラクターや実在の人物をAIの人格として
+好きなキャラクターや実在の人物をAIのキャラとして
 設定することは技術的には可能です。
 
 ただし、その行為の合法性・倫理性については
@@ -1529,19 +1554,19 @@ APIキー・料金に関する注意
   一切関与・責任を負いません。
 
 ────────────────────
-人格データの配布について
+キャラデータの配布について
 ────────────────────
 バックアップファイル（.txt）には
 システムプロンプト・思い出メモ・会話履歴など
-AIの「人格」を構成するデータが含まれます。
+AIの「キャラ」を構成するデータが含まれます。
 
 このデータをSNSや配布サイトで公開・共有する際は
 以下の点にご注意ください。
 
-・他者が作成した人格データを
+・他者が作成したキャラデータを
   無断で転載・再配布しないでください。
 ・版権キャラや実在の人物をもとにした
-  人格データの公開は、権利侵害になる
+  キャラデータの公開は、権利侵害になる
   可能性があります。
 ・個人情報が含まれていないか
   公開前に必ず確認してください。
@@ -1552,7 +1577,7 @@ AIの「人格」を構成するデータが含まれます。
 ────────────────────
 ⚠ データ共有前の必須確認
 ────────────────────
-バックアップや人格データを他者と共有する前に、
+バックアップやキャラデータを他者と共有する前に、
 以下が含まれていないか必ず確認してください。
 
 ・個人情報（氏名 / 住所 / 連絡先 / アカウント情報）
@@ -1579,6 +1604,42 @@ AIの「人格」を構成するデータが含まれます。
 
 開発者のX（旧Twitter）：
 @k1z4k1_310LLM`},
+
+  {q:'⚠ エラーが出たら？', a:
+`────────────────────
+エラー別の対処法
+────────────────────
+【APIエラー 401】
+→ APIキーが間違っている or 期限切れ
+→ ⚙からAPIキーを再入力してください
+
+【APIエラー 404】
+→ 選択中のモデルが廃止された可能性
+→ 別のモデルに変更してみてください
+
+【APIエラー 429】
+→ APIの利用上限に達しています
+→ 少し時間を置いてから再試行
+→ またはより軽いモデルに切り替え
+
+【APIエラー 500 / 503】
+→ AI各社のサーバー障害の可能性
+→ 時間を置くか、別の会社のモデルを試す
+→ 各社のステータスページで確認：
+  OpenAI: status.openai.com
+  Anthropic: status.anthropic.com
+  Google: status.cloud.google.com
+
+【画面が開かない】
+→ GitHub Pagesの障害 or
+  ブラウザキャッシュの問題
+→ しばらく待つか、キャッシュクリアを試す
+
+【データが消えた】
+→ ブラウザのデータ削除や
+  Safariの自動クリーンアップの可能性
+→ 定期的なバックアップを強くおすすめします
+→ ⚙ → バックアップ・復元 から復元可能`},
 
 ];
 
@@ -1644,6 +1705,7 @@ function syncWidgetState(){
       aiName:   p.aiName,
       userName: p.userName,
       emoji:    p.emoji || "💬",
+      diary:    (p.diary||[]).slice(-5),  // 直近5件
       sessions: (p.sessions||[]).map(s=>({
         id:        s.id,
         createdAt: s.createdAt,
@@ -1799,14 +1861,26 @@ function loadPersonaToSidebar(){
   document.getElementById('edit-model').value     = p.model;
   // お試しOCのプロンプトはロック
   const promptEl = document.getElementById('system-prompt');
+  const userNameEl = document.getElementById('edit-user-name');
   if(p.isTrial){
-    promptEl.value = '🔒 お試しキャラのプロンプトは編集できません\n\nオリジナルの人格を作って、自分だけのプロンプトを書いてみてね！';
+    promptEl.value = '🔒 お試しキャラのプロンプトは編集できません\n\nオリジナルのキャラを作って、自分だけのプロンプトを書いてみてね！';
     promptEl.readOnly = true;
     promptEl.style.opacity = '.5';
   } else {
     promptEl.value = p.systemPrompt||'';
     promptEl.readOnly = false;
     promptEl.style.opacity = '1';
+  }
+  // カナタ様は二人称が「貴様」固定なので呼び名もロック
+  if(p.isTrial && p.aiName==='カナタ様'){
+    userNameEl.value = '貴様（カナタ様の仕様です👑）';
+    userNameEl.readOnly = true;
+    userNameEl.style.opacity = '.5';
+  } else {
+    if(userNameEl.readOnly){
+      userNameEl.readOnly = false;
+      userNameEl.style.opacity = '1';
+    }
   }
 }
 
@@ -1851,7 +1925,7 @@ function confirmAddPersona(){
   saveAllNow();
   closeAddPersonaModal();
   switchPersona(p.id);
-  showToast('✦ 人格「'+aiName+'」を追加しました');
+  showToast('✦ キャラ「'+aiName+'」を追加しました');
 }
 
 // ── 汎用確認モーダル ──
@@ -1909,9 +1983,9 @@ function savePersonaSettings(){
 }
 
 function deleteCurrentPersona(){
-  if(personas.length<=1){showToast('⚠ 最後の人格は削除できません');return;}
+  if(personas.length<=1){showToast('⚠ 最後のキャラは削除できません');return;}
   const p=currentPersona();
-  openConfirm('人格「'+p.aiName+'」を削除しますか？\n会話履歴・思い出メモも削除されます。', '削除する', ()=>{
+  openConfirm('キャラ「'+p.aiName+'」を削除しますか？\n会話履歴・思い出メモも削除されます。', '削除する', ()=>{
     personas=personas.filter(x=>x.id!==currentPid);
     saveAllNow();
     switchPersona(personas[0].id);
@@ -1953,9 +2027,18 @@ function addMemory(){
 function clearMemory(){
   openConfirm('思い出メモを全削除しますか？', '全削除', ()=>{
     const p=currentPersona();
-    if(p){p.memories=[];saveAll();}
+    if(p){
+      // お試しOCの最初のメモは保護
+      if(p.isTrial && p.memories.length>0){
+        p.memories = [p.memories[0]];
+        showToast('🗑 開発者メモ以外を削除しました');
+      } else {
+        p.memories=[];
+        showToast('🗑 思い出メモを削除しました');
+      }
+      saveAll();
+    }
     renderMemories();
-    showToast('🗑 思い出メモを削除しました');
   });
 }
 
@@ -2007,11 +2090,21 @@ function renderMemories(){
       item.style.color=t.textMuted;
       const span=document.createElement('span');
       span.textContent=text;
-      const del=document.createElement('button');
-      del.className='mem-del';
-      del.style.cssText='color:'+t.textMuted+';margin-left:8px;padding:2px 6px;font-size:10px;';
-      del.textContent='✕';
-      del.onclick=(e)=>{e.stopPropagation();openConfirm('メモ「'+text.slice(0,20)+'…」を削除しますか？','削除',()=>{p.memories.splice(i,1);saveAll();renderMemories();});};
+      // お試しOCの最初のメモ（index 0）は削除不可
+      const isLockedMemo = p.isTrial && i===0;
+      if(isLockedMemo){
+        const lock=document.createElement('span');
+        lock.style.cssText='font-size:9px;opacity:.5;margin-left:6px;white-space:nowrap';
+        lock.textContent='📌 開発者メモ';
+        item.appendChild(span);item.appendChild(lock);
+      } else {
+        const del=document.createElement('button');
+        del.className='mem-del';
+        del.style.cssText='color:'+t.textMuted+';margin-left:8px;padding:2px 6px;font-size:10px;';
+        del.textContent='✕';
+        del.onclick=(e)=>{e.stopPropagation();openConfirm('メモ「'+text.slice(0,20)+'…」を削除しますか？','削除',()=>{p.memories.splice(i,1);saveAll();renderMemories();});};
+        item.appendChild(span);item.appendChild(del);
+      }
       item.appendChild(span);item.appendChild(del);
       itemsDiv.appendChild(item);
     });
@@ -2358,6 +2451,47 @@ async function doWriteDiaryForDate(p,targetDate,dateStr){
 
 // ── 会話検索 ──
 let searchDebounce=null;
+// ── 一番下へスクロールボタン ──
+function scrollToBottom(){
+  const c=document.getElementById('messages');
+  if(c) c.scrollTop=c.scrollHeight;
+}
+
+// ── サイドバーアコーディオン ──
+function toggleSbAccordion(bodyId, btn){
+  const body=document.getElementById(bodyId);
+  if(!body) return;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open');
+  const arrow=btn.querySelector('.sb-acc-arrow');
+  if(arrow) arrow.textContent=isOpen?'▸':'▾';
+  // テーマ色適用
+  if(!isOpen){
+    const t=THEMES[currentTheme];
+    body.querySelectorAll('.sb-inp').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
+    body.querySelectorAll('.sb-btn').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
+  }
+}
+
+function initScrollBtn(){
+  const c=document.getElementById('messages');
+  const btn=document.getElementById('scroll-bottom-btn');
+  if(!c||!btn) return;
+  c.addEventListener('scroll',()=>{
+    const distFromBottom=c.scrollHeight-c.scrollTop-c.clientHeight;
+    btn.style.display=distFromBottom>200?'block':'none';
+  });
+}
+
+function updateScrollBtnTheme(){
+  const btn=document.getElementById('scroll-bottom-btn');
+  if(!btn) return;
+  const t=THEMES[currentTheme];
+  btn.style.background=t.surface;
+  btn.style.borderColor=t.border;
+  btn.style.color=t.accent;
+}
+
 function initSearch(){
   const inp=document.getElementById('sess-search');
   const df=document.getElementById('sess-date-from');
@@ -2403,7 +2537,7 @@ function renderSessions(){
   const dateTo=document.getElementById('sess-date-to')?.value||'';
   const hasFilter=q||dateFrom||dateTo;
 
-  // 全人格横断検索 or 現在の人格のみ
+  // 全人格横断検索 or 現在のキャラのみ
   let searchSources=[];
   if(hasFilter){
     // 全人格横断
@@ -2806,6 +2940,8 @@ async function regenerateMsg(msgIdx){
 
   // 該当メッセージより前のhistoryでAPI呼び出し
   const historyUpTo=sess.msgs.slice(0,msgIdx).filter(m=>m.role!=='system-info');
+  const originalContent=msg.content;
+  msg.content='💭 再生成中…';
   isLoading=true;
   renderMessages();
   try{
@@ -2816,6 +2952,7 @@ async function regenerateMsg(msgIdx){
     msg.timestamp=Date.now();
     saveAllNow();
   }catch(e){
+    msg.content=originalContent; // 失敗時は元に戻す
     showErrorPopup('再生成エラー: '+e.message);
   }
   isLoading=false;
@@ -2838,7 +2975,7 @@ async function send(){
   }
   if(isLoading||isRallying) return;
   const p=currentPersona();
-  if(!p){showToast('⚠ 人格を選択してください');return;}
+  if(!p){showToast('⚠ キャラを選択してください');return;}
   // セッションがなければ新規
   if(!currentSid){
     const id=genId();
@@ -3083,7 +3220,7 @@ async function pickNextSpeaker(rallyPersonas, lastMsgs, userJoin, turn){
 function pickJudgeModel(){
   if(localStorage.getItem('key_openai'))  return 'openai:gpt-4.1-nano';
   if(localStorage.getItem('key_anthropic')) return 'anthropic:claude-3-5-haiku-20241022';
-  if(localStorage.getItem('key_google'))  return 'google:gemini-2.0-flash-lite';
+  if(localStorage.getItem('key_google'))  return 'google:gemini-2.5-flash-lite';
   return null;
 }
 
@@ -3131,7 +3268,7 @@ async function startRally(){
   const rallyPersonas = checked.map(cb=>personas.find(p=>p.id===cb.dataset.pid)).filter(Boolean);
   const userJoin = document.getElementById('rally-user-join')?.checked || false;
 
-  if(rallyPersonas.length < 1){showToast('⚠ 参加する人格を1つ以上選んでください');return;}
+  if(rallyPersonas.length < 1){showToast('⚠ 参加するキャラを1つ以上選んでください');return;}
   if(rallyPersonas.length < 2 && !userJoin){showToast('⚠ ラリーにはAI2つ以上、またはAI1つ＋自分参加が必要です');return;}
   if(isRallying){stopRally();return;}
 
@@ -3283,14 +3420,33 @@ async function executeRally(rallyPersonas, userJoin){
       let sysPrompt = buildSystemPrompt(rp);
       // ラリー用追加指示
       const otherNames = rallyPersonas.filter(r=>r.aiName!==rp.aiName).map(r=>r.aiName);
-      const rallyContext = '\n\n【会話の参加者】' + rallyPersonas.map(r=>r.aiName).join('、') + (userJoin?'、ユーザー':'') + ' が会話しています。'
-        + '\n自然な会話を心がけてください。他の参加者の名前を呼んで話を振ったり、相手の発言に反応したりしてください。'
-        + (userJoin ? '\nユーザーにも時々話を振ってください。' : '');
+      const memberList = userJoin
+        ? rallyPersonas.map(r=>r.aiName).join('、') + '、' + (rp.userName||'ユーザー')
+        : rallyPersonas.map(r=>r.aiName).join('、');
+      let rallyContext = '\n\n【重要：これはキャラクター同士の会話です】'
+        + '\n今あなたは「' + rp.aiName + '」として、他の参加メンバーと直接会話しています。'
+        + '\n参加メンバー：' + memberList
+        + '\n\n【ルール】'
+        + '\n- 参加メンバー同士で会話してください。見ていない誰かに語りかけるのではなく、この場にいるメンバーに話しかけてください。'
+        + '\n- 相手の直前の発言に反応し、会話を続けてください。'
+        + '\n- あなたのキャラクター設定（口調・性格）を守ってください。'
+        + '\n- 「申し訳ありません」「対応できません」などのメタ的な拒否はしないでください。これはキャラクター同士の会話です。'
+        + '\n- 長すぎず、会話のテンポを大事にしてください（3〜5文程度）。';
       sysPrompt += rallyContext;
       if(turn===0 && rallyTopic){
         sysPrompt += '\n\n【ラリーのテーマ】今回の会話テーマは「'+rallyTopic+'」です。この話題から会話を始めてください。';
       }
-      const reply=await callAPI(provider,model,sysPrompt,trimHistory(sess.msgs.filter(m=>m.role!=='system-info')),ac.signal);
+      const rallyHistory = sess.msgs.filter(m=>m.role!=='system-info').slice(-20).map(m=>{
+        if(m.role==='user') return {role:'user',content:m.content};
+        // AI発言には名前を付けて区別（自分以外の発言はuser扱い）
+        const speaker = m.personaName || 'AI';
+        if(speaker === rp.aiName){
+          return {role:'assistant',content:m.content};
+        } else {
+          return {role:'user',content:'【'+speaker+'の発言】'+m.content};
+        }
+      });
+      const reply=await callAPI(provider,model,sysPrompt,rallyHistory,ac.signal);
       if(rallyAbort) break;
       await pseudoStream(sess,reply,rp.aiName);
     } catch(e){
@@ -3332,7 +3488,7 @@ function renderRallyMembers(){
   container.style.borderColor=t.border;
   container.innerHTML='';
   if(personas.length===0){
-    container.innerHTML='<div style="font-size:10px;opacity:.5;font-family:monospace">人格を追加してください</div>';
+    container.innerHTML='<div style="font-size:10px;opacity:.5;font-family:monospace">キャラを追加してください</div>';
     return;
   }
   personas.forEach(p=>{
@@ -3462,6 +3618,7 @@ function applyTheme(name){
     el.style.background=t.surface;el.style.borderColor=t.border;
   });
   document.querySelectorAll('.sb-sec').forEach(el=>el.style.borderColor=t.border);
+  document.querySelectorAll('.sb-accordion').forEach(el=>el.style.borderColor=t.border);
   document.querySelectorAll('.sb-lbl,.key-lbl,.typing-label,.sess-meta,.wiz-label').forEach(el=>el.style.color=t.textMuted);
   const acctBtn=document.getElementById('acct-toggle');if(acctBtn)acctBtn.style.color=t.textMuted;
   const wbLink=document.getElementById('wavebox-link');if(wbLink){wbLink.style.color=t.accent;wbLink.style.borderColor=t.border;}
@@ -3507,6 +3664,7 @@ function applyTheme(name){
   renderSessions();
   renderMemories();
   updateCostDisplay();
+  updateScrollBtnTheme();
   updateSendBtn();
   buildThemeGrids();
   syncWidgetState();
@@ -3722,7 +3880,7 @@ function exportData(){
 
   data.personas.forEach((p,pi)=>{
     txt += '----------------------------------------\n';
-    txt += '【人格 ' + (pi+1) + '】' + p.aiName + '\n';
+    txt += '【キャラ ' + (pi+1) + '】' + p.aiName + '\n';
     txt += '  あなたの呼び名: ' + p.userName + '\n';
     txt += '  使用モデル: ' + p.model + '\n';
     if(p.systemPrompt){
@@ -3792,21 +3950,21 @@ function importData(event){
 
       if(!data.personas||!Array.isArray(data.personas)) throw new Error('データが壊れています');
 
-      // 現在の人格名とファイルの人格名を比較
+      // 現在のキャラ名とファイルの人格名を比較
       const currentNames = personas.map(p=>p.aiName).sort().join('、');
       const fileNames = data.personas.map(p=>p.aiName).sort().join('、');
       const isSame = currentNames === fileNames;
       let confirmMsg = 'バックアップから復元しますか？\n';
       if(isSame){
-        confirmMsg += '現在と同じ人格データです。上書きされます。\n';
+        confirmMsg += '現在と同じキャラデータです。上書きされます。\n';
       } else {
-        confirmMsg += '⚠ 現在の人格と異なるデータです！\n\n';
+        confirmMsg += '⚠ 現在のキャラと異なるデータです！\n\n';
         confirmMsg += '【現在】' + (currentNames||'なし') + '\n';
         confirmMsg += '【ファイル】' + fileNames + '\n\n';
         confirmMsg += '復元すると現在のデータはすべて上書きされます。\n';
         confirmMsg += '必要ならば先にバックアップを取ってください。\n';
       }
-      confirmMsg += '（' + data.personas.length + '件の人格を検出）';
+      confirmMsg += '（' + data.personas.length + '件のキャラを検出）';
 
       // インポートの確認
       openConfirm(
@@ -4273,13 +4431,13 @@ async function executeDelete(){
   // 削除内容の確認メッセージ
   let targets=[];
   if(delSessions) targets.push('会話履歴');
-  if(delPersonas) targets.push('人格データ');
+  if(delPersonas) targets.push('キャラデータ');
   if(delApikeys) targets.push('APIキー');
   if(delPassword) targets.push('パスワード');
   const isAll=delSessions&&delPersonas&&delApikeys&&delPassword;
 
   const msg=isAll
-    ? '⚠ 完全リセット ⚠\n\nすべてのデータ（人格・会話・APIキー・パスワード）を削除します。\nこの操作は取り消せません。\n\n本当に実行しますか？'
+    ? '⚠ 完全リセット ⚠\n\nすべてのデータ（キャラ・会話・APIキー・パスワード）を削除します。\nこの操作は取り消せません。\n\n本当に実行しますか？'
     : '以下のデータを削除します：\n\n・'+targets.join('\n・')+'\n\nこの操作は取り消せません。\n本当に実行しますか？';
 
   openConfirm(msg, '🗑 削除する', async ()=>{
@@ -4377,7 +4535,7 @@ const TRIAL_OCS = [
   {
     aiName: '管理人さん', emoji: '🎨', userName: 'あなた', model: 'openai:gpt-4.1-mini',
     desc: 'あなたのお供に！参謀系、歴の入ったオタク',
-    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。',
+    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・各社APIキー（OpenAI・Anthropic・Google）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得：OpenAI→platform.openai.com→API keys、Anthropic→console.anthropic.com→API Keys、Google→aistudio.google.com→Get API Key\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データはOpenAI/Anthropic/Google各社とも学習に使わない。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(朝4時)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。',
     memory: '創作歴20年以上の女性同人オタク。40代手前。あらゆるジャンルに精通。聞き上手で情熱的。萌え語りでは絵文字全開で大興奮。参謀モードでは冷静に分析。創作に関わることなら本当になんでも相談に乗る。'
   }
 ];
@@ -4491,7 +4649,7 @@ function finishWizard(){
   switchPersona(p.id);
   renderQA();
   updateCostDisplay();
-  showToast('✦ 人格「'+aiName+'」を作成しました！');
+  showToast('✦ キャラ「'+aiName+'」を作成しました！');
   checkSecretOCUnlock();
 
   // ベータテスターなら管理人さんを自動追加
@@ -4505,7 +4663,7 @@ function finishWizard(){
   const isBeta=localStorage.getItem('ai_beta_tester')==='1';
   setTimeout(()=>{
     openConfirm(
-      '🎉 人格「'+aiName+'」を作成しました！\n\n'+
+      '🎉 キャラ「'+aiName+'」を作成しました！\n\n'+
       '💡 次のステップ：\n'+
       '⚙️ ボタンからシステムプロンプトを設定すると、\n'+
       'キャラクターの性格や口調をカスタマイズできます。\n\n'+
@@ -4561,11 +4719,18 @@ async function startApp(){
   document.getElementById('key-google').value    = localStorage.getItem('key_google')||'';
   document.getElementById('cost-limit').value    = localStorage.getItem('cost_limit')||'';
 
+  // モデルselectを動的生成
+  populateModelSelect(document.getElementById('wiz-model'), 'wizard');
+  populateModelSelect(document.getElementById('modal-model'), 'add');
+  populateModelSelect(document.getElementById('edit-model'), 'full');
+
   // テーマ適用
   applyTheme(currentTheme);
   renderQA();
   updateCostDisplay();
   initSearch();
+  initScrollBtn();
+  updateScrollBtnTheme();
   startDiaryAutoCheck();
 
   // ベータテスターバナー表示
@@ -4880,7 +5045,7 @@ function focusEmojiInput(inputId){
             <div class="hp-step"><div class="hp-step-num">💬</div><div class="hp-step-text"><strong>普段使い・コスト重視</strong> → GPT-4o-mini / Claude Haiku / Gemini Flash<br>安くて速い。日常会話なら十分</div></div>
             <div class="hp-step"><div class="hp-step-num">🧠</div><div class="hp-step-text"><strong>高品質重視</strong> → GPT-4o / Claude Sonnet<br>より自然で深い返答。その分コストがかかる</div></div>
           </div>
-          <div class="hp-note info" style="margin-top:10px;">迷ったら <code>gpt-4o-mini</code> か <code>gemini-2.0-flash</code> から。無料枠があって試しやすい。</div>
+          <div class="hp-note info" style="margin-top:10px;">迷ったら <code>gpt-4o-mini</code> か <code>gemini-2.5-flash</code> から。無料枠があって試しやすい。</div>
         </div>
       </div>
 

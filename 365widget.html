@@ -354,7 +354,7 @@ html,body{
   <div id="tabbar">
     <div class="tab active" data-tab="home">🏠 ホーム</div>
     <div class="tab" data-tab="clock">🕐 時計</div>
-    <div class="tab" data-tab="status">👤 人格</div>
+    <div class="tab" data-tab="status">👤 キャラ</div>
     <div class="tab" data-tab="launch">🎁 起動</div>
     <div class="tab" data-tab="cal">📅 記録</div>
   </div>
@@ -387,11 +387,11 @@ html,body{
           <span class="larrow">›</span>
         </div>
         <div class="home-link-item" onclick="switchTab('status')">
-          <div><div class="lname">👤 人格ステータス</div><div class="lsub">現在の人格・会話数・コスト</div></div>
+          <div><div class="lname">👤 キャラステータス</div><div class="lsub">現在のキャラ・会話数・コスト</div></div>
           <span class="larrow">›</span>
         </div>
         <div class="home-link-item" onclick="switchTab('launch')">
-          <div><div class="lname">🎁 人格ランチャー</div><div class="lsub">タップで即チャット起動</div></div>
+          <div><div class="lname">🎁 キャラランチャー</div><div class="lsub">タップで即チャット起動</div></div>
           <span class="larrow">›</span>
         </div>
         <div class="home-link-item" onclick="switchTab('cal')">
@@ -428,7 +428,7 @@ html,body{
     <!-- STATUS -->
     <div class="page" id="page-status">
       <div class="mt12"></div>
-      <div class="sec-title">現在の人格</div>
+      <div class="sec-title">現在のキャラ</div>
       <div class="persona-badge">
         <div class="persona-emoji" id="st-emoji">💬</div>
         <div>
@@ -446,14 +446,14 @@ html,body{
           <div class="stat-lbl">累計コスト</div>
         </div>
       </div>
-      <div class="sec-title">すべての人格</div>
+      <div class="sec-title">すべてのキャラ</div>
       <div id="st-persona-list"></div>
     </div>
 
     <!-- LAUNCHER -->
     <div class="page" id="page-launch">
       <div class="mt12"></div>
-      <div class="launch-intro">タップすると 365dAIary が開きます。<br>人格を選んでそのままチャットへ。</div>
+      <div class="launch-intro">タップすると 365dAIary が開きます。<br>キャラを選んでそのままチャットへ。</div>
       <div class="launch-grid" id="launch-grid"></div>
     </div>
 
@@ -490,9 +490,9 @@ html,body{
       <div class="card" style="background:rgba(128,96,208,.07);margin-bottom:12px;">
         <div style="font-size:11px;color:var(--text-sub);line-height:1.9;">
           <strong style="color:var(--text);">Widget を使う前に確認</strong><br>
-          ① まず <strong>365dAIary 本体</strong>でAPIキーと人格を設定してください<br>
+          ① まず <strong>365dAIary 本体</strong>でAPIキーとキャラを設定してください<br>
           ② Widgetは本体のデータを読み取るだけです<br>
-          ③ 人格が表示されない場合は本体を開いてから戻ると反映されます
+          ③ キャラが表示されない場合は本体を開いてから戻ると反映されます
         </div>
       </div>
 
@@ -563,8 +563,8 @@ html,body{
       <div class="whelp-sec" id="whs-faq">
         <div class="sec-title" style="margin-bottom:8px;margin-top:4px;">よくある質問</div>
 
-        <div class="whelp-card" data-tags="人格 表示されない widget 読み込まれない">
-          <div class="whelp-head" onclick="whelpToggle(this)"><span class="whelp-badge info">FAQ</span><div class="whelp-ttl">Widgetに人格が表示されない</div><span class="whelp-arr">›</span></div>
+        <div class="whelp-card" data-tags="キャラ 表示されない widget 読み込まれない">
+          <div class="whelp-head" onclick="whelpToggle(this)"><span class="whelp-badge info">FAQ</span><div class="whelp-ttl">Widgetにキャラが表示されない</div><span class="whelp-arr">›</span></div>
           <div class="whelp-body">
             <div class="whelp-step"><span class="whelp-num">1</span><span><strong>365dAIary本体</strong>を一度開いて会話してから戻る</span></div>
             <div class="whelp-step"><span class="whelp-num">2</span><span>本体とWidgetは<strong>同じドメイン（同じURL）</strong>で開く必要があります</span></div>
@@ -865,7 +865,7 @@ function renderStatus(){
     document.getElementById('st-sub').textContent = 'メインアプリを起動してください';
     document.getElementById('st-today-count').textContent = '—';
     document.getElementById('st-total-cost').textContent = '—';
-    document.getElementById('st-persona-list').innerHTML = '<div style="font-size:11px;color:var(--text-muted);">人格データが見つかりません</div>';
+    document.getElementById('st-persona-list').innerHTML = '<div style="font-size:11px;color:var(--text-muted);">キャラデータが見つかりません</div>';
     return;
   }
   const cur = st.personas?.find(p=>p.id===st.currentPid);
@@ -894,6 +894,31 @@ function renderStatus(){
     div.className='persona-row';
     div.innerHTML=`<span class="p-emoji">${p.emoji||'💬'}</span><span class="p-name">${escHtml(p.aiName||'—')}</span><span class="p-count">${msgCount}件</span>`;
     list.appendChild(div);
+    // 日記表示（直近5件）
+    if(p.diary && p.diary.length>0){
+      const diaryWrap=document.createElement('div');
+      diaryWrap.style.cssText='margin:4px 0 8px 40px;';
+      const toggle=document.createElement('button');
+      toggle.style.cssText='background:none;border:none;font-family:monospace;font-size:10px;color:var(--text-sub);cursor:pointer;padding:2px 0;opacity:.7';
+      toggle.textContent='📔 日記 ('+p.diary.length+'件) ▸';
+      const diaryList=document.createElement('div');
+      diaryList.style.display='none';
+      let open=false;
+      toggle.onclick=()=>{
+        open=!open;
+        diaryList.style.display=open?'block':'none';
+        toggle.textContent='📔 日記 ('+p.diary.length+'件) '+(open?'▾':'▸');
+      };
+      p.diary.slice().reverse().forEach(d=>{
+        const entry=document.createElement('div');
+        entry.style.cssText='padding:6px 8px;margin-top:4px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:10px;line-height:1.6;color:var(--text);';
+        entry.innerHTML='<div style="font-size:9px;opacity:.5;margin-bottom:2px;font-family:monospace">📅 '+escHtml(d.date||'')+'</div><div style="white-space:pre-wrap;word-break:break-word">'+escHtml(d.text||'')+'</div>';
+        diaryList.appendChild(entry);
+      });
+      diaryWrap.appendChild(toggle);
+      diaryWrap.appendChild(diaryList);
+      list.appendChild(diaryWrap);
+    }
   });
 }
 
@@ -903,7 +928,7 @@ function renderLauncher(){
   const grid = document.getElementById('launch-grid');
   grid.innerHTML='';
   if(!st||!st.personas||st.personas.length===0){
-    grid.innerHTML='<div style="font-size:11px;color:var(--text-muted);line-height:1.8;">人格データが見つかりません。<br>メインアプリで人格を作成してください。</div>';
+    grid.innerHTML='<div style="font-size:11px;color:var(--text-muted);line-height:1.8;">キャラデータが見つかりません。<br>メインアプリでキャラを作成してください。</div>';
     return;
   }
   st.personas.forEach(p=>{
