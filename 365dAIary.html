@@ -680,9 +680,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
   <div class="sb-sec">
     <span class="sb-lbl">思い出メモ（覚えておいてほしいこと）</span>
     <div id="memory-list"></div>
-    <div style="display:flex;gap:4px;margin-top:6px">
-      <input class="sb-inp" id="mem-cat-input" type="text" placeholder="カテゴリ名" style="width:80px;flex-shrink:0">
-      <input class="sb-inp" id="mem-input" type="text" placeholder="覚えておきたいこと">
+    <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">
+      <input class="sb-inp" id="mem-cat-input" type="text" placeholder="カテゴリ名" style="flex-shrink:0">
+      <textarea class="sb-inp" id="mem-input" placeholder="覚えておきたいこと（800文字まで）" maxlength="800" style="min-height:50px;max-height:120px;resize:vertical;line-height:1.5;font-size:12px"></textarea>
     </div>
     <button class="sb-btn" onclick="addMemory()">＋ 追加</button>
     <button class="sb-btn" onclick="clearMemory()" style="margin-top:3px">🗑 思い出メモを全削除</button>
