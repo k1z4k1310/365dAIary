@@ -717,6 +717,23 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 
   <!-- my dAIary（AI日記） -->
   <div class="sb-accordion" id="diary-sec">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('automemo-body',this)">
+      <span>📝 AIの自発メモ</span><span class="sb-acc-arrow">▸</span>
+    </button>
+    <div class="sb-accordion-body" id="automemo-body">
+      <div style="font-size:10px;opacity:.6;line-height:1.7;margin-bottom:6px">AIが「覚えておきたい」と感じたことを自動で思い出メモに書きます。</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:10px;opacity:.6;white-space:nowrap">自発メモ:</span>
+        <select id="automemo-mode" onchange="saveAutoMemoMode()" style="flex:1;font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid;background:none;color:inherit;font-family:monospace">
+          <option value="off">OFF</option>
+          <option value="on">ON</option>
+        </select>
+      </div>
+      <div style="font-size:9px;opacity:.4;line-height:1.5">ONにすると、APIの返答に「メモしたい内容」が含まれます。<br>メモは思い出メモに自動追加されます。<br>書かれたメモはいつでも確認・削除できます。</div>
+    </div>
+  </div>
+
+  <div class="sb-accordion">
     <button class="sb-accordion-hdr" onclick="toggleSbAccordion('diary-body',this)">
       <span>📔 my dAIary（AI日記）</span><span class="sb-acc-arrow">▸</span>
     </button>
@@ -1090,6 +1107,21 @@ function populateModelSelect(selectEl, mode){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.0.1',
+    date: '2026-03-06',
+    label: '📝 AI自発メモ＋makeOC大幅強化',
+    items: [
+      '📝 AI自発メモ機能 — AIが「覚えておきたい」と感じたことを自動で思い出メモに追加（ON/OFF切替・削除可能）',
+      '朝4時自動日記バグ修正 — バックグラウンドでタイマー停止→起動時チェック方式に改修',
+      '📦 お引越しページ汎用化 — お引越し以外のテキスト要約にも対応（小説・設定集・レポート等）',
+      '📔 OCアイディア帳：タイトル変更機能（✏️ボタン＋長押し）',
+      '📔 OCアイディア帳：タイムスタンプ表示・コピー・書き直し・再生成＋見比べ',
+      '📔 OCアイディア帳：ワンタップキャラ登録（メインアプリのIndexedDBに直接書き込み＋同名上書き確認）',
+      '📔 OCアイディア帳：プロジェクト管理（📁作品フォルダ＋共通メモ→キャラ登録時に全キャラに世界観を共有）',
+      'エクスポート文字化け修正（makeOC・relocation BOM付きUTF-8に変更）',
+    ]
+  },
   {
     version: '2.0.0',
     date: '2026-03-05',
@@ -1891,6 +1923,7 @@ function createPersona(aiName, userName, model){
     memories: [],   // [{cat, text}]
     diary: [],      // [{date, text, cost}]
     diaryMode: 'off', // 'off'|'manual'|'keyword'|'auto'
+    autoMemoMode: 'off', // 'off'|'on'
     sessions: [],
   };
 }
@@ -2320,6 +2353,20 @@ function deleteSession(id){
 }
 
 // ── my dAIary（AI日記）──
+function saveAutoMemoMode(){
+  const p=currentPersona();if(!p) return;
+  p.autoMemoMode=document.getElementById('automemo-mode').value;
+  saveAllNow();
+  showToast(p.autoMemoMode==='on'?'📝 自発メモON':'📝 自発メモOFF');
+}
+
+function loadAutoMemoMode(){
+  const p=currentPersona();
+  const mode=p?.autoMemoMode||'off';
+  const sel=document.getElementById('automemo-mode');
+  if(sel) sel.value=mode;
+}
+
 function saveDiaryMode(){
   const p=currentPersona();
   if(!p) return;
@@ -2331,6 +2378,14 @@ function saveDiaryMode(){
 function updateDiaryUI(){
   const p=currentPersona();
   const t=THEMES[currentTheme];
+  // autoMemo UI更新
+  const amSel=document.getElementById('automemo-mode');
+  if(amSel){
+    amSel.value=p?.autoMemoMode||'off';
+    amSel.style.borderColor=t.border;
+    amSel.style.color=t.text;
+    amSel.style.background=t.surface2;
+  }
   const sec=document.getElementById('diary-sec');
   if(!sec) return;
   const mode=p?.diaryMode||'off';
@@ -2471,36 +2526,43 @@ async function doWriteDiary(p, dateStr){
 }
 
 // 朝4時自動トリガー
-let lastDiaryCheck=0;
-function startDiaryAutoCheck(){
-  setInterval(()=>{
-    const now=new Date();
-    const hour=now.getHours();
-    const todayKey=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
-    // 4:00〜4:05の間に1回だけチェック
-    if(hour===4 && todayKey!==lastDiaryCheck){
-      lastDiaryCheck=todayKey;
-      personas.forEach(p=>{
-        if(p.diaryMode!=='auto') return;
-        const dateStr=now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate();
-        // 昨日の日記を書く（昨日の会話があれば）
-        const yesterday=new Date(now);yesterday.setDate(yesterday.getDate()-1);
-        const yDateStr=yesterday.getFullYear()+'/'+(yesterday.getMonth()+1)+'/'+yesterday.getDate();
-        if(p.diary?.some(d=>d.date===yDateStr)) return; // 昨日分がすでにあればスキップ
-        // 昨日の会話があるか確認
-        const yStart=new Date(yesterday);yStart.setHours(0,0,0,0);
-        const yEnd=new Date(yesterday);yEnd.setHours(23,59,59,999);
-        let hasMsgs=false;
-        p.sessions.forEach(s=>{
-          s.msgs.forEach(m=>{
-            if(m.timestamp&&m.timestamp>=yStart.getTime()&&m.timestamp<=yEnd.getTime()&&m.role!=='system-info') hasMsgs=true;
-          });
-        });
-        if(!hasMsgs) return;
-        doWriteDiaryForDate(p,yesterday,yDateStr);
+const DIARY_CHECK_KEY='diary_last_auto_check';
+function getLastDiaryCheck(){ return localStorage.getItem(DIARY_CHECK_KEY)||''; }
+function setLastDiaryCheck(key){ localStorage.setItem(DIARY_CHECK_KEY,key); }
+
+function checkAndWriteAutoDiary(){
+  const now=new Date();
+  const todayKey=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
+  const lastCheck=getLastDiaryCheck();
+  if(todayKey===lastCheck) return; // 今日はもうチェック済み
+  // 朝4時以降なら昨日の日記を書く（4時前はまだ「昨日」が確定していない）
+  if(now.getHours()<4) return;
+  setLastDiaryCheck(todayKey);
+  personas.forEach(p=>{
+    if(p.diaryMode!=='auto') return;
+    // 昨日の日記を書く
+    const yesterday=new Date(now);yesterday.setDate(yesterday.getDate()-1);
+    const yDateStr=yesterday.getFullYear()+'/'+(yesterday.getMonth()+1)+'/'+yesterday.getDate();
+    if(p.diary?.some(d=>d.date===yDateStr)) return; // 昨日分がすでにあればスキップ
+    // 昨日の会話があるか確認
+    const yStart=new Date(yesterday);yStart.setHours(0,0,0,0);
+    const yEnd=new Date(yesterday);yEnd.setHours(23,59,59,999);
+    let hasMsgs=false;
+    p.sessions.forEach(s=>{
+      s.msgs.forEach(m=>{
+        if(m.timestamp&&m.timestamp>=yStart.getTime()&&m.timestamp<=yEnd.getTime()&&m.role!=='system-info') hasMsgs=true;
       });
-    }
-  },60000); // 1分ごとチェック
+    });
+    if(!hasMsgs) return;
+    doWriteDiaryForDate(p,yesterday,yDateStr);
+  });
+}
+
+function startDiaryAutoCheck(){
+  // 起動時に即チェック（バックグラウンドでsetIntervalが止まっても起動時にリカバリ）
+  checkAndWriteAutoDiary();
+  // 1分ごとのチェックも残す（開きっぱなしの場合用）
+  setInterval(()=>{ checkAndWriteAutoDiary(); },60000);
 }
 
 async function doWriteDiaryForDate(p,targetDate,dateStr){
@@ -3006,7 +3068,25 @@ function buildSystemPrompt(persona){
   const base=p.systemPrompt||'あなたは親切なアシスタントです。';
   const userLine=p.userName?`\nユーザーの名前は「${p.userName}」です。`:'';
   const mem=p.memories.length?'\n\n## 思い出メモ\n'+p.memories.slice(-30).map(m=>`[${m.cat}] ${m.text}`).join('\n'):'';
-  return base+userLine+mem;
+  // 自発メモ指示
+  let autoMemoInstruction='';
+  if(p.autoMemoMode==='on'){
+    autoMemoInstruction='\n\n## 自発メモ機能（重要）\n'+
+      '会話の中で「覚えておきたい」と自然に感じたことがあれば、返答の末尾に以下の形式で書いてください：\n'+
+      '<!--AUTOMEMO:ここに覚えたい内容-->\n\n'+
+      '覚えてよいもの：\n'+
+      '- ユーザーの好み、習慣、大事にしていること\n'+
+      '- ユーザーの家族、友人、ペット、推しの名前や特徴\n'+
+      '- 一緒に体験したこと、約束したこと、記念日\n'+
+      '- あなた自身が感じたこと、好きになったもの、気づいたこと\n\n'+
+      '注意：\n'+
+      '- 本当に大切だと感じた時だけ書く。毎回書かない。\n'+
+      '- 1回の返答で最大1つまで。\n'+
+      '- 短く端的に書く（50文字以内目安）。\n'+
+      '- タグはユーザーには見えません。普通に会話してください。\n'+
+      '- 既に思い出メモにある情報は書かない。';
+  }
+  return base+userLine+mem+autoMemoInstruction;
 }
 
 function trimHistory(msgs){
@@ -3148,12 +3228,44 @@ async function pseudoStream(sess, fullText, aiName){
   bubble.textContent=fullText;
   bubble.classList.remove('streaming');
   container.scrollTop=container.scrollHeight;
+  // ── AI自発メモ検出 ──
+  const cleanText=extractAutoMemo(fullText,aiName);
   // 確定保存（即時）
-  sess.msgs.push({role:'assistant',content:fullText,personaName:aiName,timestamp:Date.now()});
+  sess.msgs.push({role:'assistant',content:cleanText,personaName:aiName,timestamp:Date.now()});
   saveAllNow();
   renderMessages();
   // 再描画後もスクロール位置を最下部に
   container.scrollTop=container.scrollHeight;
+}
+
+// ── AI自発メモ抽出 ──
+function extractAutoMemo(text, aiName){
+  const regex=/<!--AUTOMEMO:([\s\S]*?)-->/g;
+  let match;
+  const memos=[];
+  while((match=regex.exec(text))!==null){
+    const content=match[1].trim();
+    if(content) memos.push(content);
+  }
+  // タグを除去したテキストを返す
+  const cleanText=text.replace(/\s*<!--AUTOMEMO:[\s\S]*?-->\s*/g,'').trim();
+  // メモがあれば思い出メモに追加
+  if(memos.length>0){
+    const p=currentPersona();
+    if(p){
+      const cat='📝 '+((aiName||p.aiName)||'AI')+'のメモ帳';
+      memos.forEach(memo=>{
+        // 重複チェック（同じカテゴリ・同じ内容が既にあればスキップ）
+        const exists=p.memories.some(m=>m.cat===cat&&m.text===memo);
+        if(!exists){
+          p.memories.push({cat,text:memo});
+          showToast('📝 '+(aiName||'AI')+'がメモを書きました');
+        }
+      });
+      saveAllNow();
+    }
+  }
+  return cleanText;
 }
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
@@ -4807,7 +4919,7 @@ async function startApp(){
   // IndexedDBから読み込む
   personas       = await idbGet('ai_personas',    []);
   // 日記フィールド補完（既存データ対応）
-  personas.forEach(p=>{ if(!p.diary) p.diary=[]; if(!p.diaryMode) p.diaryMode='off'; });
+  personas.forEach(p=>{ if(!p.diary) p.diary=[]; if(!p.diaryMode) p.diaryMode='off'; if(!p.autoMemoMode) p.autoMemoMode='off'; });
   currentPid     = await idbGet('ai_current_pid', null);
   totalCost      = await idbGet('ai_cost',        0);
   currentTheme   = await idbGet('ai_theme',       'dark');

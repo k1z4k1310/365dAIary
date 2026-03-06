@@ -93,6 +93,16 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 <div class="sidebar" id="sidebar">
   <div class="sb-hdr"><span>📂 会話履歴</span><button onclick="toggleSidebar()">✕</button></div>
   <div class="sb-new" onclick="newSession()">＋ 新しいOC案を始める</div>
+  <!-- プロジェクト管理 -->
+  <div style="padding:4px 8px">
+    <select id="project-filter" onchange="renderSidebar()" style="width:100%;font-size:11px;font-family:monospace;padding:6px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text)">
+      <option value="">すべて表示</option>
+    </select>
+    <div style="display:flex;gap:4px;margin-top:4px">
+      <button onclick="createProject()" style="flex:1;font-size:10px;font-family:monospace;padding:4px;border:1px dashed var(--accent);border-radius:4px;background:none;color:var(--accent);cursor:pointer">📁 新規作品</button>
+      <button onclick="editProjectMemo()" style="flex:1;font-size:10px;font-family:monospace;padding:4px;border:1px dashed var(--accent);border-radius:4px;background:none;color:var(--accent);cursor:pointer">📝 共通メモ</button>
+    </div>
+  </div>
   <div class="sb-list" id="sb-list"></div>
 </div>
 
@@ -255,11 +265,81 @@ async function callAPI(provider,model,systemPrompt,history){
 // ══════════════════════════════════════════════
 const STORAGE_KEY='kanrinin_makeoc_log';
 const SESSIONS_KEY='kanrinin_makeoc_sessions';
-let chatLog=[];// [{role,content}]
-let sessions=[];// [{id,title,msgs,createdAt}]
+const PROJECTS_KEY='kanrinin_makeoc_projects';
+let chatLog=[];// [{role,content,timestamp}]
+let sessions=[];// [{id,title,msgs,createdAt,project}]
+let projects=[];// [{id,name,memo}]
 let currentSessionId=null;
 let isLoading=false;
 let selectedModel=localStorage.getItem('kanrinin_model')||'openai:gpt-4.1-mini';
+
+function loadProjects(){
+  try{ projects=JSON.parse(localStorage.getItem(PROJECTS_KEY))||[]; }catch(e){ projects=[]; }
+}
+function saveProjects(){
+  localStorage.setItem(PROJECTS_KEY,JSON.stringify(projects));
+}
+function createProject(){
+  const name=prompt('作品名を入力してください','');
+  if(!name||!name.trim()) return;
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  projects.push({id,name:name.trim(),memo:''});
+  saveProjects();
+  renderProjectFilter();
+  // 作成したプロジェクトを選択状態に
+  document.getElementById('project-filter').value=id;
+  renderSidebar();
+  showToast('📁 「'+name.trim()+'」を作成しました');
+}
+function editProjectMemo(){
+  const sel=document.getElementById('project-filter').value;
+  if(!sel){
+    showToast('先にプロジェクトを選択してください');
+    return;
+  }
+  const proj=projects.find(p=>p.id===sel);
+  if(!proj) return;
+  const memo=prompt('「'+proj.name+'」の共通メモ（世界観・設定など）\n\n※ キャラ登録時にこのメモが全キャラに共通で入ります',proj.memo||'');
+  if(memo===null) return;// キャンセル
+  proj.memo=memo;
+  saveProjects();
+  showToast('📝 共通メモを更新しました');
+}
+function renderProjectFilter(){
+  const sel=document.getElementById('project-filter');
+  const current=sel.value;
+  sel.innerHTML='<option value="">すべて表示</option>';
+  projects.forEach(p=>{
+    const opt=document.createElement('option');
+    opt.value=p.id;
+    opt.textContent='📁 '+p.name;
+    sel.appendChild(opt);
+  });
+  sel.value=current;
+}
+function assignProject(sessionId){
+  const sel=document.getElementById('project-filter').value;
+  if(!sel){
+    // プロジェクト一覧から選ばせる
+    if(projects.length===0){
+      showToast('先にプロジェクトを作成してください');
+      return;
+    }
+    const names=projects.map((p,i)=>(i+1)+'. '+p.name).join('\n');
+    const choice=prompt('どのプロジェクトに入れますか？\n'+names+'\n\n番号を入力：');
+    if(!choice) return;
+    const idx=parseInt(choice)-1;
+    if(idx<0||idx>=projects.length){showToast('無効な番号です');return;}
+    const sess=sessions.find(s=>s.id===sessionId);
+    if(sess){sess.project=projects[idx].id;saveChat();renderSidebar();}
+    showToast('📁 「'+projects[idx].name+'」に追加しました');
+  } else {
+    const sess=sessions.find(s=>s.id===sessionId);
+    if(sess){sess.project=sel;saveChat();renderSidebar();}
+    const proj=projects.find(p=>p.id===sel);
+    showToast('📁 「'+(proj?.name||'')+'」に追加しました');
+  }
+}
 
 function saveModel(){
   selectedModel=document.getElementById('model-select').value;
@@ -338,25 +418,83 @@ function toggleSidebar(){
 function renderSidebar(){
   const list=document.getElementById('sb-list');
   const t=THEMES[currentTheme]||THEMES.dark;
+  const filterProject=document.getElementById('project-filter').value;
   list.innerHTML='';
-  sessions.slice().reverse().forEach(s=>{
+  const filtered=sessions.filter(s=>{
+    if(!filterProject) return true;
+    return s.project===filterProject;
+  });
+  filtered.slice().reverse().forEach(s=>{
     const item=document.createElement('div');
     item.className='sb-item'+(s.id===currentSessionId?' active':'');
     const titleSpan=document.createElement('span');
     titleSpan.className='sb-item-title';
-    titleSpan.textContent=s.title;
+    // プロジェクト名をプレフィックスで表示（フィルターしてない時）
+    const proj=projects.find(p=>p.id===s.project);
+    titleSpan.textContent=(proj&&!filterProject?'['+proj.name+'] ':'')+s.title;
+    // 長押しでタイトル編集（スマホ対応）
+    let pressTimer=null;
+    titleSpan.addEventListener('touchstart',()=>{
+      pressTimer=setTimeout(()=>{startRenameSession(s.id,titleSpan);},600);
+    },{passive:true});
+    titleSpan.addEventListener('touchend',()=>{clearTimeout(pressTimer);});
+    titleSpan.addEventListener('touchmove',()=>{clearTimeout(pressTimer);});
+    // ✏️ 編集ボタン
+    const editBtn=document.createElement('button');
+    editBtn.className='sb-item-del';
+    editBtn.textContent='✏️';
+    editBtn.style.fontSize='11px';
+    editBtn.style.opacity='.6';
+    editBtn.title='タイトル変更';
+    editBtn.onclick=(e)=>{e.stopPropagation();startRenameSession(s.id,titleSpan);};
+    // 📁 プロジェクト割り当てボタン
+    const folderBtn=document.createElement('button');
+    folderBtn.className='sb-item-del';
+    folderBtn.textContent='📁';
+    folderBtn.style.fontSize='11px';
+    folderBtn.style.opacity='.5';
+    folderBtn.title='プロジェクトに入れる';
+    folderBtn.onclick=(e)=>{e.stopPropagation();assignProject(s.id);};
     const delBtn=document.createElement('button');
     delBtn.className='sb-item-del';
     delBtn.textContent='✕';
     delBtn.onclick=(e)=>deleteSession(s.id,e);
     item.appendChild(titleSpan);
+    item.appendChild(editBtn);
+    item.appendChild(folderBtn);
     item.appendChild(delBtn);
     item.onclick=()=>switchSession(s.id);
     list.appendChild(item);
   });
-  if(sessions.length===0){
-    list.innerHTML='<div style="text-align:center;opacity:.4;font-family:monospace;font-size:11px;padding:20px">まだ会話がありません</div>';
+  if(filtered.length===0){
+    list.innerHTML='<div style="text-align:center;opacity:.4;font-family:monospace;font-size:11px;padding:20px">'+(filterProject?'このプロジェクトにはまだ会話がありません':'まだ会話がありません')+'</div>';
   }
+}
+
+function startRenameSession(id,titleSpan){
+  const sess=sessions.find(s=>s.id===id);
+  if(!sess) return;
+  const input=document.createElement('input');
+  input.type='text';
+  input.value=sess.title;
+  input.style.cssText='width:100%;font-size:12px;font-family:monospace;padding:2px 4px;border:1px solid var(--accent);border-radius:4px;background:var(--surface);color:var(--text);outline:none';
+  const finish=()=>{
+    const newTitle=input.value.trim();
+    if(newTitle&&newTitle!==sess.title){
+      sess.title=newTitle;
+      saveChat();
+      showToast('✏️ タイトルを変更しました');
+    }
+    renderSidebar();
+  };
+  input.onblur=finish;
+  input.onkeydown=(e)=>{
+    if(e.key==='Enter'){e.preventDefault();input.blur();}
+    if(e.key==='Escape'){input.value=sess.title;input.blur();}
+  };
+  titleSpan.replaceWith(input);
+  input.focus();
+  input.select();
 }
 
 function renderMessages(){
@@ -367,16 +505,19 @@ function renderMessages(){
     container.innerHTML='<div style="text-align:center;opacity:.4;font-family:monospace;font-size:12px;padding:40px 20px;line-height:2">📔 OCアイディア帳<br><br>管理人さんと一緒に<br>あなただけのAIキャラを作ろう！<br><br>「ツンデレキャラ作りたい」<br>「こんな設定のキャラがいて…」<br>なんでも話してみてね</div>';
     return;
   }
-  chatLog.forEach(m=>{
+  chatLog.forEach((m,idx)=>{
+    const isUser=m.role==='user';
     const wrap=document.createElement('div');
     wrap.style.display='flex';wrap.style.flexDirection='column';
     const label=document.createElement('div');
     label.className='msg-label';
-    label.textContent=m.role==='user'?'あなた':'🎨 管理人さん';
-    label.style.textAlign=m.role==='user'?'right':'left';
+    label.textContent=isUser?'あなた':'🎨 管理人さん';
+    label.style.textAlign=isUser?'right':'left';
+    // alternatesがあれば現在選択中を表示
+    const displayContent=m.alternates?m.alternates[m.activeAlt||0]:m.content;
     const bubble=document.createElement('div');
-    bubble.className='msg '+(m.role==='user'?'user':'ai');
-    if(m.role==='user'){
+    bubble.className='msg '+(isUser?'user':'ai');
+    if(isUser){
       bubble.style.background=t.userBubble||t.surface2;
       bubble.style.borderColor=t.userBorder||t.border;
       bubble.style.color=t.userText||t.text;
@@ -385,21 +526,148 @@ function renderMessages(){
       bubble.style.borderColor=t.aiBorder||t.border;
       bubble.style.color=t.text;
     }
-    bubble.textContent=m.content;
+    bubble.textContent=displayContent;
+    // 長押し/右クリックでコンテキストメニュー
+    let pressTimer=null;
+    const showMenu=(e)=>{
+      e.preventDefault();
+      openMsgMenu(idx,m,e.clientX||e.touches?.[0]?.clientX||0,e.clientY||e.touches?.[0]?.clientY||0);
+    };
+    bubble.addEventListener('contextmenu',showMenu);
+    bubble.addEventListener('touchstart',(e)=>{pressTimer=setTimeout(()=>showMenu(e),500);},{passive:false});
+    bubble.addEventListener('touchend',()=>clearTimeout(pressTimer));
+    bubble.addEventListener('touchmove',()=>clearTimeout(pressTimer));
+    bubble.style.cursor='context-menu';
     wrap.appendChild(label);wrap.appendChild(bubble);
+    // タイムスタンプ
+    if(m.timestamp){
+      const timeEl=document.createElement('div');
+      timeEl.style.cssText='font-size:10px;opacity:.4;margin-top:2px;font-family:monospace';
+      timeEl.style.textAlign=isUser?'right':'left';
+      timeEl.style.color=t.textMuted||t.text;
+      timeEl.textContent=new Date(m.timestamp).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+      wrap.appendChild(timeEl);
+    }
+    // AI発言：再生成ボタン＋alternatesナビ
+    if(!isUser){
+      const bottomRow=document.createElement('div');
+      bottomRow.style.cssText='display:flex;align-items:center;gap:4px;';
+      const regenBtn=document.createElement('button');
+      regenBtn.style.cssText='background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px;opacity:.5';
+      regenBtn.style.color=t.textMuted||t.text;
+      regenBtn.textContent='🔄';
+      regenBtn.title='再生成';
+      regenBtn.onclick=()=>regenerateMsg(idx);
+      bottomRow.appendChild(regenBtn);
+      // alternatesナビ（2つ以上あるとき）
+      if(m.alternates&&m.alternates.length>1){
+        const cur=m.activeAlt||0;
+        const nav=document.createElement('div');
+        nav.style.cssText='display:flex;align-items:center;gap:4px;font-family:monospace;font-size:10px;opacity:.6';
+        nav.style.color=t.textMuted||t.text;
+        const prevBtn=document.createElement('button');
+        prevBtn.textContent='‹';
+        prevBtn.style.cssText='background:none;border:none;cursor:pointer;font-size:14px;padding:0 4px';
+        prevBtn.style.color=t.textMuted||t.text;
+        prevBtn.disabled=cur===0;
+        prevBtn.onclick=()=>{m.activeAlt=cur-1;saveChat();renderMessages();};
+        const lbl=document.createElement('span');
+        lbl.textContent=(cur+1)+' / '+m.alternates.length;
+        const nextBtn=document.createElement('button');
+        nextBtn.textContent='›';
+        nextBtn.style.cssText='background:none;border:none;cursor:pointer;font-size:14px;padding:0 4px';
+        nextBtn.style.color=t.textMuted||t.text;
+        nextBtn.disabled=cur>=m.alternates.length-1;
+        nextBtn.onclick=()=>{m.activeAlt=cur+1;saveChat();renderMessages();};
+        nav.appendChild(prevBtn);nav.appendChild(lbl);nav.appendChild(nextBtn);
+        bottomRow.appendChild(nav);
+      }
+      wrap.appendChild(bottomRow);
+    }
     container.appendChild(wrap);
   });
   container.scrollTop=container.scrollHeight;
   // プロンプト完成検出→登録ボタン表示
   const lastAi=chatLog.filter(m=>m.role==='assistant').slice(-1)[0];
   const regBtn=document.getElementById('register-btn');
-  if(lastAi && lastAi.content.includes('【プロンプト完成】')){
+  const lastContent=lastAi?(lastAi.alternates?lastAi.alternates[lastAi.activeAlt||0]:lastAi.content):'';
+  if(lastContent.includes('【プロンプト完成】')){
     regBtn.style.display='block';
     const t2=THEMES[currentTheme];
     regBtn.style.borderColor=t2.accent;regBtn.style.color=t2.accent;
   } else {
     regBtn.style.display='none';
   }
+}
+
+// ── コンテキストメニュー（コピー・書き直し） ──
+function openMsgMenu(msgIdx,msg,x,y){
+  let old=document.getElementById('oc-msg-menu');
+  if(old) old.remove();
+  const t=THEMES[currentTheme]||THEMES.dark;
+  const menu=document.createElement('div');
+  menu.id='oc-msg-menu';
+  menu.style.cssText='position:fixed;z-index:99999;background:'+t.bg+';border:1px solid '+t.border+';border-radius:10px;padding:6px 0;box-shadow:0 4px 16px rgba(0,0,0,.15);min-width:140px';
+  menu.style.left=Math.min(x,window.innerWidth-160)+'px';
+  menu.style.top=Math.min(y,window.innerHeight-120)+'px';
+  const displayContent=msg.alternates?msg.alternates[msg.activeAlt||0]:msg.content;
+  const items=[
+    {label:'📋 コピー',action:()=>{navigator.clipboard.writeText(displayContent).then(()=>showToast('コピーしました')).catch(()=>showToast('⚠ コピーに失敗'));}}
+  ];
+  if(msg.role==='user'){
+    items.push({label:'✏️ 書き直し',action:()=>{
+      const input=document.getElementById('input');
+      input.value=msg.content;
+      input.focus();
+      chatLog.splice(msgIdx);
+      saveChat();renderMessages();
+      showToast('入力欄にコピーしました。編集して再送信してね');
+    }});
+  }
+  items.forEach(it=>{
+    const btn=document.createElement('button');
+    btn.textContent=it.label;
+    btn.style.cssText='display:block;width:100%;text-align:left;padding:8px 16px;border:none;background:none;cursor:pointer;font-size:13px;color:'+t.text+';font-family:inherit';
+    btn.onmouseenter=()=>btn.style.background=t.surface;
+    btn.onmouseleave=()=>btn.style.background='none';
+    btn.onclick=()=>{menu.remove();it.action();};
+    menu.appendChild(btn);
+  });
+  document.body.appendChild(menu);
+  setTimeout(()=>{
+    const closer=(e)=>{if(!menu.contains(e.target)){menu.remove();document.removeEventListener('click',closer);}};
+    document.addEventListener('click',closer);
+  },10);
+}
+
+// ── 再生成 ──
+async function regenerateMsg(msgIdx){
+  if(isLoading) return;
+  const msg=chatLog[msgIdx];
+  if(!msg||msg.role!=='assistant') return;
+  // alternates初期化
+  if(!msg.alternates){
+    msg.alternates=[msg.content];
+    msg.activeAlt=0;
+  }
+  // 再生成用の履歴（該当メッセージより前まで）
+  const history=chatLog.slice(0,msgIdx);
+  isLoading=true;
+  document.getElementById('send-btn').textContent='…';
+  const [provider,model]=selectedModel.split(':');
+  try{
+    const reply=await callAPI(provider,model,SYSTEM_PROMPT,history.slice(-20));
+    msg.alternates.push(reply);
+    msg.activeAlt=msg.alternates.length-1;
+    msg.content=reply;
+    msg.timestamp=Date.now();
+    saveChat();renderMessages();
+    showToast('🔄 再生成しました（'+msg.alternates.length+'件目）');
+  }catch(e){
+    showToast('⚠ '+e.message);
+  }
+  isLoading=false;
+  document.getElementById('send-btn').textContent='送信 ↑';
 }
 
 async function send(){
@@ -419,7 +687,7 @@ async function send(){
   if(sess && sess.msgs.length===0){
     sess.title=text.slice(0,24);
   }
-  chatLog.push({role:'user',content:text});
+  chatLog.push({role:'user',content:text,timestamp:Date.now()});
   input.value='';input.style.height='';
   saveChat();renderMessages();
 
@@ -428,7 +696,7 @@ async function send(){
   const [provider,model]=selectedModel.split(':');
   try{
     const reply=await callAPI(provider,model,SYSTEM_PROMPT,chatLog.slice(-20));
-    chatLog.push({role:'assistant',content:reply});
+    chatLog.push({role:'assistant',content:reply,timestamp:Date.now()});
     saveChat();renderMessages();
   }catch(e){
     showToast('⚠ '+e.message);
@@ -451,18 +719,93 @@ function registerCharacter(){
   // 最後のAI発言から【プロンプト完成】部分を抽出
   const lastAi=chatLog.filter(m=>m.role==='assistant').slice(-1)[0];
   if(!lastAi) return;
-  const match=lastAi.content.match(/【プロンプト完成】([\s\S]*?)(?:【|$)/);
-  const prompt=match?match[1].trim():lastAi.content;
+  const displayContent=lastAi.alternates?lastAi.alternates[lastAi.activeAlt||0]:lastAi.content;
+  const match=displayContent.match(/【プロンプト完成】([\s\S]*?)(?:【|$)/);
+  const prompt=match?match[1].trim():displayContent;
 
-  // メインアプリのpersonasに追加
-  try{
-    const raw=localStorage.getItem('ai_personas_light');// widget_stateからは読めないのでIndexedDB経由
-    // localStorageには軽量版しかないので、ユーザーに案内
-    showToast('📋 プロンプトをコピーしました！メインアプリで新しいキャラを作成し、システムプロンプトに貼り付けてください。');
-    navigator.clipboard.writeText(prompt).catch(()=>{});
-  }catch(e){
-    showToast('⚠ エラー: '+e.message);
+  // このセッションのプロジェクト共通メモを取得
+  const sess=currentSession();
+  const proj=sess?.project?projects.find(p=>p.id===sess.project):null;
+  const sharedMemo=proj?.memo||'';
+
+  // 名前入力ダイアログ
+  const name=window.prompt('キャラの名前を入力してください','');
+  if(!name||!name.trim()) return;
+  const charName=name.trim();
+
+  // 共通メモがあれば確認
+  if(sharedMemo){
+    if(!confirm('「'+proj.name+'」の共通メモを思い出メモに入れますか？\n\n'+sharedMemo.slice(0,100)+(sharedMemo.length>100?'…':''))){
+      // 共通メモなしで登録
+    }
   }
+  const includeSharedMemo=sharedMemo&&confirm.length!==undefined;// confirmが呼ばれてtrueならinclude
+
+  // IndexedDBからmainのpersonas読み込み → 追加 → 書き戻し
+  const DB_NAME='365dAIaryDB';
+  const STORE_NAME='kv';
+  const req=indexedDB.open(DB_NAME,1);
+  req.onupgradeneeded=e=>{
+    const db=e.target.result;
+    if(!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+  };
+  req.onsuccess=e=>{
+    const db=e.target.result;
+    const tx=db.transaction(STORE_NAME,'readwrite');
+    const st=tx.objectStore(STORE_NAME);
+    const getReq=st.get('ai_personas');
+    getReq.onsuccess=()=>{
+      let personas=getReq.result||[];
+      // 共通メモ → 思い出メモ用
+      const sharedMemories=sharedMemo?[{cat:'🌍 世界観（共通）',text:sharedMemo}]:[];
+      // 同名キャラチェック
+      const existing=personas.find(p=>p.aiName===charName);
+      if(existing){
+        if(!confirm('「'+charName+'」は既に存在します。プロンプトを上書きしますか？')){
+          navigator.clipboard.writeText(prompt).catch(()=>{});
+          showToast('📋 プロンプトをコピーしました');
+          return;
+        }
+        existing.systemPrompt=prompt;
+        // 共通メモがあれば思い出メモに追加（重複チェック）
+        if(sharedMemo&&!existing.memories?.some(m=>m.cat==='🌍 世界観（共通）')){
+          if(!existing.memories) existing.memories=[];
+          existing.memories.unshift({cat:'🌍 世界観（共通）',text:sharedMemo});
+        } else if(sharedMemo){
+          // 既にあれば更新
+          const idx=existing.memories.findIndex(m=>m.cat==='🌍 世界観（共通）');
+          if(idx>=0) existing.memories[idx].text=sharedMemo;
+        }
+        showToast('✅ 「'+charName+'」のプロンプトを更新しました！');
+      } else {
+        const newId=Date.now().toString(36)+Math.random().toString(36).slice(2);
+        personas.push({
+          id:newId,
+          aiName:charName,
+          userName:'あなた',
+          model:'openai:gpt-4.1-mini',
+          systemPrompt:prompt,
+          memories:sharedMemories,
+          diary:[],
+          diaryMode:'off',
+          sessions:[]
+        });
+        showToast('🚀 「'+charName+'」を365dAIaryに登録しました！'+(sharedMemo?'共通メモも追加済み！':'')+'メインアプリを開いてね');
+      }
+      const tx2=db.transaction(STORE_NAME,'readwrite');
+      const st2=tx2.objectStore(STORE_NAME);
+      st2.put(personas,'ai_personas');
+      navigator.clipboard.writeText(prompt).catch(()=>{});
+    };
+    getReq.onerror=()=>{
+      showToast('⚠ メインアプリのデータにアクセスできませんでした。プロンプトをコピーします。');
+      navigator.clipboard.writeText(prompt).catch(()=>{});
+    };
+  };
+  req.onerror=()=>{
+    showToast('⚠ データベースを開けませんでした。プロンプトをコピーします。');
+    navigator.clipboard.writeText(prompt).catch(()=>{});
+  };
 }
 
 // ══════════════════════════════════════════════
@@ -477,7 +820,8 @@ function exportChat(){
     txt+='['+(m.role==='user'?'あなた':'管理人さん')+']\n';
     txt+=m.content+'\n\n';
   });
-  const blob=new Blob([txt],{type:'text/plain'});
+  const bom=new Uint8Array([0xEF,0xBB,0xBF]);
+  const blob=new Blob([bom,txt],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
   a.download='makeOC_'+new Date().toISOString().slice(0,10)+'.txt';
@@ -510,17 +854,19 @@ function populateModelSelect(sel){
 // ══════════════════════════════════════════════
 function init(){
   loadChat();
+  loadProjects();
   populateModelSelect(document.getElementById('model-select'));
   document.getElementById('model-select').value=selectedModel;
   applyTheme(currentTheme);
   renderMessages();
+  renderProjectFilter();
   // 初回なら管理人さんの挨拶＋セッション作成
   if(chatLog.length===0 && sessions.length===0){
     const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
     sessions.push({id,title:'はじめてのOC案',msgs:[],createdAt:Date.now()});
     currentSessionId=id;
     chatLog=currentSession().msgs;
-    chatLog.push({role:'assistant',content:'こんにちは！管理人さんです🎨\n\n今日はどんなキャラを作りたいですか？\n\n・「ツンデレの男の子」みたいにざっくりでもOK\n・既存のキャラのプロンプトを見てほしい、でもOK\n・テンプレートから選びたい、でもOK\n\nなんでも聞いてくださいね！✨'});
+    chatLog.push({role:'assistant',content:'こんにちは！管理人さんです🎨\n\n今日はどんなキャラを作りたいですか？\n\n・「ツンデレの男の子」みたいにざっくりでもOK\n・既存のキャラのプロンプトを見てほしい、でもOK\n・テンプレートから選びたい、でもOK\n\nなんでも聞いてくださいね！✨',timestamp:Date.now()});
     saveChat();renderMessages();
   }
   renderSidebar();
