@@ -2313,7 +2313,6 @@ function openClonePersonaModal(){
   const srcSel=document.getElementById('clone-src-select');
   srcSel.innerHTML='';
   personas.forEach(p=>{
-    if(p.isTrial) return; // お試しキャラは複製不可
     const opt=document.createElement('option');
     opt.value=p.id;
     opt.textContent=(p.emoji?p.emoji+' ':'')+p.aiName;
