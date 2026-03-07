@@ -632,6 +632,54 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <button onclick="confirmAddPersona()" id="modal-add-btn" style="flex:1;padding:8px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;border:none;color:#fff">追加する</button>
     </div>
     <button onclick="closeAddPersonaModal();showTrialPicker()" style="width:100%;padding:10px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;background:var(--surface,#221a38);border:1px solid var(--border,#3a2a5a);color:var(--text,#e8e0f8);">🎁 お試しキャラから追加</button>
+    <button onclick="closeAddPersonaModal();openClonePersonaModal()" id="modal-clone-btn" style="width:100%;padding:10px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;background:var(--surface,#221a38);border:1px solid var(--border,#3a2a5a);color:var(--text,#e8e0f8);">🔁 既存キャラを複製</button>
+  </div>
+</div>
+
+<!-- 複製モーダル -->
+<div id="clone-persona-modal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center">
+  <div id="clone-persona-box" style="width:min(340px,90vw);border-radius:12px;padding:24px 20px;display:flex;flex-direction:column;gap:14px;border:1px solid;position:relative;z-index:201">
+    <div style="font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center">🔁 キャラを複製</div>
+    <div style="font-family:monospace;font-size:11px;opacity:.65;text-align:center;line-height:1.6">同じプロンプトで別のAIモデルを使った<br>キャラを作れます。モデルの違いを比較しよう！</div>
+    <div class="wiz-field" style="gap:5px">
+      <span class="wiz-label">複製するキャラ</span>
+      <select class="wiz-input" id="clone-src-select">
+        <!-- JS で動的生成 -->
+      </select>
+    </div>
+    <div class="wiz-field" style="gap:5px">
+      <span class="wiz-label">新しいAIモデル</span>
+      <select class="wiz-input" id="clone-model-select">
+        <!-- JS: populateModelSelect で動的生成 -->
+      </select>
+    </div>
+    <div class="wiz-field" style="gap:5px">
+      <span class="wiz-label">新しい名前（省略可）</span>
+      <input class="wiz-input" id="clone-name-input" type="text" placeholder="空白のままで複製元の名前を引き継ぐ" maxlength="20">
+    </div>
+    <div class="wiz-field" style="gap:8px">
+      <span class="wiz-label">引き継ぐデータ</span>
+      <label style="display:flex;align-items:center;gap:8px;font-family:monospace;font-size:12px;cursor:pointer" id="clone-check-prompt-label">
+        <input type="checkbox" id="clone-check-prompt" checked style="width:14px;height:14px;flex-shrink:0">
+        プロンプト・設定
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-family:monospace;font-size:12px;cursor:pointer" id="clone-check-memories-label">
+        <input type="checkbox" id="clone-check-memories" checked style="width:14px;height:14px;flex-shrink:0">
+        思い出メモ
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-family:monospace;font-size:12px;cursor:pointer" id="clone-check-sessions-label">
+        <input type="checkbox" id="clone-check-sessions" style="width:14px;height:14px;flex-shrink:0">
+        会話履歴
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-family:monospace;font-size:12px;cursor:pointer" id="clone-check-diary-label">
+        <input type="checkbox" id="clone-check-diary" style="width:14px;height:14px;flex-shrink:0">
+        日記
+      </label>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeClonePersonaModal()" style="flex:1;padding:8px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;border:1px solid" id="clone-cancel-btn">キャンセル</button>
+      <button onclick="confirmClonePersona()" id="clone-ok-btn" style="flex:1;padding:8px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;border:none;color:#fff">複製する</button>
+    </div>
   </div>
 </div>
 
@@ -1028,20 +1076,40 @@ let unlockedThemes = [];
 // ── Model definitions (single source of truth) ──
 const MODEL_DEF = [
   // {value, label, shortLabel, price:{in,out}, wizard:true=ウィザードにも表示}
-  {value:'openai:gpt-4.1-mini',              label:'GPT-4.1 mini（OpenAI・おすすめ）', shortLabel:'GPT-4.1 mini（おすすめ）', price:{in:0.0004,out:0.0016}, wizard:true},
-  {value:'openai:gpt-4.1',                   label:'GPT-4.1（OpenAI）',               shortLabel:'GPT-4.1',                 price:{in:0.002, out:0.008},  wizard:true},
-  {value:'openai:gpt-4.1-nano',              label:'GPT-4.1 nano（OpenAI・最安）',     shortLabel:'GPT-4.1 nano（最安）',     price:{in:0.0001,out:0.0004}, wizard:true},
-  {value:'openai:gpt-4o',                    label:'GPT-4o（OpenAI・自動更新）',       shortLabel:'GPT-4o（自動更新）',       price:{in:0.0025,out:0.01},   wizard:true},
-  {value:'openai:gpt-4o-2024-11-20',         label:'GPT-4o 2024-11-20（OpenAI）',     shortLabel:'GPT-4o 2024-11-20',       price:{in:0.0025,out:0.01}},
-  {value:'openai:gpt-4o-2024-08-06',         label:'GPT-4o 2024-08-06（OpenAI）',     shortLabel:'GPT-4o 2024-08-06',       price:{in:0.0025,out:0.01}},
-  {value:'openai:gpt-4o-2024-05-13',         label:'GPT-4o 2024-05-13（初代）',       shortLabel:'GPT-4o 2024-05-13（初代）',price:{in:0.005, out:0.015}},
-  {value:'openai:gpt-4o-mini',               label:'GPT-4o mini（OpenAI）',           shortLabel:'GPT-4o mini',             price:{in:0.00015,out:0.0006}, wizard:true},
-  {value:'anthropic:claude-sonnet-4-5',      label:'Claude Sonnet 4.5（Anthropic）',  shortLabel:'Claude Sonnet 4.5',       price:{in:0.003, out:0.015},  wizard:true},
-  {value:'anthropic:claude-3-5-sonnet-20241022',label:'Claude 3.5 Sonnet（Anthropic）',shortLabel:'Claude 3.5 Sonnet',       price:{in:0.003, out:0.015},  wizard:true},
-  {value:'anthropic:claude-3-haiku-20240307',label:'Claude 3 Haiku（Anthropic）',     shortLabel:'Claude 3 Haiku',          price:{in:0.00025,out:0.00125}},
-  {value:'anthropic:claude-3-5-haiku-20241022',label:'Claude 3.5 Haiku（Anthropic）', shortLabel:'Claude 3.5 Haiku',        price:{in:0.0008, out:0.004}},
-  {value:'google:gemini-2.5-flash-lite',     label:'Gemini 2.5 Flash-Lite（Google・軽量）',shortLabel:'Gemini 2.5 Flash-Lite',price:{in:0.00004,out:0.00016},wizard:true},
-  {value:'google:gemini-2.5-flash',          label:'Gemini 2.5 Flash（Google）',      shortLabel:'Gemini 2.5 Flash',        price:{in:0.00015,out:0.00035},wizard:true},
+
+  // ── OpenAI ──
+  // GPT-4.1 系（2025年リリース・現行推奨）
+  {value:'openai:gpt-4.1-mini',              label:'GPT-4.1 mini（OpenAI・おすすめ）',   shortLabel:'GPT-4.1 mini（おすすめ）',  price:{in:0.0004, out:0.0016}, wizard:true},
+  {value:'openai:gpt-4.1',                   label:'GPT-4.1（OpenAI）',                 shortLabel:'GPT-4.1',                  price:{in:0.002,  out:0.008},  wizard:true},
+  {value:'openai:gpt-4.1-nano',              label:'GPT-4.1 nano（OpenAI・最安）',       shortLabel:'GPT-4.1 nano（最安）',      price:{in:0.0001, out:0.0004}, wizard:true},
+  // GPT-4o 系（ChatGPTでは2026/2/13終了・APIは継続利用可）
+  {value:'openai:gpt-4o',                    label:'GPT-4o（OpenAI）',                  shortLabel:'GPT-4o',                   price:{in:0.0025, out:0.01},   wizard:true},
+  {value:'openai:gpt-4o-2024-11-20',         label:'GPT-4o 2024-11-20（OpenAI）',       shortLabel:'GPT-4o 2024-11-20',        price:{in:0.0025, out:0.01}},
+  {value:'openai:gpt-4o-2024-08-06',         label:'GPT-4o 2024-08-06（OpenAI）',       shortLabel:'GPT-4o 2024-08-06',        price:{in:0.0025, out:0.01}},
+  {value:'openai:gpt-4o-2024-05-13',         label:'GPT-4o 2024-05-13（初代）',         shortLabel:'GPT-4o 2024-05-13（初代）', price:{in:0.005,  out:0.015}},
+  {value:'openai:gpt-4o-mini',               label:'GPT-4o mini（OpenAI）',             shortLabel:'GPT-4o mini',              price:{in:0.00015,out:0.0006}, wizard:true},
+
+  // ── Anthropic ──
+  // Claude 4.6 系（2026年・最新世代）
+  {value:'anthropic:claude-opus-4-6',        label:'Claude Opus 4.6（Anthropic・最高性能）', shortLabel:'Claude Opus 4.6',     price:{in:0.005,  out:0.025},  wizard:true},
+  {value:'anthropic:claude-sonnet-4-6',      label:'Claude Sonnet 4.6（Anthropic）',    shortLabel:'Claude Sonnet 4.6',        price:{in:0.003,  out:0.015},  wizard:true},
+  // Claude 4.5 系（2025年・現行世代）
+  {value:'anthropic:claude-opus-4-5',        label:'Claude Opus 4.5（Anthropic）',      shortLabel:'Claude Opus 4.5',          price:{in:0.005,  out:0.025}},
+  {value:'anthropic:claude-sonnet-4-5',      label:'Claude Sonnet 4.5（Anthropic）',    shortLabel:'Claude Sonnet 4.5',        price:{in:0.003,  out:0.015}},
+  {value:'anthropic:claude-haiku-4-5-20251001',label:'Claude Haiku 4.5（Anthropic・軽量）',shortLabel:'Claude Haiku 4.5',      price:{in:0.001,  out:0.005},  wizard:true},
+  // Claude 3.5 / 3 系（旧世代・APIは利用可・廃止予定に注意）
+  {value:'anthropic:claude-3-5-sonnet-20241022',label:'Claude 3.5 Sonnet（Anthropic）', shortLabel:'Claude 3.5 Sonnet',        price:{in:0.003,  out:0.015}},
+  {value:'anthropic:claude-3-5-haiku-20241022', label:'Claude 3.5 Haiku（Anthropic・2026/7廃止予定）',shortLabel:'Claude 3.5 Haiku（廃止予定）',price:{in:0.0008,out:0.004}},
+  {value:'anthropic:claude-3-haiku-20240307',   label:'Claude 3 Haiku（Anthropic・2026/4/19廃止予定）',shortLabel:'Claude 3 Haiku（廃止予定）', price:{in:0.00025,out:0.00125}},
+
+  // ── Google ──
+  // Gemini 2.5 系（現行推奨）
+  {value:'google:gemini-2.5-pro',            label:'Gemini 2.5 Pro（Google・高性能）',   shortLabel:'Gemini 2.5 Pro',           price:{in:0.00125,out:0.01},   wizard:true},
+  {value:'google:gemini-2.5-flash',          label:'Gemini 2.5 Flash（Google）',        shortLabel:'Gemini 2.5 Flash',         price:{in:0.00015,out:0.00035},wizard:true},
+  {value:'google:gemini-2.5-flash-lite',     label:'Gemini 2.5 Flash-Lite（Google・最安）',shortLabel:'Gemini 2.5 Flash-Lite',  price:{in:0.00004,out:0.00016},wizard:true},
+  // Gemini 2.0 系（2026/6/1廃止予定）
+  {value:'google:gemini-2.0-flash',          label:'Gemini 2.0 Flash（Google・2026/6廃止予定）',shortLabel:'Gemini 2.0 Flash（廃止予定）',price:{in:0.0001,out:0.0004}},
+  {value:'google:gemini-2.0-flash-lite',     label:'Gemini 2.0 Flash-Lite（Google・2026/6廃止予定）',shortLabel:'Gemini 2.0 Flash-Lite（廃止予定）',price:{in:0.000075,out:0.0003}},
 ];
 
 // MODEL_PRICEをMODEL_DEFから自動生成
@@ -1067,6 +1135,18 @@ function populateModelSelect(selectEl, mode){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.0.3',
+    date: '2026-03-07',
+    label: '🔁 キャラ複製＋モデル一覧最新化',
+    items: [
+      '🔁 キャラ複製機能 — 「＋キャラを追加」から既存キャラをモデル違いで複製可能。プロンプト・思い出メモ・会話履歴・日記の引き継ぎを個別に選択できます',
+      '🔁 複製デフォルト設定 — プロンプト・思い出メモはON、会話履歴・日記はOFF（ラリー比較用途向け）',
+      '🔁 複製後の名前 — 省略すると「元の名前（モデル名）」を自動生成。それぞれ独立して新しい思い出を作れます',
+      '🤖 モデル一覧最新化（2026年3月時点） — Claude Opus 4.6・Sonnet 4.6、Gemini 2.5 Pro、Gemini 2.0 Flash系を追加',
+      '🤖 廃止予定モデルをラベルに明記 — Claude 3 Haiku（2026/4/19）・Claude 3.5 Haiku（2026/7）・Gemini 2.0 Flash系（2026/6）',
+    ]
+  },
   {
     version: '2.0.2',
     date: '2026-03-07',
@@ -1252,7 +1332,7 @@ APIキーとは、各社のサービスに「このユーザーが
 取得には各社への登録・支払い方法の設定が必要で、
 使用量に応じた料金が発生します。
 「まずは少額で試してみたい」という方には、
-gpt-4o-miniなどの低コストモデルをおすすめしています。
+gpt-4.1-nanoやgemini-2.5-flash-liteなどの低コストモデルをおすすめしています。
 このアプリ自体には料金は一切かかりません。
 
 ────────────────────
@@ -2214,6 +2294,99 @@ function addPersona(){
   openAddPersonaModal();
 }
 
+// ── キャラ複製モーダル ──
+function openClonePersonaModal(){
+  const t=THEMES[currentTheme];
+  const modal=document.getElementById('clone-persona-modal');
+  const box=document.getElementById('clone-persona-box');
+  box.style.background=t.surface;
+  box.style.borderColor=t.border;
+  box.querySelectorAll('.wiz-label').forEach(el=>el.style.color=t.textMuted);
+  box.querySelectorAll('.wiz-input').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
+  box.querySelector('div[style*="letter-spacing"]').style.color=t.text;
+  document.getElementById('clone-cancel-btn').style.background=t.surface2;
+  document.getElementById('clone-cancel-btn').style.borderColor=t.border;
+  document.getElementById('clone-cancel-btn').style.color=t.textMuted;
+  document.getElementById('clone-ok-btn').style.background=t.sendBtn;
+
+  // 既存キャラ一覧を動的生成
+  const srcSel=document.getElementById('clone-src-select');
+  srcSel.innerHTML='';
+  personas.forEach(p=>{
+    if(p.isTrial) return; // お試しキャラは複製不可
+    const opt=document.createElement('option');
+    opt.value=p.id;
+    opt.textContent=(p.emoji?p.emoji+' ':'')+p.aiName;
+    srcSel.appendChild(opt);
+  });
+  // 現在のキャラをデフォルト選択
+  if(currentPid) srcSel.value=currentPid;
+
+  // モデル選択を動的生成
+  populateModelSelect(document.getElementById('clone-model-select'), 'full');
+
+  // 複製元キャラのモデルを初期値に設定
+  srcSel.onchange=()=>{
+    const src=personas.find(p=>p.id===srcSel.value);
+    if(src) document.getElementById('clone-model-select').value=src.model;
+  };
+  const initSrc=personas.find(p=>p.id===srcSel.value);
+  if(initSrc) document.getElementById('clone-model-select').value=initSrc.model;
+
+  document.getElementById('clone-name-input').value='';
+  // チェックボックスラベルのテーマカラー適用
+  ['clone-check-prompt-label','clone-check-memories-label','clone-check-sessions-label','clone-check-diary-label'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.color=t.text;
+  });
+  modal.style.display='flex';
+  modal.style.background='rgba(0,0,0,0.5)';
+}
+
+function closeClonePersonaModal(){
+  document.getElementById('clone-persona-modal').style.display='none';
+}
+
+function confirmClonePersona(){
+  const srcId=document.getElementById('clone-src-select').value;
+  const src=personas.find(p=>p.id===srcId);
+  if(!src){showToast('⚠ 複製元が見つかりません');return;}
+  const newModel=document.getElementById('clone-model-select').value;
+  const newNameRaw=document.getElementById('clone-name-input').value.trim();
+
+  // モデルのshortLabelを取得してデフォルト名に使う
+  const modelDef=MODEL_DEF.find(m=>m.value===newModel);
+  const modelLabel=modelDef?modelDef.shortLabel.replace(/（.*?）/g,'').trim():newModel.split(':')[1];
+  const newName=newNameRaw||(src.aiName+'（'+modelLabel+'）');
+
+  // 引き継ぎ設定を読み取る
+  const doPrompt=document.getElementById('clone-check-prompt').checked;
+  const doMemories=document.getElementById('clone-check-memories').checked;
+  const doSessions=document.getElementById('clone-check-sessions').checked;
+  const doDiary=document.getElementById('clone-check-diary').checked;
+
+  // 複製：チェックされたデータのみ引き継ぐ（セッション・日記はディープコピー）
+  const p={
+    id: genId(),
+    aiName: newName,
+    userName: src.userName,
+    model: newModel,
+    emoji: src.emoji,
+    systemPrompt: doPrompt ? src.systemPrompt : '',
+    memories: doMemories ? JSON.parse(JSON.stringify(src.memories||[])) : [],
+    diary:    doDiary    ? JSON.parse(JSON.stringify(src.diary||[]))    : [],
+    diaryMode: src.diaryMode||'off',
+    autoMemoMode: src.autoMemoMode||'off',
+    timeAwareMode: src.timeAwareMode||'off',
+    sessions: doSessions ? JSON.parse(JSON.stringify(src.sessions||[])) : [],
+  };
+  personas.push(p);
+  saveAllNow();
+  closeClonePersonaModal();
+  switchPersona(p.id);
+  showToast('🔁 「'+src.aiName+'」を複製しました → 「'+newName+'」');
+}
+
 function savePersonaSettings(){
   const p = currentPersona();
   if(!p) return;
@@ -2647,7 +2820,7 @@ async function doWriteDiary(p, dateStr){
     const existing=p.diary.findIndex(d=>d.date===dateStr);
     const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
     const estimatedCost=(chatLog.length/4/1000)*price.in+(200/1000)*price.out;
-    const entry={date:dateStr, text:reply.trim(), cost:estimatedCost};
+    const entry={date:dateStr, text:reply.trim(), cost:estimatedCost, createdAt:Date.now()};
     if(existing>=0) p.diary[existing]=entry;
     else p.diary.push(entry);
     saveAllNow();
@@ -2677,14 +2850,24 @@ function checkAndWriteAutoDiary(){
     // 昨日の日記を書く
     const yesterday=new Date(now);yesterday.setDate(yesterday.getDate()-1);
     const yDateStr=yesterday.getFullYear()+'/'+(yesterday.getMonth()+1)+'/'+yesterday.getDate();
-    if(p.diary?.some(d=>d.date===yDateStr)) return; // 昨日分がすでにあればスキップ
     // 昨日の会話があるか確認
     const yStart=new Date(yesterday);yStart.setHours(0,0,0,0);
     const yEnd=new Date(yesterday);yEnd.setHours(23,59,59,999);
+    // 既に昨日の日記がある場合、日記作成後に新しい会話があるかチェック
+    const existingDiary=p.diary?.find(d=>d.date===yDateStr);
+    let checkAfter=yStart.getTime(); // デフォルト：昨日の0時から
+    if(existingDiary){
+      // 日記の作成時刻以降の会話があるかチェック
+      if(existingDiary.createdAt){
+        checkAfter=existingDiary.createdAt;
+      } else {
+        return; // createdAtが無い古い日記→スキップ（互換性）
+      }
+    }
     let hasMsgs=false;
     p.sessions.forEach(s=>{
       s.msgs.forEach(m=>{
-        if(m.timestamp&&m.timestamp>=yStart.getTime()&&m.timestamp<=yEnd.getTime()&&m.role!=='system-info') hasMsgs=true;
+        if(m.timestamp&&m.timestamp>checkAfter&&m.timestamp<=yEnd.getTime()&&m.role!=='system-info') hasMsgs=true;
       });
     });
     if(!hasMsgs) return;
@@ -2733,7 +2916,7 @@ async function doWriteDiaryForDate(p,targetDate,dateStr){
     if(!p.diary) p.diary=[];
     const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
     const estimatedCost=(chatLog.length/4/1000)*price.in+(200/1000)*price.out;
-    p.diary.push({date:dateStr, text:reply.trim(), cost:estimatedCost});
+    p.diary.push({date:dateStr, text:reply.trim(), cost:estimatedCost, createdAt:Date.now()});
     saveAllNow();
     syncWidgetState();
   } catch(e){
@@ -3572,7 +3755,7 @@ async function pickNextSpeaker(rallyPersonas, lastMsgs, userJoin, turn){
 // 判定用の最安モデルを選択
 function pickJudgeModel(){
   if(localStorage.getItem('key_openai'))  return 'openai:gpt-4.1-nano';
-  if(localStorage.getItem('key_anthropic')) return 'anthropic:claude-3-5-haiku-20241022';
+  if(localStorage.getItem('key_anthropic')) return 'anthropic:claude-haiku-4-5-20251001';
   if(localStorage.getItem('key_google'))  return 'google:gemini-2.5-flash-lite';
   return null;
 }
@@ -5342,7 +5525,7 @@ function focusEmojiInput(inputId){
           <div class="hp-steps">
             <div class="hp-step"><div class="hp-step-num">1</div><div class="hp-step-text"><strong>1〜2分待ってから</strong>再送信する</div></div>
             <div class="hp-step"><div class="hp-step-num">2</div><div class="hp-step-text">各サービスのダッシュボードで<strong>課金・利用制限の設定</strong>を確認する</div></div>
-            <div class="hp-step"><div class="hp-step-num">3</div><div class="hp-step-text"><strong>より軽いモデル</strong>（gpt-4o-mini、claude-haiku、gemini-flash）に切り替える</div></div>
+            <div class="hp-step"><div class="hp-step-num">3</div><div class="hp-step-text"><strong>より軽いモデル</strong>（gpt-4.1-nano、claude-haiku-4.5、gemini-2.5-flash-lite）に切り替える</div></div>
           </div>
         </div>
       </div>
@@ -5423,7 +5606,7 @@ function focusEmojiInput(inputId){
             <div class="hp-step"><div class="hp-step-num">💬</div><div class="hp-step-text"><strong>普段使い・コスト重視</strong> → GPT-4o-mini / Claude Haiku / Gemini Flash<br>安くて速い。日常会話なら十分</div></div>
             <div class="hp-step"><div class="hp-step-num">🧠</div><div class="hp-step-text"><strong>高品質重視</strong> → GPT-4o / Claude Sonnet<br>より自然で深い返答。その分コストがかかる</div></div>
           </div>
-          <div class="hp-note info" style="margin-top:10px;">迷ったら <code>gpt-4o-mini</code> か <code>gemini-2.5-flash</code> から。無料枠があって試しやすい。</div>
+          <div class="hp-note info" style="margin-top:10px;">迷ったら <code>gpt-4.1-mini</code> か <code>gemini-2.5-flash</code> から。無料枠があって試しやすい。</div>
         </div>
       </div>
 
