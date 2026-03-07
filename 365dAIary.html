@@ -2976,7 +2976,7 @@ function renderMessages(){
   const container=document.getElementById('messages');
   const typing=document.getElementById('typing');
   const empty=document.getElementById('empty');
-  container.querySelectorAll('.msg-wrap,.date-sep').forEach(el=>el.remove());
+  container.querySelectorAll('.msg-wrap,.date-sep,#rally-continue-wrap').forEach(el=>el.remove());
   const msgs=currentSession()?.msgs||[];
   empty.style.display=msgs.length===0&&!isLoading?'flex':'none';
 
@@ -3120,7 +3120,10 @@ function renderMessages(){
 
   // ── ラリー終了ボタン自動描画（重複防止） ──
   const lastMsg = msgs[msgs.length-1];
-  const isRallyEnded = !isRallying && lastMsg?.role==='system-info' && lastMsg?.content?.startsWith('■ ラリー終了');
+  const isRallyEnded = !isRallying
+    && lastMsg?.role==='system-info'
+    && lastMsg?.content?.startsWith('■ ラリー終了')
+    && rallyPersonasSaved.length > 0; // メンバーが保存されてる時だけ
   // 既にボタンがあれば描画しない
   if(isRallyEnded && !container.querySelector('#rally-continue-wrap')){
     const t2=THEMES[currentTheme];
