@@ -3118,17 +3118,19 @@ function renderMessages(){
     container.insertBefore(wrap,typing);
   });
 
-  // ── ラリー終了ボタン自動描画 ──
+  // ── ラリー終了ボタン自動描画（重複防止） ──
   const lastMsg = msgs[msgs.length-1];
   const isRallyEnded = !isRallying && lastMsg?.role==='system-info' && lastMsg?.content?.startsWith('■ ラリー終了');
-  if(isRallyEnded){
+  // 既にボタンがあれば描画しない
+  if(isRallyEnded && !container.querySelector('#rally-continue-wrap')){
     const t2=THEMES[currentTheme];
     const wrap2=document.createElement('div');
+    wrap2.id='rally-continue-wrap';
     wrap2.style.cssText='text-align:center;padding:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;';
     const btnC=document.createElement('button');
     btnC.style.cssText='padding:8px 16px;border-radius:8px;border:1px dashed '+t2.accent+';background:none;color:'+t2.accent+';font-family:monospace;font-size:12px;cursor:pointer;';
     btnC.textContent='⚡ このまま続ける';
-    btnC.onclick=()=>{ executeRally(rallyPersonas, rallyUserJoin); };
+    btnC.onclick=()=>{ executeRally(rallyPersonasSaved, rallyUserJoin); };
     const btnT=document.createElement('button');
     btnT.style.cssText='padding:8px 16px;border-radius:8px;border:1px dashed '+t2.border+';background:none;color:'+t2.text+';font-family:monospace;font-size:12px;cursor:pointer;opacity:.75;';
     btnT.textContent='✏️ テーマを変える';
@@ -3548,6 +3550,7 @@ function updateSendBtn(){
 let rallyUserWaiting = false;
 let rallyUserResolve = null;
 let rallyUserJoin = false; // 「このまま続ける」用に保持
+let rallyPersonasSaved = []; // 「このまま続ける」用に保持
 
 // ── ラリー話者AI判定 ──
 async function pickNextSpeaker(rallyPersonas, lastMsgs, userJoin, turn){
@@ -3717,6 +3720,7 @@ function showRallyTopicPrompt(rallyPersonas, userJoin){
 
 async function executeRally(rallyPersonas, userJoin){
   rallyUserJoin = userJoin; // 「このまま続ける」用に保持
+  rallyPersonasSaved = rallyPersonas; // 「このまま続ける」用に保持
   const maxTurns  = parseInt(document.getElementById('rally-max-turns').value)||10;
   const maxCost   = parseFloat(document.getElementById('rally-max-cost').value)||0.5;
   const maxSec    = parseInt(document.getElementById('rally-timeout').value)||60;
