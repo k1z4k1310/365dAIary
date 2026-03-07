@@ -3439,7 +3439,8 @@ function extractAutoMemo(text, aiName){
   const cleanText=text.replace(/\s*<!--AUTOMEMO:[\s\S]*?-->\s*/g,'').trim();
   // メモがあれば思い出メモに追加
   if(memos.length>0){
-    const p=currentPersona();
+    // aiNameで該当キャラを探す（ラリー中でも正しいキャラのメモ帳に保存）
+    const p=personas.find(pp=>pp.aiName===aiName)||currentPersona();
     if(p){
       const cat='📝 '+((aiName||p.aiName)||'AI')+'のメモ帳';
       memos.forEach(memo=>{
