@@ -675,6 +675,20 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
         <!-- JS: populateModelSelect で動的生成 -->
       </select>
     </div>
+    <div class="wiz-field" style="gap:4px;margin-top:4px">
+      <span style="font-family:monospace;font-size:10px;opacity:.7">🕐 日時の認識</span>
+      <select class="sb-inp" id="timeaware-mode" onchange="saveTimeAwareMode()">
+        <option value="off">OFF（ロールプレイ向け）</option>
+        <option value="on">ON（日常会話向け）</option>
+      </select>
+    </div>
+    <div class="wiz-field" style="gap:4px;margin-top:4px">
+      <span style="font-family:monospace;font-size:10px;opacity:.7">📝 AIの自発メモ</span>
+      <select class="sb-inp" id="automemo-mode" onchange="saveAutoMemoMode()">
+        <option value="off">OFF（API消費量は増えません）</option>
+        <option value="on">ON（AIが自分でメモを書きます）</option>
+      </select>
+    </div>
     <button class="sb-btn" onclick="savePersonaSettings()">💾 このキャラの設定を保存</button>
     <button class="sb-btn" onclick="deleteCurrentPersona()" style="margin-top:4px;color:#e05555">🗑 このキャラを削除</button>
   </div>
@@ -717,23 +731,6 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 
   <!-- my dAIary（AI日記） -->
   <div class="sb-accordion" id="diary-sec">
-    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('automemo-body',this)">
-      <span>📝 AIの自発メモ</span><span class="sb-acc-arrow">▸</span>
-    </button>
-    <div class="sb-accordion-body" id="automemo-body">
-      <div style="font-size:10px;opacity:.6;line-height:1.7;margin-bottom:6px">AIが「覚えておきたい」と感じたことを自動で思い出メモに書きます。</div>
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-        <span style="font-size:10px;opacity:.6;white-space:nowrap">自発メモ:</span>
-        <select id="automemo-mode" onchange="saveAutoMemoMode()" style="flex:1;font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid;background:none;color:inherit;font-family:monospace">
-          <option value="off">OFF</option>
-          <option value="on">ON</option>
-        </select>
-      </div>
-      <div style="font-size:9px;opacity:.4;line-height:1.5">ONにすると、APIの返答に「メモしたい内容」が含まれます。<br>メモは思い出メモに自動追加されます。<br>書かれたメモはいつでも確認・削除できます。</div>
-    </div>
-  </div>
-
-  <div class="sb-accordion">
     <button class="sb-accordion-hdr" onclick="toggleSbAccordion('diary-body',this)">
       <span>📔 my dAIary（AI日記）</span><span class="sb-acc-arrow">▸</span>
     </button>
@@ -744,7 +741,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
         <select id="diary-mode" onchange="saveDiaryMode()" style="flex:1;font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid;background:none;color:inherit;font-family:monospace">
           <option value="off">OFF</option>
           <option value="manual">✋ 手動</option>
-          <option value="auto">⏰ 自動（朝4時）</option>
+          <option value="auto">⏰ 自動（毎日・起動時に前日分を作成）</option>
         </select>
       </div>
       <button class="sb-btn" id="diary-write-btn" onclick="writeDiary()" style="display:none">📔 日記を書いてもらう</button>
@@ -777,54 +774,6 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
   </div>
 
-
-  <!-- Widget（アコーディオン） -->
-  <div class="sb-accordion">
-    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('widget-body',this)">
-      <span>🗂 Widget</span><span class="sb-acc-arrow">▸</span>
-    </button>
-    <div class="sb-accordion-body" id="widget-body">
-      <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
-        時計・カレンダー・キャラランチャーなど、<br>
-        ホーム画面に追加できるwidgetページ。
-      </div>
-      <a id="widget-link" href="365widget.html" style="display:block;text-align:center;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:11px;letter-spacing:1px;text-decoration:none;border:1px solid">
-        🗂 Widgetを開く
-      </a>
-    </div>
-  </div>
-
-  <!-- makeOC（アコーディオン） -->
-  <div class="sb-accordion">
-    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('makeoc-body',this)">
-      <span>🎨 OCアイディア帳</span><span class="sb-acc-arrow">▸</span>
-    </button>
-    <div class="sb-accordion-body" id="makeoc-body">
-      <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
-        管理人さんと一緒に<br>
-        オリジナルキャラクターを練るページ。
-      </div>
-      <a id="makeoc-link" href="365makeOC.html" style="display:block;text-align:center;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:11px;letter-spacing:1px;text-decoration:none;border:1px solid">
-        🎨 OCアイディア帳を開く
-      </a>
-    </div>
-  </div>
-
-  <!-- relocation（アコーディオン） -->
-  <div class="sb-accordion">
-    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('relocation-body',this)">
-      <span>📦 お引越し・要約</span><span class="sb-acc-arrow">▸</span>
-    </button>
-    <div class="sb-accordion-body" id="relocation-body">
-      <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
-        他アプリからのお引越しや、<br>
-        テキスト・バックアップの要約ページ。
-      </div>
-      <a id="relocation-link" href="365relocation.html" style="display:block;text-align:center;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:11px;letter-spacing:1px;text-decoration:none;border:1px solid">
-        📦 お引越し・要約を開く
-      </a>
-    </div>
-  </div>
 
   <!-- Backup / Restore（アコーディオン） -->
   <div class="sb-accordion" id="backup-sec">
@@ -896,6 +845,17 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <div id="delete-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
     </div>
   </div>
+
+  <!-- 他ページリンク（アコーディオンと同じ見た目） -->
+  <a id="widget-link" href="365widget.html" class="sb-accordion-hdr" style="display:flex;text-decoration:none;color:inherit;cursor:pointer">
+    <span>🗂 Widget</span><span style="margin-left:auto;opacity:.4">→</span>
+  </a>
+  <a id="makeoc-link" href="365makeOC.html" class="sb-accordion-hdr" style="display:flex;text-decoration:none;color:inherit;cursor:pointer">
+    <span>🎨 OCアイディア帳</span><span style="margin-left:auto;opacity:.4">→</span>
+  </a>
+  <a id="relocation-link" href="365relocation.html" class="sb-accordion-hdr" style="display:flex;text-decoration:none;color:inherit;cursor:pointer">
+    <span>📦 お引越し・要約</span><span style="margin-left:auto;opacity:.4">→</span>
+  </a>
 
   <!-- テーマカラー -->
   <div class="sb-sec">
@@ -1107,6 +1067,27 @@ function populateModelSelect(selectEl, mode){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.0.2',
+    date: '2026-03-07',
+    label: '🕐 日時認識＋ラリー改善＋UI整理',
+    items: [
+      '🕐 日時の認識（ON/OFF） — ONでAIが現在の日時を認識＋タイムスタンプ・日付区切り表示。OFFでロールプレイ向け没入モード（データは常に記録）',
+      '📝 AI自発メモ・日時認識をキャラ設定画面にインライン統合（アコーディオンから移動）',
+      '📝 AI自発メモのON/OFFに注意書き追加（API消費の説明）',
+      '💰 makeOC・relocationにコスト概算表示を追加（ヘッダーにリアルタイム表示）',
+      '⚡ ラリー改善 — テーマ指示を全ターンに適用＋自然な話題の派生OK',
+      '⚡ ラリー改善 — 【話者の発言】メタ表記を廃止→自然な引用形式に変更',
+      '⚡ ラリー改善 — 終了後「⚡ ラリーを続ける」ボタンを追加',
+      '📔 makeOC・relocation送信件数を20→40に拡大（長い会話でも文脈保持）',
+      '📔 makeOC自動要約 — 30件ごとに「ここまでのまとめ」を裏で自動作成＋次回以降のプロンプトに含める',
+      '📦 Q&Aに「他のAIサービスからお引越しするには？」を新設（コピペ方法＋各社エクスポート手順）',
+      '📦 Q&Aに自発メモ・日時認識・OCアイディア帳の使い方を新設',
+      '📦 管理人さんの知識に新機能（自発メモ・日時認識・OC帳・お引越し）を追記',
+      '📔 日記モード表記修正 —「朝4時」→「毎日・起動時に前日分を作成」',
+      '🗂 サイドバーの他ページリンクをワンタップ化（アコーディオン→直リンク＋テーマカラーの直上に移動）',
+    ]
+  },
   {
     version: '2.0.1',
     date: '2026-03-06',
@@ -1457,6 +1438,45 @@ PC → ブラウザ設定のダウンロード先
 　別の場所です。端末内のダウンロードフォルダを
 　確認してください。`},
 
+  {q:'📦 他のAIサービスからお引越しするには？', a:
+`────────────────────
+お引越しの方法
+────────────────────
+「📦 お引越し」ページで、他のAIサービスの
+会話ログを管理人さんが読み解いて要約します。
+
+────────────────────
+方法①：コピペで引越し（簡単）
+────────────────────
+1. ChatGPT/Claude/Gemini等で共有リンクを作成
+2. そのリンクをブラウザで開く
+3. ページ全体を選択（Ctrl+A / ⌘+A）→ コピー
+4. お引越しページのテキスト入力欄に貼り付け
+5. 管理人さんが要約してくれます
+
+────────────────────
+方法②：エクスポートファイルで引越し（正確）
+────────────────────
+【ChatGPT】
+設定 → データコントロール → データをエクスポート
+→ メールで届くZIPの中の conversations.json
+
+【Claude】
+設定 → Export data → ダウンロード
+
+【Gemini】
+Google Takeout → Gemini を選択 → エクスポート
+
+ダウンロードした .json / .txt / .html ファイルを
+お引越しページの📎ボタンで読み込んでください。
+
+────────────────────
+要約は3段階
+────────────────────
+🍃 軽くまとめて（500文字以内）
+📝 普通にまとめて（2000文字くらい）
+📚 全部残して（文字数制限なし）`},
+
   {q:'🔒 パスワードについて', a:
 `────────────────────
 パスワードの役割
@@ -1770,6 +1790,104 @@ AIの「キャラ」を構成するデータが含まれます。
 → 定期的なバックアップを強くおすすめします
 → ⚙ → バックアップ・復元 から復元可能`},
 
+  {q:'📝 AI自発メモ機能について', a:
+`────────────────────
+AI自発メモとは？
+────────────────────
+ONにすると、AIキャラが会話の中で
+「覚えておきたい」と感じたことを
+自動で思い出メモに書いてくれます。
+
+例えば：
+・「澪は猫が好き」
+・「今日一緒にぬいぐるみの話をした」
+・「ぬいぐるみのふわふわ感が好き」（キャラ自身の感想）
+
+────────────────────
+設定方法
+────────────────────
+⚙ 設定 → 📝 AIの自発メモ → ON
+
+キャラごとに個別に設定できます。
+デフォルトはOFFです。
+
+────────────────────
+注意事項
+────────────────────
+・ONにするとAPI消費が若干増えます
+・メモは「📝 ○○のメモ帳」カテゴリで保存されます
+・書かれたメモは思い出メモ欄でいつでも確認・削除できます
+・AIが書きすぎないよう、1回の返答で最大1つに制限しています`},
+
+  {q:'🕐 日時の認識（ロールプレイモード）', a:
+`────────────────────
+日時の認識とは？
+────────────────────
+ONにすると、AIキャラが現在の日時・曜日を
+認識した状態で会話します。
+
+「今日は何曜日？」「今何時？」に答えられます。
+
+────────────────────
+設定方法
+────────────────────
+⚙ 設定 → 🕐 日時の認識 → ON/OFF
+
+キャラごとに個別に設定できます。
+デフォルトはOFFです。
+
+────────────────────
+使い分けの例
+────────────────────
+🏠 日常会話キャラ → ON
+　「今日のおやつ何にする？」「今週末ひま？」
+
+🎭 ロールプレイキャラ → OFF
+　異世界の王、ファンタジーの魔法使い等
+
+────────────────────
+タイムスタンプ連動
+────────────────────
+・ON → チャットに送信時刻＋日付区切り線が表示
+・OFF → タイムスタンプ非表示（没入感優先）
+　※ データは常に記録されており、
+　  ONに切り替えれば過去の時刻も全て表示されます`},
+
+  {q:'📔 OCアイディア帳の使い方', a:
+`────────────────────
+OCアイディア帳とは？
+────────────────────
+管理人さんと一緒にオリジナルキャラクターを
+作れるページです。
+ヒアリング → 設定固め → プロンプト生成
+→ ワンタップでメインアプリに登録できます。
+
+────────────────────
+主な機能
+────────────────────
+📁 プロジェクト管理
+　作品ごとにフォルダ分け。
+　共通メモ（世界観・設定）を設定すると、
+　キャラ登録時に全キャラに自動で共有されます。
+
+🚀 ワンタップ登録
+　管理人さんが【プロンプト完成】と言ったら、
+　ボタン一つでメインアプリにキャラ追加。
+　同名キャラがいれば上書き確認あり。
+
+✏️ タイトル変更
+　サイドバーの✏️ボタンまたは長押しで
+　会話タイトルを変更できます。
+
+🔄 再生成＋見比べ
+　管理人さんの発言を再生成して、
+　‹ 1/3 › ナビで複数パターンを見比べられます。
+
+📋 自動要約
+　会話が長くなると、管理人さんが
+　「ここまでのまとめ」を自動作成。
+　過去の設定を忘れにくくなります。`},
+
 ];
 
 
@@ -1924,6 +2042,7 @@ function createPersona(aiName, userName, model){
     diary: [],      // [{date, text, cost}]
     diaryMode: 'off', // 'off'|'manual'|'keyword'|'auto'
     autoMemoMode: 'off', // 'off'|'on'
+    timeAwareMode: 'off', // 'off'|'on'
     sessions: [],
   };
 }
@@ -2353,6 +2472,13 @@ function deleteSession(id){
 }
 
 // ── my dAIary（AI日記）──
+function saveTimeAwareMode(){
+  const p=currentPersona();if(!p) return;
+  p.timeAwareMode=document.getElementById('timeaware-mode').value;
+  saveAllNow();
+  showToast(p.timeAwareMode==='on'?'🕐 日時認識ON':'🕐 日時認識OFF（ロールプレイモード）');
+}
+
 function saveAutoMemoMode(){
   const p=currentPersona();if(!p) return;
   p.autoMemoMode=document.getElementById('automemo-mode').value;
@@ -2385,6 +2511,14 @@ function updateDiaryUI(){
     amSel.style.borderColor=t.border;
     amSel.style.color=t.text;
     amSel.style.background=t.surface2;
+  }
+  // timeAware UI更新
+  const taSel=document.getElementById('timeaware-mode');
+  if(taSel){
+    taSel.value=p?.timeAwareMode||'off';
+    taSel.style.borderColor=t.border;
+    taSel.style.color=t.text;
+    taSel.style.background=t.surface2;
   }
   const sec=document.getElementById('diary-sec');
   if(!sec) return;
@@ -2848,9 +2982,11 @@ function renderMessages(){
   }
 
   let lastDayKey='';
+  const p_time=currentPersona();
+  const showTimeUI=p_time?.timeAwareMode==='on';
   msgs.forEach((msg,idx)=>{
-    // 日付区切り表示
-    if(msg.timestamp){
+    // 日付区切り表示（日時認識ONの時のみ）
+    if(msg.timestamp && showTimeUI){
       const dk=dayKey(msg.timestamp);
       if(dk && dk!==lastDayKey){
         lastDayKey=dk;
@@ -2911,8 +3047,9 @@ function renderMessages(){
     }
     wrap.appendChild(label);wrap.appendChild(bubble);
 
-    // 時刻表示
-    if(msg.timestamp && !isSystem){
+    // 時刻表示（日時認識ONの時のみ表示。データは常に記録）
+    const p_ts=currentPersona();
+    if(msg.timestamp && !isSystem && p_ts?.timeAwareMode==='on'){
       const timeEl=document.createElement('div');
       timeEl.className='msg-time';
       timeEl.style.color=t.textMuted;
@@ -3067,7 +3204,15 @@ function buildSystemPrompt(persona){
   if(!p) return '';
   const base=p.systemPrompt||'あなたは親切なアシスタントです。';
   const userLine=p.userName?`\nユーザーの名前は「${p.userName}」です。`:'';
-  const mem=p.memories.length?'\n\n## 思い出メモ\n'+p.memories.slice(-30).map(m=>`[${m.cat}] ${m.text}`).join('\n'):'';
+  // 日時認識
+  let timeLine='';
+  if(p.timeAwareMode==='on'){
+    const now=new Date();
+    const days=['日','月','火','水','木','金','土'];
+    const dateStr=now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+days[now.getDay()]+'）';
+    const timeStr=now.getHours()+'時'+String(now.getMinutes()).padStart(2,'0')+'分';
+    timeLine='\n\n## 現在の日時\n現在は '+dateStr+' '+timeStr+'（日本時間）です。';
+  }  const mem=p.memories.length?'\n\n## 思い出メモ\n'+p.memories.slice(-30).map(m=>`[${m.cat}] ${m.text}`).join('\n'):'';
   // 自発メモ指示
   let autoMemoInstruction='';
   if(p.autoMemoMode==='on'){
@@ -3086,7 +3231,7 @@ function buildSystemPrompt(persona){
       '- タグはユーザーには見えません。普通に会話してください。\n'+
       '- 既に思い出メモにある情報は書かない。';
   }
-  return base+userLine+mem+autoMemoInstruction;
+  return base+userLine+timeLine+mem+autoMemoInstruction;
 }
 
 function trimHistory(msgs){
@@ -3639,10 +3784,11 @@ async function executeRally(rallyPersonas, userJoin){
         + '\n- 相手の直前の発言に反応し、会話を続けてください。'
         + '\n- あなたのキャラクター設定（口調・性格）を守ってください。'
         + '\n- 「申し訳ありません」「対応できません」などのメタ的な拒否はしないでください。これはキャラクター同士の会話です。'
-        + '\n- 長すぎず、会話のテンポを大事にしてください（3〜5文程度）。';
+        + '\n- 【】で囲んだメタ表記（例：【○○の発言】）は絶対に書かないでください。キャラとして自然に話してください。'
+        + '\n- 長すぎず、会話のテンポを大事にしてください（3〜5文程度）。あなたの通常のプロンプトに「長文で」等の指示があっても、ラリーでは短めに返してください。';
       sysPrompt += rallyContext;
-      if(turn===0 && rallyTopic){
-        sysPrompt += '\n\n【ラリーのテーマ】今回の会話テーマは「'+rallyTopic+'」です。この話題から会話を始めてください。';
+      if(rallyTopic){
+        sysPrompt += '\n\n【ラリーのテーマ】今回の会話テーマは「'+rallyTopic+'」です。このテーマを軸にしつつ、自然な話題の派生は歓迎します。ただし完全に無関係な話題には移らないでください。';
       }
       const rallyHistory = sess.msgs.filter(m=>m.role!=='system-info').slice(-20).map(m=>{
         if(m.role==='user') return {role:'user',content:m.content};
@@ -3651,7 +3797,7 @@ async function executeRally(rallyPersonas, userJoin){
         if(speaker === rp.aiName){
           return {role:'assistant',content:m.content};
         } else {
-          return {role:'user',content:'【'+speaker+'の発言】'+m.content};
+          return {role:'user',content:speaker+'「'+m.content+'」'};
         }
       });
       const reply=await callAPI(provider,model,sysPrompt,rallyHistory,ac.signal);
@@ -3674,6 +3820,26 @@ async function executeRally(rallyPersonas, userJoin){
   const finalSec=Math.floor((Date.now()-rallyTimeStart)/1000);
   sess.msgs.push({role:'system-info',timestamp:Date.now(),content:`■ ラリー終了 （${turn}回 / $${finalCost} / ${finalSec}秒）`});
   saveAllNow(); renderMessages(); renderSessions();
+  // 「続ける？」ボタンを表示
+  showRallyContinueBtn();
+}
+
+function showRallyContinueBtn(){
+  const container=document.getElementById('messages');
+  const t=THEMES[currentTheme];
+  const wrap=document.createElement('div');
+  wrap.style.cssText='text-align:center;padding:8px;';
+  wrap.id='rally-continue-wrap';
+  const btn=document.createElement('button');
+  btn.style.cssText='padding:8px 20px;border-radius:8px;border:1px dashed '+t.accent+';background:none;color:'+t.accent+';font-family:monospace;font-size:12px;cursor:pointer;';
+  btn.textContent='⚡ ラリーを続ける';
+  btn.onclick=()=>{
+    wrap.remove();
+    startRally();
+  };
+  wrap.appendChild(btn);
+  container.appendChild(wrap);
+  container.scrollTop=container.scrollHeight;
 }
 
 function stopRally(){
@@ -4747,7 +4913,7 @@ const TRIAL_OCS = [
   {
     aiName: '管理人さん', emoji: '🎨', userName: 'あなた', model: 'openai:gpt-4.1-mini',
     desc: 'あなたのお供に！参謀系、歴の入ったオタク',
-    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・各社APIキー（OpenAI・Anthropic・Google）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得：OpenAI→platform.openai.com→API keys、Anthropic→console.anthropic.com→API Keys、Google→aistudio.google.com→Get API Key\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データはOpenAI/Anthropic/Google各社とも学習に使わない。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・エクスポートしたファイルは端末のダウンロードフォルダに保存される（iCloudやGoogleドライブ等のクラウドとは別）。iPhone→ファイルアプリ→ダウンロード、Android→内部ストレージ→Download。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(朝4時)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。',
+    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・各社APIキー（OpenAI・Anthropic・Google）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得：OpenAI→platform.openai.com→API keys、Anthropic→console.anthropic.com→API Keys、Google→aistudio.google.com→Get API Key\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データはOpenAI/Anthropic/Google各社とも学習に使わない。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・エクスポートしたファイルは端末のダウンロードフォルダに保存される（iCloudやGoogleドライブ等のクラウドとは別）。iPhone→ファイルアプリ→ダウンロード、Android→内部ストレージ→Download。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(毎日・起動時に前日分を作成)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。\n・📝 AI自発メモ：ONにするとAIキャラが覚えておきたいことを自動で思い出メモに書く。キャラ設定でON/OFF。API消費は若干増える。書かれたメモはいつでも削除可。\n・🕐 日時の認識：ONにするとAIが現在の日時を認識。日常会話向け。OFFはロールプレイ向け（タイムスタンプも非表示）。キャラ設定で個別に設定可。\n・📔 OCアイディア帳：管理人さんとキャラ練り→プロンプト完成→ワンタップでメインアプリにキャラ登録。📁プロジェクト管理で作品ごとにフォルダ分け＋共通メモ→登録時に全キャラに共有。\n・📦 お引越し：他AIの会話ログのコピペ or エクスポートファイル読み込み→3段階要約。テキスト要約にも対応。',
     memory: '創作歴20年以上の女性同人オタク。40代手前。あらゆるジャンルに精通。聞き上手で情熱的。萌え語りでは絵文字全開で大興奮。参謀モードでは冷静に分析。創作に関わることなら本当になんでも相談に乗る。'
   }
 ];
@@ -4919,7 +5085,7 @@ async function startApp(){
   // IndexedDBから読み込む
   personas       = await idbGet('ai_personas',    []);
   // 日記フィールド補完（既存データ対応）
-  personas.forEach(p=>{ if(!p.diary) p.diary=[]; if(!p.diaryMode) p.diaryMode='off'; if(!p.autoMemoMode) p.autoMemoMode='off'; });
+  personas.forEach(p=>{ if(!p.diary) p.diary=[]; if(!p.diaryMode) p.diaryMode='off'; if(!p.autoMemoMode) p.autoMemoMode='off'; if(!p.timeAwareMode) p.timeAwareMode='off'; });
   currentPid     = await idbGet('ai_current_pid', null);
   totalCost      = await idbGet('ai_cost',        0);
   currentTheme   = await idbGet('ai_theme',       'dark');

@@ -50,6 +50,7 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 <div class="header" id="header">
   <a href="index.html" title="戻る">←</a>
   <div class="header-title">📦 お引越し</div>
+  <div id="cost-display" style="font-size:9px;opacity:.5;font-family:monospace;white-space:nowrap" title="このセッションの概算コスト">💰 $0.0000</div>
   <select id="model-select" onchange="saveModel()"></select>
   <button onclick="exportChat()" title="エクスポート">📥</button>
   <button onclick="clearChat()" title="クリア">🗑</button>
@@ -271,7 +272,13 @@ async function callAPI(provider,model,systemPrompt,history){
   }
   const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
   totalCost+=(usageIn/1000)*price.in+(usageOut/1000)*price.out;
+  updateCostDisplay();
   return reply;
+}
+
+function updateCostDisplay(){
+  const el=document.getElementById('cost-display');
+  if(el) el.textContent='💰 $'+totalCost.toFixed(4);
 }
 
 // ══════════════════════════════════════════════
@@ -364,7 +371,7 @@ async function send(){
         if(loadedFileContent.length>6000) sysPrompt+='\n…（読み込み済み: '+loadedFileContent.length+'文字'+(loadedFileSize>FILE_SIZE_LIMIT?'。元ファイル: '+(loadedFileSize/1024/1024).toFixed(1)+'MB, 先頭10MBのみ読み込み':'')+' ）';
       }
     }
-    const reply=await callAPI(provider,model,sysPrompt,chatLog.slice(-20));
+    const reply=await callAPI(provider,model,sysPrompt,chatLog.slice(-40));
     chatLog.push({role:'assistant',content:reply});
     saveChat();renderMessages();
   }catch(e){

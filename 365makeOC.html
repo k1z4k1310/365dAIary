@@ -62,6 +62,7 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 <div class="header" id="header">
   <a href="index.html" title="戻る">←</a>
   <div class="header-title">📔 OCアイディア帳</div>
+  <div id="cost-display" style="font-size:9px;opacity:.5;font-family:monospace;white-space:nowrap" title="このセッションの概算コスト">💰 $0.0000</div>
   <select id="model-select" onchange="saveModel()"></select>
   <button onclick="exportChat()" title="エクスポート">📥</button>
   <button onclick="clearChat()" title="クリア">🗑</button>
@@ -257,7 +258,13 @@ async function callAPI(provider,model,systemPrompt,history){
   }
   const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
   totalCost+=(usageIn/1000)*price.in+(usageOut/1000)*price.out;
+  updateCostDisplay();
   return reply;
+}
+
+function updateCostDisplay(){
+  const el=document.getElementById('cost-display');
+  if(el) el.textContent='💰 $'+totalCost.toFixed(4);
 }
 
 // ══════════════════════════════════════════════
@@ -656,7 +663,7 @@ async function regenerateMsg(msgIdx){
   document.getElementById('send-btn').textContent='…';
   const [provider,model]=selectedModel.split(':');
   try{
-    const reply=await callAPI(provider,model,SYSTEM_PROMPT,history.slice(-20));
+    const reply=await callAPI(provider,model,buildMakeOCPrompt(),history.slice(-40));
     msg.alternates.push(reply);
     msg.activeAlt=msg.alternates.length-1;
     msg.content=reply;
@@ -695,14 +702,45 @@ async function send(){
   document.getElementById('send-btn').textContent='…';
   const [provider,model]=selectedModel.split(':');
   try{
-    const reply=await callAPI(provider,model,SYSTEM_PROMPT,chatLog.slice(-20));
+    // 会話が長い場合、要約付きでシステムプロンプトを構築
+    const sysPrompt=buildMakeOCPrompt();
+    const reply=await callAPI(provider,model,sysPrompt,chatLog.slice(-40));
     chatLog.push({role:'assistant',content:reply,timestamp:Date.now()});
     saveChat();renderMessages();
+    // 30件ごとに自動要約を裏で走らせる
+    if(chatLog.length>0 && chatLog.length%30===0){
+      autoSummarize(provider,model);
+    }
   }catch(e){
     showToast('⚠ '+e.message);
   }
   isLoading=false;
   document.getElementById('send-btn').textContent='送信 ↑';
+}
+
+// ── 自動要約（バックグラウンド） ──
+async function autoSummarize(provider,model){
+  const sess=currentSession();
+  if(!sess||chatLog.length<20) return;
+  try{
+    const summaryPrompt='以下の会話をキャラクター設計の観点で簡潔に要約してください。決まったこと（名前・性格・口調・設定・関係性）を箇条書きで。まだ決まっていないことも明記。300文字以内。\n\n'+
+      chatLog.map(m=>'['+(m.role==='user'?'ユーザー':'管理人さん')+']\n'+m.content).join('\n\n');
+    const summary=await callAPI(provider,model,'あなたは会話の要約係です。純粋に情報整理のみ行い、感想や萌え表現は入れないでください。',[{role:'user',content:summaryPrompt}]);
+    sess.summary=summary;
+    saveChat();
+    showToast('📋 ここまでのまとめを保存しました');
+  }catch(e){
+    // 要約失敗は無視（メインの会話に影響させない）
+  }
+}
+
+// ── システムプロンプト構築（要約がある場合は含める） ──
+function buildMakeOCPrompt(){
+  const sess=currentSession();
+  if(sess?.summary){
+    return SYSTEM_PROMPT+'\n\n## ここまでの会話のまとめ\n'+sess.summary;
+  }
+  return SYSTEM_PROMPT;
 }
 
 function autoResize(el){el.style.height='';el.style.height=Math.min(el.scrollHeight,120)+'px';}
