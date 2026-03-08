@@ -1,6 +1,6 @@
 <p align="center">
   <strong>✦ 365dAIary ✦</strong><br>
-  <em>365 days × Diary × AI</em>
+  <em>365 days × AI characters × Diary</em>
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
 
 **365dAIary**（さんろくご・ダイアリー）は、自分だけのAIキャラクターを作って毎日会話できるブラウザ完結型Webアプリです。
 
-**365dAIary** is a browser-based AI chat & diary app where you create your own AI characters with custom personalities, memories, and daily diaries — no server, no account, fully local data.
+**365dAIary** is a browser-only AI chat & diary app where you create your own AI characters with custom personalities, memories, and daily diaries — no server, no account, fully local data.
 
 ---
 
@@ -54,6 +54,8 @@ Import conversation logs from other AI services and start fresh with summarized 
 ---
 
 ## 🔑 対応AIプロバイダー / Supported Providers
+
+365dAIary can connect to multiple AI providers directly from the browser.
 
 | Provider | Models |
 |:---------|:-------|
@@ -101,7 +103,7 @@ Import conversation logs from other AI services and start fresh with summarized 
 ## 🏗️ 技術 / Tech Stack
 
 - **Language**: HTML / CSS / Vanilla JavaScript
-- **Architecture**: Single HTML file (~5800 lines), zero dependencies
+- **Architecture**: Single HTML file (~5800 lines and growing), zero dependencies
 - **Storage**: IndexedDB + localStorage (fully client-side)
 - **Hosting**: GitHub Pages
 - **Development**: Built entirely through conversation with Claude AI
@@ -129,6 +131,8 @@ Import conversation logs from other AI services and start fresh with summarized 
 If you're curious about 365dAIary, sometimes you can meet me in **VRChat**!
 
 I'll be there as a round little ragdoll kitten. 🐱
+
+Yes — the developer is a kitten.
 
 Send me a DM or email with your message and time — maybe we can talk!
 
