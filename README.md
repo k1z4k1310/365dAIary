@@ -94,7 +94,7 @@ Import conversation logs from other AI services and start fresh with summarized 
 
 13 themes + a secret one. Change the entire mood of your app like changing outfits.
 
-🌙 夜 ・ 🍓 いちごみるく ・ ✨ じょぬ ・ 🫧 泡 ・ 🌸 さくら ・ 🍯 はちみつ ・ 🐱 こねこ ・ 🧛 ヴァンパイア ・ 🌊 ふかうみ ・ 💚 もり ・ ❄️ こおり ・ 🌅 あかね ・ 🤍 しろ
+🍓 いちご ・ 👼 てんし ・ 👻 おばけ ・ 🧛 ヴァンパイア ・ 🌸 ゆめかわ ・ 🍊 ビタミン ・ ⚔️ ライバル ・ 🌿 フォレスト ・ 🫧 泡色 ・ 🌙 夜色 ・ 🍯 はちみつ ・ 🍫 チョコレート ・ 🐈 こねこ
 
 ---
 
