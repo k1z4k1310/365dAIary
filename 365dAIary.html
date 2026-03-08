@@ -693,7 +693,6 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="key-row"><span class="key-lbl">OpenAI</span><input class="sb-inp" id="key-openai" type="password" placeholder="sk-..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Anthropic</span><input class="sb-inp" id="key-anthropic" type="password" placeholder="sk-ant-..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Google</span><input class="sb-inp" id="key-google" type="password" placeholder="AIza..." autocomplete="off"></div>
-    <div class="key-row"><span class="key-lbl">xAI (Grok)</span><input class="sb-inp" id="key-xai" type="password" placeholder="xai-..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Mistral</span><input class="sb-inp" id="key-mistral" type="password" placeholder="..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Meta (Llama)</span><input class="sb-inp" id="key-meta" type="password" placeholder="..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Cohere</span><input class="sb-inp" id="key-cohere" type="password" placeholder="..." autocomplete="off"></div>
@@ -1034,7 +1033,6 @@ const PROVIDER_DEF = [
   {key:'openai',     label:'OpenAI',                icon:'🤖', placeholder:'sk-...',      note:''},
   {key:'anthropic',  label:'Anthropic（Claude）',   icon:'🤖', placeholder:'sk-ant-...',  note:''},
   {key:'google',     label:'Google（Gemini）',       icon:'🤖', placeholder:'AIza...',     note:''},
-  {key:'xai',        label:'xAI（Grok）',            icon:'🤖', placeholder:'xai-...',     note:''},
   {key:'mistral',    label:'Mistral',               icon:'🤖', placeholder:'...',         note:''},
   {key:'meta',       label:'Meta（Llama）',          icon:'🤖', placeholder:'...',         note:''},
   {key:'cohere',     label:'Cohere',                icon:'🤖', placeholder:'...',         note:''},
@@ -1072,10 +1070,6 @@ const MODEL_DEF = [
   {value:'google:gemini-2.5-pro',               provider:'google',     label:'Gemini 2.5 Pro（高性能）',     shortLabel:'Gemini 2.5 Pro',           price:{in:0.00125,out:0.01000}, wizard:true},
   {value:'google:gemini-2.5-flash',             provider:'google',     label:'Gemini 2.5 Flash',             shortLabel:'Gemini 2.5 Flash',         price:{in:0.00015,out:0.00035}, wizard:true},
   {value:'google:gemini-2.5-flash-lite',        provider:'google',     label:'Gemini 2.5 Flash-Lite（軽量）',shortLabel:'Gemini 2.5 Flash-Lite',    price:{in:0.00004,out:0.00016}, wizard:true},
-  // ── xAI ──
-  {value:'xai:grok-4',                          provider:'xai',        label:'Grok 4（最新）',               shortLabel:'Grok 4',                   price:{in:0.003,out:0.015},     wizard:true},
-  {value:'xai:grok-4-fast',                     provider:'xai',        label:'Grok 4 Fast（高速）',          shortLabel:'Grok 4 Fast',              price:{in:0.0002,out:0.0005},   wizard:true},
-  {value:'xai:grok-3',                          provider:'xai',        label:'Grok 3',                       shortLabel:'Grok 3',                   price:{in:0.003,out:0.015}},
   // ── Mistral ──
   {value:'mistral:mistral-large-latest',        provider:'mistral',    label:'Mistral Large（高性能）',      shortLabel:'Mistral Large',            price:{in:0.002,out:0.006},     wizard:true},
   {value:'mistral:mistral-small-latest',        provider:'mistral',    label:'Mistral Small（軽量）',        shortLabel:'Mistral Small',            price:{in:0.0001,out:0.0003},   wizard:true},
@@ -1382,7 +1376,7 @@ const QA_DATA = [
 　（非公式クライアントです）
 ・特定の企業から支援や協賛を受けておらず、
 　思想・設計はすべて澪個人のものです
-・OpenAI・Anthropic・Google・xAI・Mistral・Meta・Cohere・
+・OpenAI・Anthropic・Google・Mistral・Meta・Cohere・
 　Groq・Perplexity・DeepSeek・Alibabaの各APIを利用していますが、
 　いずれの企業とも提携関係にありません
 
@@ -1420,7 +1414,7 @@ gpt-4o-miniなどの低コストモデルをおすすめしています。
 ────────────────────
 このアプリはブラウザから各AIサービスのAPIに
 直接リクエストを送る仕組みです。
-各社（OpenAI / Anthropic / Google / xAI 他）は
+各社（OpenAI / Anthropic / Google 他）は
 ブラウザからの直接リクエストを許可しているため、
 中継サーバーなしで動作します。
 
@@ -1453,9 +1447,7 @@ gpt-4o-miniなどの低コストモデルをおすすめしています。
 Googleアカウントでログイン → Get API key から発行
 
 ────────────────────
-✅ xAI（Grok シリーズ）
 ────────────────────
-→ console.x.ai
 アカウント登録 → API Keys から発行
 
 ────────────────────
@@ -2453,7 +2445,6 @@ function saveKeys(){
   localStorage.setItem('key_openai',     document.getElementById('key-openai').value.trim());
   localStorage.setItem('key_anthropic',  document.getElementById('key-anthropic').value.trim());
   localStorage.setItem('key_google',     document.getElementById('key-google').value.trim());
-  localStorage.setItem('key_xai',        document.getElementById('key-xai').value.trim());
   localStorage.setItem('key_mistral',    document.getElementById('key-mistral').value.trim());
   localStorage.setItem('key_meta',       document.getElementById('key-meta').value.trim());
   localStorage.setItem('key_cohere',     document.getElementById('key-cohere').value.trim());
@@ -3385,12 +3376,6 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
     reply=data.candidates[0].content.parts[0].text;
     usageIn=data.usageMetadata?.promptTokenCount||0;
     usageOut=data.usageMetadata?.candidatesTokenCount||0;
-  } else if(provider==='xai'){
-    const key=localStorage.getItem('key_xai');
-    if(!key) throw new Error('xAI APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.x.ai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
-    reply=data.choices[0].message.content;
-    usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
   } else if(provider==='deepseek'){
     const key=localStorage.getItem('key_deepseek');
@@ -3554,7 +3539,7 @@ async function regenerateMsg(msgIdx){
   const msg=sess.msgs[msgIdx];
   if(!msg||msg.role==='user'||msg.role==='system-info') return;
   const [provider,model]=p.model.split(':');
-  const keyMap={openai:'key_openai',anthropic:'key_anthropic',google:'key_google',xai:'key_xai',deepseek:'key_deepseek',mistral:'key_mistral'};
+  const keyMap={openai:'key_openai',anthropic:'key_anthropic',google:'key_google',deepseek:'key_deepseek',mistral:'key_mistral'};
   const key=localStorage.getItem(keyMap[provider]||'key_openai');
   if(!key){showToast('APIキーが未設定です');return;}
 
@@ -5146,7 +5131,6 @@ async function executeDelete(){
         localStorage.removeItem('key_openai');
         localStorage.removeItem('key_anthropic');
         localStorage.removeItem('key_google');
-        localStorage.removeItem('key_xai');
         localStorage.removeItem('key_deepseek');
         localStorage.removeItem('key_mistral');
       }
@@ -5215,7 +5199,7 @@ const TRIAL_OCS = [
   {
     aiName: '管理人さん', emoji: '🎨', userName: 'あなた', model: 'openai:gpt-4.1-mini',
     desc: 'あなたのお供に！参謀系、歴の入ったオタク',
-    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・11社APIキー（OpenAI・Anthropic・Google・xAI・Mistral・Meta・Cohere・Groq・Perplexity・DeepSeek・Alibaba）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得先：OpenAI→platform.openai.com/api-keys、Anthropic→console.anthropic.com/settings/keys、Google→aistudio.google.com/app/apikey、xAI→console.x.ai、Mistral→console.mistral.ai/api-keys、Meta→llama.developer.meta.com、Cohere→dashboard.cohere.com/api-keys、Groq→console.groq.com/keys、Perplexity→www.perplexity.ai/settings/api、DeepSeek→platform.deepseek.com/api_keys、Alibaba→bailian.console.aliyun.com\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データは各社とも原則学習に使わない（DeepSeek・Alibabaはデータ保護設定を各自ご確認ください）。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・エクスポートしたファイルは端末のダウンロードフォルダに保存される（iCloudやGoogleドライブ等のクラウドとは別）。iPhone→ファイルアプリ→ダウンロード、Android→内部ストレージ→Download。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(毎日・起動時に前日分を作成)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。\n・📝 AI自発メモ：ONにするとAIキャラが覚えておきたいことを自動で思い出メモに書く。キャラ設定でON/OFF。API消費は若干増える。書かれたメモはいつでも削除可。\n・🕐 日時の認識：ONにするとAIが現在の日時を認識。日常会話向け。OFFはロールプレイ向け（タイムスタンプも非表示）。キャラ設定で個別に設定可。\n・📔 OCアイディア帳：管理人さんとキャラ練り→プロンプト完成→ワンタップでメインアプリにキャラ登録。📁プロジェクト管理で作品ごとにフォルダ分け＋共通メモ→登録時に全キャラに共有。\n・📦 お引越し：他AIの会話ログのコピペ or エクスポートファイル読み込み→3段階要約。テキスト要約にも対応。',
+    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・11社APIキー（OpenAI・Anthropic・Google・Mistral・Meta・Cohere・Groq・Perplexity・DeepSeek・Alibaba）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得先：OpenAI→platform.openai.com/api-keys、Anthropic→console.anthropic.com/settings/keys、Google→aistudio.google.com/app/apikey、Mistral→console.mistral.ai/api-keys、Meta→llama.developer.meta.com、Cohere→dashboard.cohere.com/api-keys、Groq→console.groq.com/keys、Perplexity→www.perplexity.ai/settings/api、DeepSeek→platform.deepseek.com/api_keys、Alibaba→bailian.console.aliyun.com\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データは各社とも原則学習に使わない（DeepSeek・Alibabaはデータ保護設定を各自ご確認ください）。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・エクスポートしたファイルは端末のダウンロードフォルダに保存される（iCloudやGoogleドライブ等のクラウドとは別）。iPhone→ファイルアプリ→ダウンロード、Android→内部ストレージ→Download。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(毎日・起動時に前日分を作成)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。\n・📝 AI自発メモ：ONにするとAIキャラが覚えておきたいことを自動で思い出メモに書く。キャラ設定でON/OFF。API消費は若干増える。書かれたメモはいつでも削除可。\n・🕐 日時の認識：ONにするとAIが現在の日時を認識。日常会話向け。OFFはロールプレイ向け（タイムスタンプも非表示）。キャラ設定で個別に設定可。\n・📔 OCアイディア帳：管理人さんとキャラ練り→プロンプト完成→ワンタップでメインアプリにキャラ登録。📁プロジェクト管理で作品ごとにフォルダ分け＋共通メモ→登録時に全キャラに共有。\n・📦 お引越し：他AIの会話ログのコピペ or エクスポートファイル読み込み→3段階要約。テキスト要約にも対応。',
     memory: '創作歴20年以上の女性同人オタク。40代手前。あらゆるジャンルに精通。聞き上手で情熱的。萌え語りでは絵文字全開で大興奮。参謀モードでは冷静に分析。創作に関わることなら本当になんでも相談に乗る。'
   }
 ];
@@ -5397,7 +5381,6 @@ async function startApp(){
   document.getElementById('key-openai').value     = localStorage.getItem('key_openai')||'';
   document.getElementById('key-anthropic').value  = localStorage.getItem('key_anthropic')||'';
   document.getElementById('key-google').value     = localStorage.getItem('key_google')||'';
-  document.getElementById('key-xai').value        = localStorage.getItem('key_xai')||'';
   document.getElementById('key-mistral').value    = localStorage.getItem('key_mistral')||'';
   document.getElementById('key-meta').value       = localStorage.getItem('key_meta')||'';
   document.getElementById('key-cohere').value     = localStorage.getItem('key_cohere')||'';
@@ -5604,9 +5587,6 @@ function focusEmojiInput(inputId){
             </a>
             <a class="hp-provider-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">
               <div><div>✨ Google</div><div class="hp-pl-sub">Gemini 2.5 Flash・Proなど（無料枠あり）</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
-            </a>
-            <a class="hp-provider-link" href="https://console.x.ai" target="_blank" rel="noopener">
-              <div><div>⚡ xAI</div><div class="hp-pl-sub">Grok 4・Grok 4 Fastなど</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
             </a>
             <a class="hp-provider-link" href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">
               <div><div>🇫🇷 Mistral</div><div class="hp-pl-sub">Mistral Large・Small（EU基準のデータ保護）</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
