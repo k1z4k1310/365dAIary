@@ -1028,6 +1028,14 @@ let unlockedThemes = [];
 // ── Model definitions (single source of truth) ──
 const MODEL_DEF = [
   // {value, label, shortLabel, price:{in,out}, wizard:true=ウィザードにも表示}
+  {value:'openai:gpt-5.4',                   label:'GPT-5.4（OpenAI・最新）',               shortLabel:'GPT-5.4',                  price:{in:0.00175,out:0.014},  wizard:true},
+  {value:'openai:gpt-5.4-pro',               label:'GPT-5.4 Pro（OpenAI・最高性能）',       shortLabel:'GPT-5.4 Pro',              price:{in:0.00175,out:0.014},  wizard:true},
+  {value:'openai:gpt-5.3-chat-latest',       label:'GPT-5.3 Instant（OpenAI・ChatGPT版）',  shortLabel:'GPT-5.3 Instant',          price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.3-codex',             label:'GPT-5.3 Codex（OpenAI・コーディング）', shortLabel:'GPT-5.3 Codex',            price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.2',                   label:'GPT-5.2（OpenAI）',                     shortLabel:'GPT-5.2',                  price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.2-codex',             label:'GPT-5.2 Codex（OpenAI・コーディング）', shortLabel:'GPT-5.2 Codex',            price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.1',                   label:'GPT-5.1（OpenAI）',                     shortLabel:'GPT-5.1',                  price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5',                     label:'GPT-5（OpenAI）',                       shortLabel:'GPT-5',                    price:{in:0.00175,out:0.014}},
   {value:'openai:gpt-4.1-mini',              label:'GPT-4.1 mini（OpenAI・おすすめ）', shortLabel:'GPT-4.1 mini（おすすめ）', price:{in:0.0004,out:0.0016}, wizard:true},
   {value:'openai:gpt-4.1',                   label:'GPT-4.1（OpenAI）',               shortLabel:'GPT-4.1',                 price:{in:0.002, out:0.008},  wizard:true},
   {value:'openai:gpt-4.1-nano',              label:'GPT-4.1 nano（OpenAI・最安）',     shortLabel:'GPT-4.1 nano（最安）',     price:{in:0.0001,out:0.0004}, wizard:true},
@@ -1042,6 +1050,7 @@ const MODEL_DEF = [
   {value:'anthropic:claude-3-5-haiku-20241022',label:'Claude 3.5 Haiku（Anthropic）', shortLabel:'Claude 3.5 Haiku',        price:{in:0.0008, out:0.004}},
   {value:'google:gemini-2.5-flash-lite',     label:'Gemini 2.5 Flash-Lite（Google・軽量）',shortLabel:'Gemini 2.5 Flash-Lite',price:{in:0.00004,out:0.00016},wizard:true},
   {value:'google:gemini-2.5-flash',          label:'Gemini 2.5 Flash（Google）',      shortLabel:'Gemini 2.5 Flash',        price:{in:0.00015,out:0.00035},wizard:true},
+  {value:'google:gemini-2.5-pro',            label:'Gemini 2.5 Pro（Google・高性能）',shortLabel:'Gemini 2.5 Pro',          price:{in:0.00125,out:0.01000},wizard:true},
 ];
 
 // MODEL_PRICEをMODEL_DEFから自動生成
