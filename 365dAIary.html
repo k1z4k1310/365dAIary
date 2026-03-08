@@ -3133,7 +3133,7 @@ function renderMessages(){
     const btnC=document.createElement('button');
     btnC.style.cssText='padding:8px 16px;border-radius:8px;border:1px dashed '+t2.accent+';background:none;color:'+t2.accent+';font-family:monospace;font-size:12px;cursor:pointer;';
     btnC.textContent='⚡ このまま続ける';
-    btnC.onclick=()=>{ executeRally(rallyPersonasSaved, rallyUserJoin); };
+    btnC.onclick=()=>{ executeRally(rallyPersonasSaved, rallyUserJoin, true); };
     const btnT=document.createElement('button');
     btnT.style.cssText='padding:8px 16px;border-radius:8px;border:1px dashed '+t2.border+';background:none;color:'+t2.text+';font-family:monospace;font-size:12px;cursor:pointer;opacity:.75;';
     btnT.textContent='✏️ テーマを変える';
@@ -3721,7 +3721,7 @@ function showRallyTopicPrompt(rallyPersonas, userJoin){
   });
 }
 
-async function executeRally(rallyPersonas, userJoin){
+async function executeRally(rallyPersonas, userJoin, continueMode=false){
   rallyUserJoin = userJoin; // 「このまま続ける」用に保持
   rallyPersonasSaved = rallyPersonas; // 「このまま続ける」用に保持
   const maxTurns  = parseInt(document.getElementById('rally-max-turns').value)||10;
@@ -3744,11 +3744,13 @@ async function executeRally(rallyPersonas, userJoin){
   const rallyTitle = rallyTopic
     ? emojiNames + ' ' + rallyTopic
     : emojiNames + ' ラリー';
-  // ラリーは常に新規セッション
-  const id=genId();
-  p.sessions.push({id,title:rallyTitle,msgs:[],createdAt:Date.now(),updatedAt:Date.now()});
-  currentSid=id;
-  saveAll();
+  // 「このまま続ける」なら既存セッションを引き継ぐ、それ以外は新規
+  if(!continueMode){
+    const id=genId();
+    p.sessions.push({id,title:rallyTitle,msgs:[],createdAt:Date.now(),updatedAt:Date.now()});
+    currentSid=id;
+    saveAll();
+  }
   const sess=currentSession();
   const rallyCostStart=totalCost;
   const rallyTimeStart=Date.now();
