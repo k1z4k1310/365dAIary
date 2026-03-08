@@ -628,6 +628,39 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <button onclick="confirmAddPersona()" id="modal-add-btn" style="flex:1;padding:8px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;border:none;color:#fff">追加する</button>
     </div>
     <button onclick="closeAddPersonaModal();showTrialPicker()" style="width:100%;padding:10px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;background:var(--surface,#221a38);border:1px solid var(--border,#3a2a5a);color:var(--text,#e8e0f8);">🎁 お試しキャラから追加</button>
+    <button onclick="closeAddPersonaModal();openCloneModal()" style="width:100%;padding:10px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;background:var(--surface,#221a38);border:1px solid var(--border,#3a2a5a);color:var(--text,#e8e0f8);">🔁 既にいるキャラを複製</button>
+    <div style="font-family:monospace;font-size:9px;opacity:.45;text-align:center;line-height:1.6;margin-top:-4px">同じキャラを別モデルで動かして<br>AIモデルによる会話の違いを比較できます</div>
+  </div>
+</div>
+
+<!-- キャラ複製モーダル -->
+<div id="clone-modal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center">
+  <div id="clone-box" style="width:min(360px,92vw);border-radius:12px;padding:24px 20px;display:flex;flex-direction:column;gap:12px;border:1px solid;position:relative;z-index:201;max-height:85vh;overflow-y:auto">
+    <div style="font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center">🔁 キャラを複製</div>
+    <div style="font-size:11px;opacity:.6;text-align:center;line-height:1.6">同じプロンプトを別のAIモデルで動かして<br>会話の違いを比較できます</div>
+    <div class="wiz-field" style="gap:5px">
+      <span class="wiz-label">複製するキャラ</span>
+      <select class="wiz-input" id="clone-source" style="padding:8px;font-family:monospace;font-size:13px"></select>
+    </div>
+    <div class="wiz-field" style="gap:5px">
+      <span class="wiz-label">新しい名前（空欄＝自動生成）</span>
+      <input class="wiz-input" id="clone-new-name" type="text" placeholder="例：城崎さん（Gemini版）" maxlength="30">
+    </div>
+    <div class="wiz-field" style="gap:5px">
+      <span class="wiz-label">使用するAIモデル</span>
+      <div id="clone-model-ui"></div>
+    </div>
+    <div class="wiz-field" style="gap:5px">
+      <span class="wiz-label">引き継ぐもの</span>
+      <label style="font-family:monospace;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="clone-opt-prompt" checked style="width:14px;height:14px"> システムプロンプト</label>
+      <label style="font-family:monospace;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="clone-opt-memory" checked style="width:14px;height:14px"> 思い出メモ</label>
+      <label style="font-family:monospace;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="clone-opt-history" style="width:14px;height:14px"> 会話履歴</label>
+      <label style="font-family:monospace;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="clone-opt-diary" style="width:14px;height:14px"> 日記</label>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeCloneModal()" style="flex:1;padding:8px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;border:1px solid" id="clone-cancel-btn">キャンセル</button>
+      <button onclick="confirmClone()" id="clone-ok-btn" style="flex:1;padding:8px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;border:none;color:#fff">🔁 複製する</button>
+    </div>
   </div>
 </div>
 
@@ -2371,6 +2404,93 @@ function confirmAddPersona(){
   closeAddPersonaModal();
   switchPersona(p.id);
   showToast('✦ キャラ「'+aiName+'」を追加しました');
+}
+
+// ── キャラ複製モーダル ──
+function openCloneModal(){
+  const t=THEMES[currentTheme];
+  const modal=document.getElementById('clone-modal');
+  const box=document.getElementById('clone-box');
+  box.style.background=t.surface;
+  box.style.borderColor=t.border;
+  box.querySelectorAll('.wiz-label').forEach(el=>el.style.color=t.textMuted);
+  box.querySelectorAll('.wiz-input').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
+  box.querySelectorAll('div[style*="letter-spacing"]').forEach(el=>el.style.color=t.text);
+  box.querySelectorAll('label').forEach(el=>el.style.color=t.text);
+  document.getElementById('clone-cancel-btn').style.background=t.surface2;
+  document.getElementById('clone-cancel-btn').style.borderColor=t.border;
+  document.getElementById('clone-cancel-btn').style.color=t.textMuted;
+  document.getElementById('clone-ok-btn').style.background=t.sendBtn;
+  // ソース選択肢を構築
+  const sel=document.getElementById('clone-source');
+  sel.innerHTML='';
+  personas.forEach(pp=>{
+    const opt=document.createElement('option');
+    opt.value=pp.id;
+    opt.textContent=(pp.emoji||'💬')+' '+pp.aiName;
+    sel.appendChild(opt);
+  });
+  sel.value=currentPid;
+  // モデル選択UI構築（現在のキャラのモデルをデフォルトに）
+  const curP=currentPersona();
+  buildProviderModelUI('clone-model-ui','add',curP?curP.model:'openai:gpt-4.1-mini');
+  // 名前欄クリア
+  document.getElementById('clone-new-name').value='';
+  // チェックボックスリセット
+  document.getElementById('clone-opt-prompt').checked=true;
+  document.getElementById('clone-opt-memory').checked=true;
+  document.getElementById('clone-opt-history').checked=false;
+  document.getElementById('clone-opt-diary').checked=false;
+  modal.style.display='flex';
+  modal.style.background='rgba(0,0,0,0.5)';
+}
+
+function closeCloneModal(){
+  document.getElementById('clone-modal').style.display='none';
+}
+
+function confirmClone(){
+  const srcId=document.getElementById('clone-source').value;
+  const src=personas.find(pp=>pp.id===srcId);
+  if(!src){showToast('⚠ 複製元のキャラが見つかりません');return;}
+  const newModel=getProviderModelValue('clone-model-ui');
+  // 名前の自動生成
+  let newName=document.getElementById('clone-new-name').value.trim();
+  if(!newName){
+    // モデルの短いラベルを取得
+    const modelDef=MODEL_DEF.find(m=>m.value===newModel);
+    const modelLabel=modelDef?modelDef.shortLabel.split('（')[0].trim():newModel.split(':')[1];
+    newName=src.aiName+'（'+modelLabel+'）';
+  }
+  // 新しいキャラを作成
+  const np=createPersona(newName, src.userName, newModel);
+  np.emoji=src.emoji||'💬';
+  // 引き継ぎオプション
+  if(document.getElementById('clone-opt-prompt').checked){
+    np.systemPrompt=src.systemPrompt||'';
+  }
+  if(document.getElementById('clone-opt-memory').checked){
+    np.memories=JSON.parse(JSON.stringify(src.memories||[]));
+  }
+  if(document.getElementById('clone-opt-history').checked){
+    np.sessions=JSON.parse(JSON.stringify(src.sessions||[]));
+    // セッションIDを全て再生成（重複防止）
+    np.sessions.forEach(s=>{s.id=genId();});
+  }
+  if(document.getElementById('clone-opt-diary').checked){
+    np.diary=JSON.parse(JSON.stringify(src.diary||[]));
+  }
+  // その他の設定も引き継ぐ
+  np.diaryMode=src.diaryMode||'off';
+  np.autoMemoMode=src.autoMemoMode||'off';
+  np.timeAwareMode=src.timeAwareMode||'off';
+  // isTrial は引き継がない（複製したらオリジナル扱い）
+  personas.push(np);
+  saveAllNow();
+  closeCloneModal();
+  switchPersona(np.id);
+  showToast('🔁 「'+newName+'」を複製しました！');
+  checkSecretOCUnlock();
 }
 
 // ── 汎用確認モーダル ──
@@ -4499,6 +4619,7 @@ function closeAll(){
   document.getElementById('overlay').classList.remove('show');
   document.getElementById('add-persona-modal').style.display='none';
   document.getElementById('confirm-modal').style.display='none';
+  document.getElementById('clone-modal').style.display='none';
 }
 
 // ══════════════════════════════════════════════
