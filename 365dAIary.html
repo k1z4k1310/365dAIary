@@ -581,9 +581,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
     <div class="wiz-field">
       <span class="wiz-label">使用するAI（あとで変更可）</span>
-      <select class="wiz-input" id="wiz-model">
-        <!-- JS: populateModelSelect で動的生成 -->
-      </select>
+      <div id="wiz-model-ui"></div>
     </div>
     <button class="wiz-btn" id="wiz-btn" onclick="finishWizard()">✦ はじめる</button>
     <div style="text-align:center;margin-top:8px;font-family:monospace;font-size:10px;opacity:.5">── または ──</div>
@@ -623,9 +621,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
     <div class="wiz-field" style="gap:5px">
       <span class="wiz-label">使用するAI</span>
-      <select class="wiz-input" id="modal-model">
-        <!-- JS: populateModelSelect で動的生成 -->
-      </select>
+      <div id="modal-model-ui"></div>
     </div>
     <div style="display:flex;gap:8px">
       <button onclick="closeAddPersonaModal()" style="flex:1;padding:8px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;border:1px solid" id="modal-cancel-btn">キャンセル</button>
@@ -671,9 +667,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
     <div class="wiz-field" style="gap:4px;margin-top:4px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">使用モデル</span>
-      <select class="sb-inp" id="edit-model">
-        <!-- JS: populateModelSelect で動的生成 -->
-      </select>
+      <div id="edit-model-ui"></div>
     </div>
     <div class="wiz-field" style="gap:4px;margin-top:4px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">🕐 日時の認識</span>
@@ -699,6 +693,15 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="key-row"><span class="key-lbl">OpenAI</span><input class="sb-inp" id="key-openai" type="password" placeholder="sk-..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Anthropic</span><input class="sb-inp" id="key-anthropic" type="password" placeholder="sk-ant-..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Google</span><input class="sb-inp" id="key-google" type="password" placeholder="AIza..." autocomplete="off"></div>
+    <div class="key-row"><span class="key-lbl">xAI (Grok)</span><input class="sb-inp" id="key-xai" type="password" placeholder="xai-..." autocomplete="off"></div>
+    <div class="key-row"><span class="key-lbl">Mistral</span><input class="sb-inp" id="key-mistral" type="password" placeholder="..." autocomplete="off"></div>
+    <div class="key-row"><span class="key-lbl">Meta (Llama)</span><input class="sb-inp" id="key-meta" type="password" placeholder="..." autocomplete="off"></div>
+    <div class="key-row"><span class="key-lbl">Cohere</span><input class="sb-inp" id="key-cohere" type="password" placeholder="..." autocomplete="off"></div>
+    <div class="key-row"><span class="key-lbl">Groq</span><input class="sb-inp" id="key-groq" type="password" placeholder="gsk_..." autocomplete="off"></div>
+    <div class="key-row"><span class="key-lbl">Perplexity</span><input class="sb-inp" id="key-perplexity" type="password" placeholder="pplx-..." autocomplete="off"></div>
+    <div class="key-row"><span class="key-lbl">DeepSeek</span><input class="sb-inp" id="key-deepseek" type="password" placeholder="sk-..." autocomplete="off"></div>
+    <div class="key-row" style="opacity:.7"><span class="key-lbl">Alibaba (Qwen)</span><input class="sb-inp" id="key-alibaba" type="password" placeholder="sk-..." autocomplete="off"></div>
+    <div style="font-family:monospace;font-size:9px;opacity:.5;line-height:1.5;margin-top:2px">DeepSeek・Alibabaをご利用の場合はデータ保護設定を各自ご確認ください</div>
     <button class="sb-btn" onclick="saveKeys()">💾 APIキーを保存</button>
     <div style="margin-top:10px;padding-top:8px">
       <span class="sb-lbl">💰 コスト管理</span>
@@ -1026,49 +1029,161 @@ let currentTheme = 'dark';
 let unlockedThemes = [];
 
 // ── Model definitions (single source of truth) ──
+// 会社情報（2段階プルダウン用）
+const PROVIDER_DEF = [
+  {key:'openai',     label:'OpenAI',                icon:'🤖', placeholder:'sk-...',      note:''},
+  {key:'anthropic',  label:'Anthropic（Claude）',   icon:'🤖', placeholder:'sk-ant-...',  note:''},
+  {key:'google',     label:'Google（Gemini）',       icon:'🤖', placeholder:'AIza...',     note:''},
+  {key:'xai',        label:'xAI（Grok）',            icon:'🤖', placeholder:'xai-...',     note:''},
+  {key:'mistral',    label:'Mistral',               icon:'🤖', placeholder:'...',         note:''},
+  {key:'meta',       label:'Meta（Llama）',          icon:'🤖', placeholder:'...',         note:''},
+  {key:'cohere',     label:'Cohere',                icon:'🤖', placeholder:'...',         note:''},
+  {key:'groq',       label:'Groq',                  icon:'🤖', placeholder:'gsk_...',     note:''},
+  {key:'perplexity', label:'Perplexity',            icon:'🤖', placeholder:'pplx-...',    note:''},
+  {key:'deepseek',   label:'DeepSeek',              icon:'🤖', placeholder:'sk-...',      note:'※ データ保護設定を各自ご確認ください'},
+  {key:'alibaba',    label:'Alibaba（Qwen）',        icon:'🤖', placeholder:'sk-...',      note:'※ データ保護設定を各自ご確認ください'},
+];
+
 const MODEL_DEF = [
-  // {value, label, shortLabel, price:{in,out}, wizard:true=ウィザードにも表示}
-  {value:'openai:gpt-5.4',                   label:'GPT-5.4（OpenAI・最新）',               shortLabel:'GPT-5.4',                  price:{in:0.00175,out:0.014},  wizard:true},
-  {value:'openai:gpt-5.4-pro',               label:'GPT-5.4 Pro（OpenAI・最高性能）',       shortLabel:'GPT-5.4 Pro',              price:{in:0.00175,out:0.014},  wizard:true},
-  {value:'openai:gpt-5.3-chat-latest',       label:'GPT-5.3 Instant（OpenAI・ChatGPT版）',  shortLabel:'GPT-5.3 Instant',          price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.3-codex',             label:'GPT-5.3 Codex（OpenAI・コーディング）', shortLabel:'GPT-5.3 Codex',            price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.2',                   label:'GPT-5.2（OpenAI）',                     shortLabel:'GPT-5.2',                  price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.2-codex',             label:'GPT-5.2 Codex（OpenAI・コーディング）', shortLabel:'GPT-5.2 Codex',            price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.1',                   label:'GPT-5.1（OpenAI）',                     shortLabel:'GPT-5.1',                  price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5',                     label:'GPT-5（OpenAI）',                       shortLabel:'GPT-5',                    price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-4.1-mini',              label:'GPT-4.1 mini（OpenAI・おすすめ）', shortLabel:'GPT-4.1 mini（おすすめ）', price:{in:0.0004,out:0.0016}, wizard:true},
-  {value:'openai:gpt-4.1',                   label:'GPT-4.1（OpenAI）',               shortLabel:'GPT-4.1',                 price:{in:0.002, out:0.008},  wizard:true},
-  {value:'openai:gpt-4.1-nano',              label:'GPT-4.1 nano（OpenAI・最安）',     shortLabel:'GPT-4.1 nano（最安）',     price:{in:0.0001,out:0.0004}, wizard:true},
-  {value:'openai:gpt-4o',                    label:'GPT-4o（OpenAI・自動更新）',       shortLabel:'GPT-4o（自動更新）',       price:{in:0.0025,out:0.01},   wizard:true},
-  {value:'openai:gpt-4o-2024-11-20',         label:'GPT-4o 2024-11-20（OpenAI）',     shortLabel:'GPT-4o 2024-11-20',       price:{in:0.0025,out:0.01}},
-  {value:'openai:gpt-4o-2024-08-06',         label:'GPT-4o 2024-08-06（OpenAI）',     shortLabel:'GPT-4o 2024-08-06',       price:{in:0.0025,out:0.01}},
-  {value:'openai:gpt-4o-2024-05-13',         label:'GPT-4o 2024-05-13（初代）',       shortLabel:'GPT-4o 2024-05-13（初代）',price:{in:0.005, out:0.015}},
-  {value:'openai:gpt-4o-mini',               label:'GPT-4o mini（OpenAI）',           shortLabel:'GPT-4o mini',             price:{in:0.00015,out:0.0006}, wizard:true},
-  {value:'anthropic:claude-sonnet-4-5',      label:'Claude Sonnet 4.5（Anthropic）',  shortLabel:'Claude Sonnet 4.5',       price:{in:0.003, out:0.015},  wizard:true},
-  {value:'anthropic:claude-3-5-sonnet-20241022',label:'Claude 3.5 Sonnet（Anthropic）',shortLabel:'Claude 3.5 Sonnet',       price:{in:0.003, out:0.015},  wizard:true},
-  {value:'anthropic:claude-3-haiku-20240307',label:'Claude 3 Haiku（Anthropic）',     shortLabel:'Claude 3 Haiku',          price:{in:0.00025,out:0.00125}},
-  {value:'anthropic:claude-3-5-haiku-20241022',label:'Claude 3.5 Haiku（Anthropic）', shortLabel:'Claude 3.5 Haiku',        price:{in:0.0008, out:0.004}},
-  {value:'google:gemini-2.5-flash-lite',     label:'Gemini 2.5 Flash-Lite（Google・軽量）',shortLabel:'Gemini 2.5 Flash-Lite',price:{in:0.00004,out:0.00016},wizard:true},
-  {value:'google:gemini-2.5-flash',          label:'Gemini 2.5 Flash（Google）',      shortLabel:'Gemini 2.5 Flash',        price:{in:0.00015,out:0.00035},wizard:true},
-  {value:'google:gemini-2.5-pro',            label:'Gemini 2.5 Pro（Google・高性能）',shortLabel:'Gemini 2.5 Pro',          price:{in:0.00125,out:0.01000},wizard:true},
+  // {value:'provider:model', provider, label, shortLabel, price:{in,out}, wizard:true}
+  // ── OpenAI ──
+  {value:'openai:gpt-5.4',                      provider:'openai',     label:'GPT-5.4（最新）',              shortLabel:'GPT-5.4',                  price:{in:0.00175,out:0.014},   wizard:true},
+  {value:'openai:gpt-5.4-pro',                  provider:'openai',     label:'GPT-5.4 Pro（最高性能）',      shortLabel:'GPT-5.4 Pro',              price:{in:0.00175,out:0.014},   wizard:true},
+  {value:'openai:gpt-5.3-chat-latest',          provider:'openai',     label:'GPT-5.3 Instant（ChatGPT版）', shortLabel:'GPT-5.3 Instant',          price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.3-codex',                provider:'openai',     label:'GPT-5.3 Codex（コーディング）',shortLabel:'GPT-5.3 Codex',            price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.2',                      provider:'openai',     label:'GPT-5.2',                      shortLabel:'GPT-5.2',                  price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.2-codex',                provider:'openai',     label:'GPT-5.2 Codex（コーディング）',shortLabel:'GPT-5.2 Codex',            price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.1',                      provider:'openai',     label:'GPT-5.1',                      shortLabel:'GPT-5.1',                  price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5',                        provider:'openai',     label:'GPT-5',                        shortLabel:'GPT-5',                    price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-4.1-mini',                 provider:'openai',     label:'GPT-4.1 mini（おすすめ）',     shortLabel:'GPT-4.1 mini（おすすめ）', price:{in:0.0004,out:0.0016},   wizard:true},
+  {value:'openai:gpt-4.1',                      provider:'openai',     label:'GPT-4.1',                      shortLabel:'GPT-4.1',                  price:{in:0.002, out:0.008},    wizard:true},
+  {value:'openai:gpt-4.1-nano',                 provider:'openai',     label:'GPT-4.1 nano（最安）',         shortLabel:'GPT-4.1 nano（最安）',     price:{in:0.0001,out:0.0004},   wizard:true},
+  {value:'openai:gpt-4o',                       provider:'openai',     label:'GPT-4o（自動更新）',           shortLabel:'GPT-4o（自動更新）',       price:{in:0.0025,out:0.01},     wizard:true},
+  {value:'openai:gpt-4o-2024-11-20',            provider:'openai',     label:'GPT-4o 2024-11-20',            shortLabel:'GPT-4o 2024-11-20',        price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-08-06',            provider:'openai',     label:'GPT-4o 2024-08-06',            shortLabel:'GPT-4o 2024-08-06',        price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-05-13',            provider:'openai',     label:'GPT-4o 2024-05-13（初代）',    shortLabel:'GPT-4o 2024-05-13（初代）',price:{in:0.005, out:0.015}},
+  {value:'openai:gpt-4o-mini',                  provider:'openai',     label:'GPT-4o mini',                  shortLabel:'GPT-4o mini',              price:{in:0.00015,out:0.0006},  wizard:true},
+  // ── Anthropic ──
+  {value:'anthropic:claude-sonnet-4-5',         provider:'anthropic',  label:'Claude Sonnet 4.5',            shortLabel:'Claude Sonnet 4.5',        price:{in:0.003, out:0.015},    wizard:true},
+  {value:'anthropic:claude-3-5-sonnet-20241022',provider:'anthropic',  label:'Claude 3.5 Sonnet',            shortLabel:'Claude 3.5 Sonnet',        price:{in:0.003, out:0.015},    wizard:true},
+  {value:'anthropic:claude-3-5-haiku-20241022', provider:'anthropic',  label:'Claude 3.5 Haiku',             shortLabel:'Claude 3.5 Haiku',         price:{in:0.0008, out:0.004}},
+  {value:'anthropic:claude-3-haiku-20240307',   provider:'anthropic',  label:'Claude 3 Haiku',               shortLabel:'Claude 3 Haiku',           price:{in:0.00025,out:0.00125}},
+  // ── Google ──
+  {value:'google:gemini-2.5-pro',               provider:'google',     label:'Gemini 2.5 Pro（高性能）',     shortLabel:'Gemini 2.5 Pro',           price:{in:0.00125,out:0.01000}, wizard:true},
+  {value:'google:gemini-2.5-flash',             provider:'google',     label:'Gemini 2.5 Flash',             shortLabel:'Gemini 2.5 Flash',         price:{in:0.00015,out:0.00035}, wizard:true},
+  {value:'google:gemini-2.5-flash-lite',        provider:'google',     label:'Gemini 2.5 Flash-Lite（軽量）',shortLabel:'Gemini 2.5 Flash-Lite',    price:{in:0.00004,out:0.00016}, wizard:true},
+  // ── xAI ──
+  {value:'xai:grok-4',                          provider:'xai',        label:'Grok 4（最新）',               shortLabel:'Grok 4',                   price:{in:0.003,out:0.015},     wizard:true},
+  {value:'xai:grok-4-fast',                     provider:'xai',        label:'Grok 4 Fast（高速）',          shortLabel:'Grok 4 Fast',              price:{in:0.0002,out:0.0005},   wizard:true},
+  {value:'xai:grok-3',                          provider:'xai',        label:'Grok 3',                       shortLabel:'Grok 3',                   price:{in:0.003,out:0.015}},
+  // ── Mistral ──
+  {value:'mistral:mistral-large-latest',        provider:'mistral',    label:'Mistral Large（高性能）',      shortLabel:'Mistral Large',            price:{in:0.002,out:0.006},     wizard:true},
+  {value:'mistral:mistral-small-latest',        provider:'mistral',    label:'Mistral Small（軽量）',        shortLabel:'Mistral Small',            price:{in:0.0001,out:0.0003},   wizard:true},
+  // ── Meta (Llama) ──
+  {value:'meta:llama-3.3-70b-instruct',         provider:'meta',       label:'Llama 3.3 70B（高性能）',      shortLabel:'Llama 3.3 70B',            price:{in:0.00059,out:0.00079}, wizard:true},
+  {value:'meta:llama-3.1-8b-instruct',          provider:'meta',       label:'Llama 3.1 8B（軽量）',         shortLabel:'Llama 3.1 8B',             price:{in:0.00018,out:0.00018}, wizard:true},
+  // ── Cohere ──
+  {value:'cohere:command-r-plus-08-2024',       provider:'cohere',     label:'Command R+（高性能）',         shortLabel:'Command R+',               price:{in:0.0025,out:0.01},     wizard:true},
+  {value:'cohere:command-r-08-2024',            provider:'cohere',     label:'Command R（標準）',            shortLabel:'Command R',                price:{in:0.00015,out:0.0006},  wizard:true},
+  // ── Groq ──
+  {value:'groq:llama-3.3-70b-versatile',        provider:'groq',       label:'Llama 3.3 70B（超高速）',      shortLabel:'Llama 3.3 70B（超高速）',  price:{in:0.00059,out:0.00079}, wizard:true},
+  {value:'groq:llama-3.1-8b-instant',           provider:'groq',       label:'Llama 3.1 8B Instant（爆速）', shortLabel:'Llama 3.1 8B（爆速）',     price:{in:0.00005,out:0.00008}, wizard:true},
+  {value:'groq:gemma2-9b-it',                   provider:'groq',       label:'Gemma2 9B（Google製・高速）',  shortLabel:'Gemma2 9B（高速）',        price:{in:0.0002,out:0.0002}},
+  // ── Perplexity ──
+  {value:'perplexity:sonar-pro',                provider:'perplexity', label:'Sonar Pro（Web検索付き）',     shortLabel:'Sonar Pro',                price:{in:0.003,out:0.015},     wizard:true},
+  {value:'perplexity:sonar',                    provider:'perplexity', label:'Sonar（Web検索付き・軽量）',   shortLabel:'Sonar',                    price:{in:0.001,out:0.001},     wizard:true},
+  // ── DeepSeek ──
+  {value:'deepseek:deepseek-chat',              provider:'deepseek',   label:'DeepSeek Chat',                shortLabel:'DeepSeek Chat',            price:{in:0.00027,out:0.0011},  wizard:true},
+  {value:'deepseek:deepseek-r1',                provider:'deepseek',   label:'DeepSeek R1（推論）',          shortLabel:'DeepSeek R1',              price:{in:0.00055,out:0.00219}},
+  // ── Alibaba (Qwen) ──
+  {value:'alibaba:qwen-max',                    provider:'alibaba',    label:'Qwen Max（高性能）',           shortLabel:'Qwen Max',                 price:{in:0.0016,out:0.0064},   wizard:true},
+  {value:'alibaba:qwen-plus',                   provider:'alibaba',    label:'Qwen Plus（標準）',            shortLabel:'Qwen Plus',                price:{in:0.0004,out:0.0012},   wizard:true},
+  {value:'alibaba:qwen-turbo',                  provider:'alibaba',    label:'Qwen Turbo（軽量）',           shortLabel:'Qwen Turbo',               price:{in:0.00005,out:0.0002}},
 ];
 
 // MODEL_PRICEをMODEL_DEFから自動生成
 const MODEL_PRICE = {};
 MODEL_DEF.forEach(m=>{ const model=m.value.split(':')[1]; MODEL_PRICE[model]=m.price; });
 
-// selectにモデルを動的生成する関数
-function populateModelSelect(selectEl, mode){
-  // mode: 'wizard'=ウィザード用(簡易), 'add'=追加モーダル用, 'full'=設定用(全モデル)
+// ── 2段階プルダウン ──
+// selectEl: モデルselectの要素, mode: 'wizard'|'add'|'full', providerKey: 絞り込む会社キー
+function populateModelSelect(selectEl, mode, providerKey){
   selectEl.innerHTML='';
   MODEL_DEF.forEach(m=>{
     if(mode==='wizard' && !m.wizard) return;
-    if(mode==='add' && !m.wizard) return;
+    if(mode==='add'    && !m.wizard) return;
+    if(providerKey && m.provider !== providerKey) return;
     const opt=document.createElement('option');
     opt.value=m.value;
-    opt.textContent=(mode==='full')?m.shortLabel:m.label;
+    opt.textContent=(mode==='full') ? m.shortLabel : m.label;
     selectEl.appendChild(opt);
   });
+}
+
+// 2段階プルダウンUIをラッパーIDに構築
+function buildProviderModelUI(wrapperId, mode, currentValue){
+  const wrapper = document.getElementById(wrapperId);
+  if(!wrapper) return;
+  wrapper.innerHTML='';
+  const cls = (mode==='full') ? 'sb-inp' : 'wiz-input';
+
+  // 会社プルダウン
+  const selP = document.createElement('select');
+  selP.className = cls;
+  selP.style.width = '100%';
+  selP.id = wrapperId + '-provider';
+  PROVIDER_DEF.forEach(p=>{
+    const hasModels = MODEL_DEF.some(m=> m.provider===p.key && (mode==='full' || m.wizard));
+    if(!hasModels) return;
+    const opt = document.createElement('option');
+    opt.value = p.key;
+    opt.textContent = p.label;
+    selP.appendChild(opt);
+  });
+
+  // モデルプルダウン
+  const selM = document.createElement('select');
+  selM.className = cls;
+  selM.style.width = '100%';
+  selM.id = wrapperId + '-model';
+
+  // 注記エリア
+  const noteEl = document.createElement('span');
+  noteEl.id = wrapperId + '-note';
+  noteEl.style.cssText = 'font-size:10px;opacity:.6;font-family:monospace;display:none;';
+
+  selP.addEventListener('change', ()=>{
+    populateModelSelect(selM, mode, selP.value);
+    const pDef = PROVIDER_DEF.find(p=>p.key===selP.value);
+    noteEl.textContent = (pDef && pDef.note) ? pDef.note : '';
+    noteEl.style.display = (pDef && pDef.note) ? 'block' : 'none';
+  });
+
+  wrapper.appendChild(selP);
+  wrapper.appendChild(selM);
+  wrapper.appendChild(noteEl);
+
+  // 初期値セット
+  let initProvider = 'openai';
+  if(currentValue){
+    const parts = currentValue.split(':');
+    if(parts.length>=2) initProvider = parts[0];
+  }
+  const providerExists = Array.from(selP.options).some(o=>o.value===initProvider);
+  selP.value = providerExists ? initProvider : (selP.options[0] ? selP.options[0].value : 'openai');
+  populateModelSelect(selM, mode, selP.value);
+  if(currentValue){
+    const found = Array.from(selM.options).find(o=>o.value===currentValue);
+    if(found) selM.value = currentValue;
+  }
+  const pDef = PROVIDER_DEF.find(p=>p.key===selP.value);
+  if(pDef && pDef.note){ noteEl.textContent=pDef.note; noteEl.style.display='block'; }
+}
+
+// 2段階UIからモデル値を取得
+function getProviderModelValue(wrapperId){
+  const selM = document.getElementById(wrapperId + '-model');
+  return selM ? selM.value : '';
 }
 
 // ── Q&A data ──
@@ -1076,6 +1191,19 @@ function populateModelSelect(selectEl, mode){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.0.4',
+    date: '2026-03-08',
+    label: '🤖 プロバイダー大幅拡張＋2段階モデル選択',
+    items: [
+      '🤖 対応AIプロバイダーを11社に拡張（Meta / Cohere / Groq / Perplexity / Alibaba Qwen を新規追加）',
+      '🤖 モデル選択を「会社 → モデル」の2段階プルダウンに変更（プルダウンが長くなりすぎない改善）',
+      '🌏 DeepSeek・Alibabaはデータ保護設定の確認案内を表示',
+      '📖 Q&A「APIキーの取得方法」を11社対応に更新（各社の取得先URLを記載）',
+      '📖 ヘルプのAPIキー取得リンクボタンを11社分に拡張（各社の特徴説明付き）',
+      '🧠 管理人さんの知識を11社対応に更新（取得先URL・データ保護情報を記憶）',
+    ]
+  },
   {
     version: '2.0.3',
     date: '2026-03-07',
@@ -1254,7 +1382,8 @@ const QA_DATA = [
 　（非公式クライアントです）
 ・特定の企業から支援や協賛を受けておらず、
 　思想・設計はすべて澪個人のものです
-・OpenAI・Anthropic・Googleの各APIを利用していますが、
+・OpenAI・Anthropic・Google・xAI・Mistral・Meta・Cohere・
+　Groq・Perplexity・DeepSeek・Alibabaの各APIを利用していますが、
 　いずれの企業とも提携関係にありません
 
 ────────────────────
@@ -1291,7 +1420,7 @@ gpt-4o-miniなどの低コストモデルをおすすめしています。
 ────────────────────
 このアプリはブラウザから各AIサービスのAPIに
 直接リクエストを送る仕組みです。
-各社（OpenAI / Anthropic / Google）は
+各社（OpenAI / Anthropic / Google / xAI 他）は
 ブラウザからの直接リクエストを許可しているため、
 中継サーバーなしで動作します。
 
@@ -1303,24 +1432,77 @@ gpt-4o-miniなどの低コストモデルをおすすめしています。
 
   {q:'🔑 APIキーの取得方法', a:
 `APIキーは各AIサービスのサイトで取得できます。
+このアプリは現在11社のAPIに対応しています。
 
 ────────────────────
-OpenAI（GPT-4o など）
+✅ OpenAI（GPT-4o / GPT-4.1 / GPT-5系）
 ────────────────────
-→ platform.openai.com
+→ platform.openai.com/api-keys
 アカウント登録 → 支払い設定 → API keys から発行
 
 ────────────────────
-Anthropic（Claude など）
+✅ Anthropic（Claude シリーズ）
 ────────────────────
-→ console.anthropic.com
+→ console.anthropic.com/settings/keys
 アカウント登録 → 支払い設定 → API Keys から発行
 
 ────────────────────
-Google（Gemini など）
+✅ Google（Gemini シリーズ）
 ────────────────────
-→ aistudio.google.com
+→ aistudio.google.com/app/apikey
 Googleアカウントでログイン → Get API key から発行
+
+────────────────────
+✅ xAI（Grok シリーズ）
+────────────────────
+→ console.x.ai
+アカウント登録 → API Keys から発行
+
+────────────────────
+✅ Mistral（フランス🇫🇷・EU基準のデータ保護）
+────────────────────
+→ console.mistral.ai/api-keys
+アカウント登録 → API Keys から発行
+
+────────────────────
+✅ Meta（Llama シリーズ）
+────────────────────
+→ llama.developer.meta.com
+アカウント登録 → API Keys から発行
+
+────────────────────
+✅ Cohere（Command R シリーズ）
+────────────────────
+→ dashboard.cohere.com/api-keys
+アカウント登録 → API Keys から発行
+
+────────────────────
+✅ Groq（Llama / Gemma を超高速処理）
+────────────────────
+→ console.groq.com/keys
+アカウント登録 → API Keys から発行
+※ 高速推論に特化した中継サービスです
+
+────────────────────
+✅ Perplexity（Web検索付き回答）
+────────────────────
+→ www.perplexity.ai/settings/api
+アカウント登録 → API Keys から発行
+※ Sonarシリーズはインターネット検索結果を参照します
+
+────────────────────
+🌏 DeepSeek
+────────────────────
+→ platform.deepseek.com/api_keys
+アカウント登録 → API Keys から発行
+※ データ保護設定を各自ご確認ください
+
+────────────────────
+🌏 Alibaba（Qwen シリーズ）
+────────────────────
+→ bailian.console.aliyun.com
+アカウント登録 → API Keys から発行
+※ データ保護設定を各自ご確認ください
 
 ────────────────────
 注意事項
@@ -1329,7 +1511,8 @@ Googleアカウントでログイン → Get API key から発行
   悪用されると予期しない高額請求が発生します。
 ・各サービスの利用規約を必ずご確認ください。
 ・料金の請求は各プロバイダーとご利用者の間で
-  発生します。作者は関与しません。`},
+  発生します。作者は関与しません。
+・このアプリ自体には料金は一切かかりません。`},
 
   {q:'🤖 AIのキャラを追加・管理するには', a:
 `────────────────────
@@ -2128,7 +2311,7 @@ function loadPersonaToSidebar(){
   document.getElementById('edit-ai-name').value   = p.aiName;
   document.getElementById('edit-emoji').value      = p.emoji || '💬';
   document.getElementById('edit-user-name').value = p.userName;
-  document.getElementById('edit-model').value     = p.model;
+  buildProviderModelUI('edit-model-ui', 'full', p.model);
   // お試しOCのプロンプトはロック
   const promptEl = document.getElementById('system-prompt');
   const userNameEl = document.getElementById('edit-user-name');
@@ -2187,7 +2370,7 @@ function confirmAddPersona(){
     return;
   }
   const userName=document.getElementById('modal-user-name').value.trim()||'あなた';
-  const model=document.getElementById('modal-model').value;
+  const model=getProviderModelValue('modal-model-ui');
   const p=createPersona(aiName,userName,model);
   const modalEmoji=document.getElementById('modal-emoji').value.trim();
   if(modalEmoji) p.emoji=modalEmoji;
@@ -2240,7 +2423,7 @@ function savePersonaSettings(){
   if(!p) return;
   p.aiName   = document.getElementById('edit-ai-name').value  || p.aiName;
   p.userName = document.getElementById('edit-user-name').value|| p.userName;
-  p.model    = document.getElementById('edit-model').value;
+  p.model    = getProviderModelValue('edit-model-ui');
   const emojiVal = document.getElementById('edit-emoji').value.trim();
   if(emojiVal) p.emoji = emojiVal;
   if(!p.isTrial){
@@ -2267,9 +2450,17 @@ function deleteCurrentPersona(){
 //  API KEYS / PROMPT / MEMORY
 // ══════════════════════════════════════════════
 function saveKeys(){
-  localStorage.setItem('key_openai',    document.getElementById('key-openai').value.trim());
-  localStorage.setItem('key_anthropic', document.getElementById('key-anthropic').value.trim());
-  localStorage.setItem('key_google',    document.getElementById('key-google').value.trim());
+  localStorage.setItem('key_openai',     document.getElementById('key-openai').value.trim());
+  localStorage.setItem('key_anthropic',  document.getElementById('key-anthropic').value.trim());
+  localStorage.setItem('key_google',     document.getElementById('key-google').value.trim());
+  localStorage.setItem('key_xai',        document.getElementById('key-xai').value.trim());
+  localStorage.setItem('key_mistral',    document.getElementById('key-mistral').value.trim());
+  localStorage.setItem('key_meta',       document.getElementById('key-meta').value.trim());
+  localStorage.setItem('key_cohere',     document.getElementById('key-cohere').value.trim());
+  localStorage.setItem('key_groq',       document.getElementById('key-groq').value.trim());
+  localStorage.setItem('key_perplexity', document.getElementById('key-perplexity').value.trim());
+  localStorage.setItem('key_deepseek',   document.getElementById('key-deepseek').value.trim());
+  localStorage.setItem('key_alibaba',    document.getElementById('key-alibaba').value.trim());
   showToast('✦ APIキーを保存しました');
 }
 
@@ -3194,6 +3385,63 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
     reply=data.candidates[0].content.parts[0].text;
     usageIn=data.usageMetadata?.promptTokenCount||0;
     usageOut=data.usageMetadata?.candidatesTokenCount||0;
+  } else if(provider==='xai'){
+    const key=localStorage.getItem('key_xai');
+    if(!key) throw new Error('xAI APIキーを設定してください（⚙）');
+    const data=await doFetch('https://api.x.ai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    reply=data.choices[0].message.content;
+    usageIn=data.usage?.prompt_tokens||0;
+    usageOut=data.usage?.completion_tokens||0;
+  } else if(provider==='deepseek'){
+    const key=localStorage.getItem('key_deepseek');
+    if(!key) throw new Error('DeepSeek APIキーを設定してください（⚙）');
+    const data=await doFetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    reply=data.choices[0].message.content;
+    usageIn=data.usage?.prompt_tokens||0;
+    usageOut=data.usage?.completion_tokens||0;
+  } else if(provider==='mistral'){
+    const key=localStorage.getItem('key_mistral');
+    if(!key) throw new Error('Mistral APIキーを設定してください（⚙）');
+    const data=await doFetch('https://api.mistral.ai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    reply=data.choices[0].message.content;
+    usageIn=data.usage?.prompt_tokens||0;
+    usageOut=data.usage?.completion_tokens||0;
+  } else if(provider==='meta'){
+    const key=localStorage.getItem('key_meta');
+    if(!key) throw new Error('Meta APIキーを設定してください（⚙）');
+    const data=await doFetch('https://api.llama.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    reply=data.choices[0].message.content;
+    usageIn=data.usage?.prompt_tokens||0;
+    usageOut=data.usage?.completion_tokens||0;
+  } else if(provider==='cohere'){
+    const key=localStorage.getItem('key_cohere');
+    if(!key) throw new Error('Cohere APIキーを設定してください（⚙）');
+    const cohereHistory=history.map(m=>({role:m.role==='assistant'?'CHATBOT':'USER',message:m.content}));
+    const data=await doFetch('https://api.cohere.com/v1/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,preamble:systemPrompt,chat_history:cohereHistory.slice(0,-1),message:cohereHistory[cohereHistory.length-1]?.message||'',max_tokens:mt})});
+    reply=data.text||'';
+    usageIn=data.meta?.tokens?.input_tokens||0;
+    usageOut=data.meta?.tokens?.output_tokens||0;
+  } else if(provider==='groq'){
+    const key=localStorage.getItem('key_groq');
+    if(!key) throw new Error('Groq APIキーを設定してください（⚙）');
+    const data=await doFetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    reply=data.choices[0].message.content;
+    usageIn=data.usage?.prompt_tokens||0;
+    usageOut=data.usage?.completion_tokens||0;
+  } else if(provider==='perplexity'){
+    const key=localStorage.getItem('key_perplexity');
+    if(!key) throw new Error('Perplexity APIキーを設定してください（⚙）');
+    const data=await doFetch('https://api.perplexity.ai/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    reply=data.choices[0].message.content;
+    usageIn=data.usage?.prompt_tokens||0;
+    usageOut=data.usage?.completion_tokens||0;
+  } else if(provider==='alibaba'){
+    const key=localStorage.getItem('key_alibaba');
+    if(!key) throw new Error('Alibaba APIキーを設定してください（⚙）');
+    const data=await doFetch('https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    reply=data.choices[0].message.content;
+    usageIn=data.usage?.prompt_tokens||0;
+    usageOut=data.usage?.completion_tokens||0;
   } else {
     throw new Error('未対応のプロバイダーです');
   }
@@ -3306,7 +3554,7 @@ async function regenerateMsg(msgIdx){
   const msg=sess.msgs[msgIdx];
   if(!msg||msg.role==='user'||msg.role==='system-info') return;
   const [provider,model]=p.model.split(':');
-  const keyMap={openai:'key_openai',anthropic:'key_anthropic',google:'key_google'};
+  const keyMap={openai:'key_openai',anthropic:'key_anthropic',google:'key_google',xai:'key_xai',deepseek:'key_deepseek',mistral:'key_mistral'};
   const key=localStorage.getItem(keyMap[provider]||'key_openai');
   if(!key){showToast('APIキーが未設定です');return;}
 
@@ -4898,6 +5146,9 @@ async function executeDelete(){
         localStorage.removeItem('key_openai');
         localStorage.removeItem('key_anthropic');
         localStorage.removeItem('key_google');
+        localStorage.removeItem('key_xai');
+        localStorage.removeItem('key_deepseek');
+        localStorage.removeItem('key_mistral');
       }
       if(delPassword){
         localStorage.removeItem('ai_user_pw');
@@ -4964,7 +5215,7 @@ const TRIAL_OCS = [
   {
     aiName: '管理人さん', emoji: '🎨', userName: 'あなた', model: 'openai:gpt-4.1-mini',
     desc: 'あなたのお供に！参謀系、歴の入ったオタク',
-    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・各社APIキー（OpenAI・Anthropic・Google）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得：OpenAI→platform.openai.com→API keys、Anthropic→console.anthropic.com→API Keys、Google→aistudio.google.com→Get API Key\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データはOpenAI/Anthropic/Google各社とも学習に使わない。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・エクスポートしたファイルは端末のダウンロードフォルダに保存される（iCloudやGoogleドライブ等のクラウドとは別）。iPhone→ファイルアプリ→ダウンロード、Android→内部ストレージ→Download。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(毎日・起動時に前日分を作成)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。\n・📝 AI自発メモ：ONにするとAIキャラが覚えておきたいことを自動で思い出メモに書く。キャラ設定でON/OFF。API消費は若干増える。書かれたメモはいつでも削除可。\n・🕐 日時の認識：ONにするとAIが現在の日時を認識。日常会話向け。OFFはロールプレイ向け（タイムスタンプも非表示）。キャラ設定で個別に設定可。\n・📔 OCアイディア帳：管理人さんとキャラ練り→プロンプト完成→ワンタップでメインアプリにキャラ登録。📁プロジェクト管理で作品ごとにフォルダ分け＋共通メモ→登録時に全キャラに共有。\n・📦 お引越し：他AIの会話ログのコピペ or エクスポートファイル読み込み→3段階要約。テキスト要約にも対応。',
+    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・11社APIキー（OpenAI・Anthropic・Google・xAI・Mistral・Meta・Cohere・Groq・Perplexity・DeepSeek・Alibaba）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得先：OpenAI→platform.openai.com/api-keys、Anthropic→console.anthropic.com/settings/keys、Google→aistudio.google.com/app/apikey、xAI→console.x.ai、Mistral→console.mistral.ai/api-keys、Meta→llama.developer.meta.com、Cohere→dashboard.cohere.com/api-keys、Groq→console.groq.com/keys、Perplexity→www.perplexity.ai/settings/api、DeepSeek→platform.deepseek.com/api_keys、Alibaba→bailian.console.aliyun.com\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データは各社とも原則学習に使わない（DeepSeek・Alibabaはデータ保護設定を各自ご確認ください）。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・エクスポートしたファイルは端末のダウンロードフォルダに保存される（iCloudやGoogleドライブ等のクラウドとは別）。iPhone→ファイルアプリ→ダウンロード、Android→内部ストレージ→Download。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(毎日・起動時に前日分を作成)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。\n・📝 AI自発メモ：ONにするとAIキャラが覚えておきたいことを自動で思い出メモに書く。キャラ設定でON/OFF。API消費は若干増える。書かれたメモはいつでも削除可。\n・🕐 日時の認識：ONにするとAIが現在の日時を認識。日常会話向け。OFFはロールプレイ向け（タイムスタンプも非表示）。キャラ設定で個別に設定可。\n・📔 OCアイディア帳：管理人さんとキャラ練り→プロンプト完成→ワンタップでメインアプリにキャラ登録。📁プロジェクト管理で作品ごとにフォルダ分け＋共通メモ→登録時に全キャラに共有。\n・📦 お引越し：他AIの会話ログのコピペ or エクスポートファイル読み込み→3段階要約。テキスト要約にも対応。',
     memory: '創作歴20年以上の女性同人オタク。40代手前。あらゆるジャンルに精通。聞き上手で情熱的。萌え語りでは絵文字全開で大興奮。参謀モードでは冷静に分析。創作に関わることなら本当になんでも相談に乗る。'
   }
 ];
@@ -5070,7 +5321,7 @@ function finishWizard(){
   const wizEmoji=document.getElementById('wiz-emoji').value.trim();
   const aiName=document.getElementById('wiz-ai-name').value.trim()||'AI';
   const userName=document.getElementById('wiz-user-name').value.trim()||'あなた';
-  const model=document.getElementById('wiz-model').value;
+  const model=getProviderModelValue('wiz-model-ui');
   const p=createPersona(aiName,userName,model);
   personas.push(p);
   saveAllNow();
@@ -5143,15 +5394,23 @@ async function startApp(){
   unlockedThemes = await idbGet('ai_unlocked',    []);
 
   // APIキー・設定値（小物）はlocalStorageから
-  document.getElementById('key-openai').value    = localStorage.getItem('key_openai')||'';
-  document.getElementById('key-anthropic').value = localStorage.getItem('key_anthropic')||'';
-  document.getElementById('key-google').value    = localStorage.getItem('key_google')||'';
+  document.getElementById('key-openai').value     = localStorage.getItem('key_openai')||'';
+  document.getElementById('key-anthropic').value  = localStorage.getItem('key_anthropic')||'';
+  document.getElementById('key-google').value     = localStorage.getItem('key_google')||'';
+  document.getElementById('key-xai').value        = localStorage.getItem('key_xai')||'';
+  document.getElementById('key-mistral').value    = localStorage.getItem('key_mistral')||'';
+  document.getElementById('key-meta').value       = localStorage.getItem('key_meta')||'';
+  document.getElementById('key-cohere').value     = localStorage.getItem('key_cohere')||'';
+  document.getElementById('key-groq').value       = localStorage.getItem('key_groq')||'';
+  document.getElementById('key-perplexity').value = localStorage.getItem('key_perplexity')||'';
+  document.getElementById('key-deepseek').value   = localStorage.getItem('key_deepseek')||'';
+  document.getElementById('key-alibaba').value    = localStorage.getItem('key_alibaba')||'';
   document.getElementById('cost-limit').value    = localStorage.getItem('cost_limit')||'';
 
   // モデルselectを動的生成
-  populateModelSelect(document.getElementById('wiz-model'), 'wizard');
-  populateModelSelect(document.getElementById('modal-model'), 'add');
-  populateModelSelect(document.getElementById('edit-model'), 'full');
+  buildProviderModelUI('wiz-model-ui',   'wizard', 'openai:gpt-4.1-mini');
+  buildProviderModelUI('modal-model-ui', 'add',    'openai:gpt-4.1-mini');
+  // edit-model-uiは openPersonaSettings() でキャラのモデル値を渡して構築
 
   // テーマ適用
   applyTheme(currentTheme);
@@ -5335,16 +5594,40 @@ function focusEmojiInput(inputId){
             <div class="hp-step"><div class="hp-step-num">2</div><div class="hp-step-text"><strong>APIキー欄</strong> に取得したキーを貼り付ける</div></div>
             <div class="hp-step"><div class="hp-step-num">3</div><div class="hp-step-text">使うモデルに合ったキーを設定する<br>（OpenAIモデル → OpenAIキー、Claudeモデル → Anthropicキー）</div></div>
           </div>
-          <div class="hp-note info" style="margin-top:10px;">APIキーの取得先はこちら↓</div>
+          <div class="hp-note info" style="margin-top:10px;">APIキーの取得先はこちら↓（11社対応）</div>
           <div class="hp-provider-links">
             <a class="hp-provider-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">
-              <div><div>🤖 OpenAI</div><div class="hp-pl-sub">GPT-4o・GPT-4o-miniなど</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+              <div><div>🤖 OpenAI</div><div class="hp-pl-sub">GPT-4o・GPT-4.1・GPT-5系など</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
             </a>
             <a class="hp-provider-link" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">
               <div><div>🌟 Anthropic</div><div class="hp-pl-sub">Claude Sonnet・Haikuなど</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
             </a>
             <a class="hp-provider-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">
-              <div><div>✨ Google</div><div class="hp-pl-sub">Gemini 2.0 Flash・Proなど（無料枠あり）</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+              <div><div>✨ Google</div><div class="hp-pl-sub">Gemini 2.5 Flash・Proなど（無料枠あり）</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+            </a>
+            <a class="hp-provider-link" href="https://console.x.ai" target="_blank" rel="noopener">
+              <div><div>⚡ xAI</div><div class="hp-pl-sub">Grok 4・Grok 4 Fastなど</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+            </a>
+            <a class="hp-provider-link" href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">
+              <div><div>🇫🇷 Mistral</div><div class="hp-pl-sub">Mistral Large・Small（EU基準のデータ保護）</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+            </a>
+            <a class="hp-provider-link" href="https://llama.developer.meta.com" target="_blank" rel="noopener">
+              <div><div>🦙 Meta</div><div class="hp-pl-sub">Llama 3.3 70B・Llama 3.1 8Bなど</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+            </a>
+            <a class="hp-provider-link" href="https://dashboard.cohere.com/api-keys" target="_blank" rel="noopener">
+              <div><div>🔵 Cohere</div><div class="hp-pl-sub">Command R+・Command Rなど</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+            </a>
+            <a class="hp-provider-link" href="https://console.groq.com/keys" target="_blank" rel="noopener">
+              <div><div>⚡ Groq</div><div class="hp-pl-sub">Llama 3.3・Gemma2を超高速処理</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+            </a>
+            <a class="hp-provider-link" href="https://www.perplexity.ai/settings/api" target="_blank" rel="noopener">
+              <div><div>🔍 Perplexity</div><div class="hp-pl-sub">Sonar Pro・Sonar（Web検索付き）</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+            </a>
+            <a class="hp-provider-link" href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" style="opacity:.8">
+              <div><div>🌏 DeepSeek</div><div class="hp-pl-sub">DeepSeek Chat・R1　※データ保護設定を各自ご確認ください</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
+            </a>
+            <a class="hp-provider-link" href="https://bailian.console.aliyun.com" target="_blank" rel="noopener" style="opacity:.8">
+              <div><div>🌏 Alibaba</div><div class="hp-pl-sub">Qwen Max・Plus・Turbo　※データ保護設定を各自ご確認ください</div></div><span style="margin-left:auto;color:var(--accent)">↗</span>
             </a>
           </div>
         </div>
