@@ -3491,10 +3491,13 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
     if(!key) throw new Error('Google APIキーを設定してください（⚙）');
     const contents=history.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
     const data=await doFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:systemPrompt}]},contents,generationConfig:{maxOutputTokens:mt}})});
+    if(!data.candidates||!data.candidates[0]||!data.candidates[0].content){
+      const reason=data.promptFeedback?.blockReason||data.candidates?.[0]?.finishReason||'不明';
+      throw new Error('Geminiが応答を返せませんでした（理由: '+reason+'）。プロンプトがコンテンツフィルターに引っかかった可能性があります。');
+    }
     reply=data.candidates[0].content.parts[0].text;
     usageIn=data.usageMetadata?.promptTokenCount||0;
     usageOut=data.usageMetadata?.candidatesTokenCount||0;
-    usageOut=data.usage?.completion_tokens||0;
   } else if(provider==='deepseek'){
     const key=localStorage.getItem('key_deepseek');
     if(!key) throw new Error('DeepSeek APIキーを設定してください（⚙）');
