@@ -2963,7 +2963,17 @@ async function doWriteDiary(p, dateStr){
   showToast('📔 '+p.aiName+'が日記を書いています…');
   try{
     const [provider,model]=p.model.split(':');
-    const reply=await callAPI(provider,model,diaryPrompt,[{role:'user',content:'今日の振り返りを書いてください'}],null,300);
+    // 日記用：systemPromptにはキャラ設定のみ、日記指示はuserメッセージとして送る
+    const diarySystem=p.systemPrompt?('あなたは「'+p.aiName+'」です。\n'+p.systemPrompt.slice(0,300)):'あなたは「'+p.aiName+'」です。';
+    const diaryUserMsg=
+      '以下の今日の会話を振り返って、あなた（'+p.aiName+'）視点の短い日記を書いてください。\n\n'+
+      '【今日の会話】\n'+chatLog+'\n\n'+
+      '【ルール】\n'+
+      '- '+p.aiName+'の口調・性格で書くこと\n'+
+      '- 200文字以内\n'+
+      '- 日記の冒頭に日付を書かないこと（自動で付きます）\n'+
+      '- 「日記」とは言わず、自然な振り返りとして書くこと';
+    const reply=await callAPI(provider,model,diarySystem,[{role:'user',content:diaryUserMsg}],null,300);
     if(!p.diary) p.diary=[];
     // 今日の既存を上書き
     const existing=p.diary.findIndex(d=>d.date===dateStr);
@@ -3048,9 +3058,8 @@ async function doWriteDiaryForDate(p,targetDate,dateStr){
     return speaker+'「'+(m.content||'').slice(0,100)+'」';
   }).join('\n');
 
-  const diaryPrompt=
-    'あなたは「'+p.aiName+'」です。\n'+
-    (p.systemPrompt?'【あなたの設定】\n'+p.systemPrompt.slice(0,300)+'\n\n':'')+
+  const diarySystem=p.systemPrompt?('あなたは「'+p.aiName+'」です。\n'+p.systemPrompt.slice(0,300)):'あなたは「'+p.aiName+'」です。';
+  const diaryUserMsg=
     dateStr+'の会話を振り返って、あなた（'+p.aiName+'）視点の短い日記を書いてください。\n\n'+
     '【会話】\n'+chatLog+'\n\n'+
     '【ルール】\n'+
@@ -3061,8 +3070,9 @@ async function doWriteDiaryForDate(p,targetDate,dateStr){
 
   try{
     const [provider,model]=p.model.split(':');
-    const reply=await callAPI(provider,model,diaryPrompt,[{role:'user',content:'振り返りを書いてください'}],null,300);
+    const reply=await callAPI(provider,model,diarySystem,[{role:'user',content:diaryUserMsg}],null,300);
     if(!p.diary) p.diary=[];
+    const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
     const estimatedCost=(chatLog.length/4/1000)*price.in+(200/1000)*price.out;
     p.diary.push({date:dateStr, text:reply.trim(), cost:estimatedCost, createdAt:Date.now()});
     saveAllNow();
