@@ -761,7 +761,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
     <button class="sb-btn" onclick="addMemory()">＋ 追加</button>
     <button class="sb-btn" onclick="clearMemory()" style="margin-top:3px">🗑 思い出メモを全削除</button>
-    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる (build:0309b)</div>
+    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる (build:0309c)</div>
   </div>
 
   <!-- my dAIary（AI日記） -->
@@ -2973,7 +2973,7 @@ async function doWriteDiary(p, dateStr){
       '- 200文字以内\n'+
       '- 日記の冒頭に日付を書かないこと（自動で付きます）\n'+
       '- 「日記」とは言わず、自然な振り返りとして書くこと';
-    const reply=await callAPI(provider,model,diarySystem,[{role:'user',content:diaryUserMsg}],null,300);
+    const reply=await callAPI(provider,model,diarySystem,[{role:'user',content:diaryUserMsg}],null,800);
     if(!p.diary) p.diary=[];
     // 今日の既存を上書き
     const existing=p.diary.findIndex(d=>d.date===dateStr);
@@ -3070,7 +3070,7 @@ async function doWriteDiaryForDate(p,targetDate,dateStr){
 
   try{
     const [provider,model]=p.model.split(':');
-    const reply=await callAPI(provider,model,diarySystem,[{role:'user',content:diaryUserMsg}],null,300);
+    const reply=await callAPI(provider,model,diarySystem,[{role:'user',content:diaryUserMsg}],null,800);
     if(!p.diary) p.diary=[];
     const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
     const estimatedCost=(chatLog.length/4/1000)*price.in+(200/1000)*price.out;
@@ -3515,15 +3515,20 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
       mergedContents.unshift({role:'user',parts:[{text:'（会話の続きです）'}]});
     }
     const data=await doFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:systemPrompt}]},contents:mergedContents,generationConfig:{maxOutputTokens:mt}})});
-    if(!data.candidates||!data.candidates[0]||!data.candidates[0].content){
-      const reason=data.promptFeedback?.blockReason||data.candidates?.[0]?.finishReason||'不明';
-      throw new Error('Geminiが応答を返せませんでした（理由: '+reason+'）。内容がフィルターに引っかかった可能性があります。別のモデルか内容で再試行してください。');
+    if(!data.candidates||!data.candidates[0]){
+      const reason=data.promptFeedback?.blockReason||'応答なし';
+      throw new Error('Geminiが応答を返せませんでした（理由: '+reason+'）。');
     }
-    try{
-      reply=data.candidates[0].content.parts[0].text;
-    }catch(parseErr){
-      throw new Error('Geminiの応答を解析できませんでした。応答形式: '+JSON.stringify(data.candidates[0]).slice(0,200));
+    const cand=data.candidates[0];
+    const parts=cand.content?.parts;
+    if(!parts||!parts[0]||!parts[0].text){
+      const reason=cand.finishReason||'不明';
+      if(reason==='MAX_TOKENS'){
+        throw new Error('Geminiの出力トークン上限に達しました。再試行してください。');
+      }
+      throw new Error('Geminiが応答テキストを返しませんでした（finishReason: '+reason+'）。');
     }
+    reply=parts[0].text;
     usageIn=data.usageMetadata?.promptTokenCount||0;
     usageOut=data.usageMetadata?.candidatesTokenCount||0;
   } else if(provider==='deepseek'){
