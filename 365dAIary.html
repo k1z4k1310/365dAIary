@@ -2963,8 +2963,7 @@ async function doWriteDiary(p, dateStr){
   showToast('📔 '+p.aiName+'が日記を書いています…');
   try{
     const [provider,model]=p.model.split(':');
-    const reply=await callAPI(provider,model,diaryPrompt,[],null,300);
-    // 保存
+    const reply=await callAPI(provider,model,diaryPrompt,[{role:'user',content:'今日の振り返りを書いてください'}],null,300);
     if(!p.diary) p.diary=[];
     // 今日の既存を上書き
     const existing=p.diary.findIndex(d=>d.date===dateStr);
@@ -3062,9 +3061,8 @@ async function doWriteDiaryForDate(p,targetDate,dateStr){
 
   try{
     const [provider,model]=p.model.split(':');
-    const reply=await callAPI(provider,model,diaryPrompt,[],null,300);
+    const reply=await callAPI(provider,model,diaryPrompt,[{role:'user',content:'振り返りを書いてください'}],null,300);
     if(!p.diary) p.diary=[];
-    const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
     const estimatedCost=(chatLog.length/4/1000)*price.in+(200/1000)*price.out;
     p.diary.push({date:dateStr, text:reply.trim(), cost:estimatedCost, createdAt:Date.now()});
     saveAllNow();
