@@ -3490,10 +3490,24 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
     const key=localStorage.getItem('key_google');
     if(!key) throw new Error('Google APIキーを設定してください（⚙）');
     const contents=history.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
-    const data=await doFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:systemPrompt}]},contents,generationConfig:{maxOutputTokens:mt}})});
+    if(contents.length===0) contents.push({role:'user',parts:[{text:'返答してください'}]});
+    // Gemini: 連続する同じロールをマージ
+    const mergedContents=[];
+    contents.forEach(c=>{
+      if(mergedContents.length>0&&mergedContents[mergedContents.length-1].role===c.role){
+        mergedContents[mergedContents.length-1].parts.push(...c.parts);
+      } else {
+        mergedContents.push({role:c.role,parts:[...c.parts]});
+      }
+    });
+    // Gemini: 最初はuserである必要がある
+    if(mergedContents.length>0&&mergedContents[0].role!=='user'){
+      mergedContents.unshift({role:'user',parts:[{text:'（会話の続きです）'}]});
+    }
+    const data=await doFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:systemPrompt}]},contents:mergedContents,generationConfig:{maxOutputTokens:mt}})});
     if(!data.candidates||!data.candidates[0]||!data.candidates[0].content){
       const reason=data.promptFeedback?.blockReason||data.candidates?.[0]?.finishReason||'不明';
-      throw new Error('Geminiが応答を返せませんでした（理由: '+reason+'）。プロンプトがコンテンツフィルターに引っかかった可能性があります。');
+      throw new Error('Geminiが応答を返せませんでした（理由: '+reason+'）。内容がフィルターに引っかかった可能性があります。別のモデルか内容で再試行してください。');
     }
     reply=data.candidates[0].content.parts[0].text;
     usageIn=data.usageMetadata?.promptTokenCount||0;
