@@ -761,7 +761,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
     <button class="sb-btn" onclick="addMemory()">＋ 追加</button>
     <button class="sb-btn" onclick="clearMemory()" style="margin-top:3px">🗑 思い出メモを全削除</button>
-    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる</div>
+    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる (build:0309b)</div>
   </div>
 
   <!-- my dAIary（AI日記） -->
@@ -2987,7 +2987,7 @@ async function doWriteDiary(p, dateStr){
     updateDiaryUI();
     showToast('📔 日記を書きました！');
   } catch(e){
-    showToast('⚠ 日記の生成に失敗: '+e.message);
+    showErrorPopup('日記の生成に失敗しました\n\n'+e.message);
   }
 }
 
@@ -3519,7 +3519,11 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
       const reason=data.promptFeedback?.blockReason||data.candidates?.[0]?.finishReason||'不明';
       throw new Error('Geminiが応答を返せませんでした（理由: '+reason+'）。内容がフィルターに引っかかった可能性があります。別のモデルか内容で再試行してください。');
     }
-    reply=data.candidates[0].content.parts[0].text;
+    try{
+      reply=data.candidates[0].content.parts[0].text;
+    }catch(parseErr){
+      throw new Error('Geminiの応答を解析できませんでした。応答形式: '+JSON.stringify(data.candidates[0]).slice(0,200));
+    }
     usageIn=data.usageMetadata?.promptTokenCount||0;
     usageOut=data.usageMetadata?.candidatesTokenCount||0;
   } else if(provider==='deepseek'){
