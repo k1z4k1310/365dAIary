@@ -943,6 +943,14 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
   <div id="search-panel" style="padding:6px 10px;border-bottom:1px solid;display:flex;flex-direction:column;gap:5px">
     <input id="sess-search" type="text" placeholder="🔍 会話を検索…" style="width:100%;font-size:12px;padding:6px 8px;border-radius:6px;border:1px solid;outline:none;background:none;color:inherit;box-sizing:border-box;font-family:monospace">
     <div style="display:flex;gap:4px;align-items:center">
+      <button id="search-scope-all" onclick="setSearchScope('all')" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid;cursor:pointer;font-family:monospace;flex:1">👥 全キャラ</button>
+      <button id="search-scope-one" onclick="setSearchScope('one')" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid;cursor:pointer;font-family:monospace;flex:1">🐱 このキャラ</button>
+    </div>
+    <div style="display:flex;gap:4px;align-items:center">
+      <select id="sess-folder-filter" onchange="renderSessions()" style="flex:1;font-size:10px;padding:3px 4px;border-radius:4px;border:1px solid;background:none;color:inherit;font-family:monospace"></select>
+      <button onclick="openFolderManager()" title="フォルダ管理" style="font-size:12px;padding:2px 6px;border-radius:4px;border:1px solid;background:none;cursor:pointer;color:inherit;font-family:monospace;opacity:.7">📁</button>
+    </div>
+    <div style="display:flex;gap:4px;align-items:center">
       <input id="sess-date-from" type="date" style="flex:1;font-size:10px;padding:3px 4px;border-radius:4px;border:1px solid;background:none;color:inherit;font-family:monospace">
       <span style="font-size:10px;opacity:.5">〜</span>
       <input id="sess-date-to" type="date" style="flex:1;font-size:10px;padding:3px 4px;border-radius:4px;border:1px solid;background:none;color:inherit;font-family:monospace">
@@ -1078,54 +1086,71 @@ const PROVIDER_DEF = [
 const MODEL_DEF = [
   // {value:'provider:model', provider, label, shortLabel, price:{in,out}, wizard:true}
   // ── OpenAI ──
-  {value:'openai:gpt-5.4',                      provider:'openai',     label:'GPT-5.4（最新）',              shortLabel:'GPT-5.4',                  price:{in:0.00175,out:0.014},   wizard:true},
-  {value:'openai:gpt-5.4-pro',                  provider:'openai',     label:'GPT-5.4 Pro（最高性能）',      shortLabel:'GPT-5.4 Pro',              price:{in:0.00175,out:0.014},   wizard:true},
-  {value:'openai:gpt-5.3-chat-latest',          provider:'openai',     label:'GPT-5.3 Instant（ChatGPT版）', shortLabel:'GPT-5.3 Instant',          price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.3-codex',                provider:'openai',     label:'GPT-5.3 Codex（コーディング）',shortLabel:'GPT-5.3 Codex',            price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.2',                      provider:'openai',     label:'GPT-5.2',                      shortLabel:'GPT-5.2',                  price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.2-codex',                provider:'openai',     label:'GPT-5.2 Codex（コーディング）',shortLabel:'GPT-5.2 Codex',            price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.1',                      provider:'openai',     label:'GPT-5.1',                      shortLabel:'GPT-5.1',                  price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5',                        provider:'openai',     label:'GPT-5',                        shortLabel:'GPT-5',                    price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-4.1-mini',                 provider:'openai',     label:'GPT-4.1 mini（おすすめ）',     shortLabel:'GPT-4.1 mini（おすすめ）', price:{in:0.0004,out:0.0016},   wizard:true},
-  {value:'openai:gpt-4.1',                      provider:'openai',     label:'GPT-4.1',                      shortLabel:'GPT-4.1',                  price:{in:0.002, out:0.008},    wizard:true},
-  {value:'openai:gpt-4.1-nano',                 provider:'openai',     label:'GPT-4.1 nano（最安）',         shortLabel:'GPT-4.1 nano（最安）',     price:{in:0.0001,out:0.0004},   wizard:true},
-  {value:'openai:gpt-4o',                       provider:'openai',     label:'GPT-4o（自動更新）',           shortLabel:'GPT-4o（自動更新）',       price:{in:0.0025,out:0.01},     wizard:true},
-  {value:'openai:gpt-4o-2024-11-20',            provider:'openai',     label:'GPT-4o 2024-11-20',            shortLabel:'GPT-4o 2024-11-20',        price:{in:0.0025,out:0.01}},
-  {value:'openai:gpt-4o-2024-08-06',            provider:'openai',     label:'GPT-4o 2024-08-06',            shortLabel:'GPT-4o 2024-08-06',        price:{in:0.0025,out:0.01}},
-  {value:'openai:gpt-4o-2024-05-13',            provider:'openai',     label:'GPT-4o 2024-05-13（初代）',    shortLabel:'GPT-4o 2024-05-13（初代）',price:{in:0.005, out:0.015}},
-  {value:'openai:gpt-4o-mini',                  provider:'openai',     label:'GPT-4o mini',                  shortLabel:'GPT-4o mini',              price:{in:0.00015,out:0.0006},  wizard:true},
+  {value:'openai:gpt-5.5',                      provider:'openai',     label:'GPT-5.5（最新）',                  shortLabel:'GPT-5.5',                      price:{in:0.0025,out:0.015},    wizard:true},
+  {value:'openai:gpt-5.5-pro',                  provider:'openai',     label:'GPT-5.5 Pro（最高性能）',          shortLabel:'GPT-5.5 Pro',                  price:{in:0.0025,out:0.015},    wizard:true},
+  {value:'openai:gpt-5.4',                      provider:'openai',     label:'GPT-5.4',                          shortLabel:'GPT-5.4',                      price:{in:0.00175,out:0.014},   wizard:true},
+  {value:'openai:gpt-5.4-pro',                  provider:'openai',     label:'GPT-5.4 Pro',                      shortLabel:'GPT-5.4 Pro',                  price:{in:0.00175,out:0.014},   wizard:true},
+  {value:'openai:gpt-5.4-mini',                 provider:'openai',     label:'GPT-5.4 mini（おすすめ）',         shortLabel:'GPT-5.4 mini（おすすめ）',     price:{in:0.00075,out:0.003},   wizard:true},
+  {value:'openai:gpt-5.4-nano',                 provider:'openai',     label:'GPT-5.4 nano（最安）',             shortLabel:'GPT-5.4 nano（最安）',         price:{in:0.0002,out:0.0008},   wizard:true},
+  {value:'openai:gpt-5.3-chat-latest',          provider:'openai',     label:'GPT-5.3 Instant（ChatGPT版）',     shortLabel:'GPT-5.3 Instant',              price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.3-codex',                provider:'openai',     label:'GPT-5.3 Codex（コーディング）',    shortLabel:'GPT-5.3 Codex',                price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.2',                      provider:'openai',     label:'GPT-5.2',                          shortLabel:'GPT-5.2',                      price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.2-codex',                provider:'openai',     label:'GPT-5.2 Codex（コーディング）',    shortLabel:'GPT-5.2 Codex',                price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.1',                      provider:'openai',     label:'⚠️ GPT-5.1（ChatGPTから削除済み）', shortLabel:'⚠️ GPT-5.1',                   price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5',                        provider:'openai',     label:'GPT-5',                            shortLabel:'GPT-5',                        price:{in:0.00125,out:0.01}},
+  {value:'openai:gpt-4.1-mini',                 provider:'openai',     label:'GPT-4.1 mini',                     shortLabel:'GPT-4.1 mini',                 price:{in:0.0004,out:0.0016},   wizard:true},
+  {value:'openai:gpt-4.1',                      provider:'openai',     label:'GPT-4.1',                          shortLabel:'GPT-4.1',                      price:{in:0.002, out:0.008},    wizard:true},
+  {value:'openai:gpt-4.1-nano',                 provider:'openai',     label:'GPT-4.1 nano',                     shortLabel:'GPT-4.1 nano',                 price:{in:0.0001,out:0.0004},   wizard:true},
+  {value:'openai:gpt-4o',                       provider:'openai',     label:'⚠️ GPT-4o（ChatGPTから削除済み）',  shortLabel:'⚠️ GPT-4o',                    price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-11-20',            provider:'openai',     label:'⚠️ GPT-4o 2024-11-20',             shortLabel:'⚠️ GPT-4o 2024-11-20',         price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-08-06',            provider:'openai',     label:'⚠️ GPT-4o 2024-08-06',             shortLabel:'⚠️ GPT-4o 2024-08-06',         price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-05-13',            provider:'openai',     label:'⚠️ GPT-4o 2024-05-13（初代）',     shortLabel:'⚠️ GPT-4o 2024-05-13',         price:{in:0.005, out:0.015}},
+  {value:'openai:gpt-4o-mini',                  provider:'openai',     label:'GPT-4o mini',                      shortLabel:'GPT-4o mini',                  price:{in:0.00015,out:0.0006},  wizard:true},
   // ── Anthropic ──
-  {value:'anthropic:claude-sonnet-4-5',         provider:'anthropic',  label:'Claude Sonnet 4.5',            shortLabel:'Claude Sonnet 4.5',        price:{in:0.003, out:0.015},    wizard:true},
-  {value:'anthropic:claude-3-5-sonnet-20241022',provider:'anthropic',  label:'Claude 3.5 Sonnet',            shortLabel:'Claude 3.5 Sonnet',        price:{in:0.003, out:0.015},    wizard:true},
-  {value:'anthropic:claude-3-5-haiku-20241022', provider:'anthropic',  label:'Claude 3.5 Haiku',             shortLabel:'Claude 3.5 Haiku',         price:{in:0.0008, out:0.004}},
-  {value:'anthropic:claude-3-haiku-20240307',   provider:'anthropic',  label:'Claude 3 Haiku',               shortLabel:'Claude 3 Haiku',           price:{in:0.00025,out:0.00125}},
+  {value:'anthropic:claude-opus-4-7',           provider:'anthropic',  label:'Claude Opus 4.7（最新）',          shortLabel:'Claude Opus 4.7',              price:{in:0.005, out:0.025},    wizard:true},
+  {value:'anthropic:claude-opus-4-6',           provider:'anthropic',  label:'Claude Opus 4.6',                  shortLabel:'Claude Opus 4.6',              price:{in:0.005, out:0.025},    wizard:true},
+  {value:'anthropic:claude-sonnet-4-6',         provider:'anthropic',  label:'Claude Sonnet 4.6',                shortLabel:'Claude Sonnet 4.6',            price:{in:0.003, out:0.015},    wizard:true},
+  {value:'anthropic:claude-sonnet-4-5',         provider:'anthropic',  label:'Claude Sonnet 4.5',                shortLabel:'Claude Sonnet 4.5',            price:{in:0.003, out:0.015},    wizard:true},
+  {value:'anthropic:claude-haiku-4-5-20251001', provider:'anthropic',  label:'Claude Haiku 4.5',                 shortLabel:'Claude Haiku 4.5',             price:{in:0.001, out:0.005},    wizard:true},
+  {value:'anthropic:claude-3-5-sonnet-20241022',provider:'anthropic',  label:'Claude 3.5 Sonnet',                shortLabel:'Claude 3.5 Sonnet',            price:{in:0.003, out:0.015}},
+  {value:'anthropic:claude-3-5-haiku-20241022', provider:'anthropic',  label:'Claude 3.5 Haiku',                 shortLabel:'Claude 3.5 Haiku',             price:{in:0.0008, out:0.004}},
+  {value:'anthropic:claude-3-haiku-20240307',   provider:'anthropic',  label:'⚠️ Claude 3 Haiku（廃止済み）',    shortLabel:'⚠️ Claude 3 Haiku',            price:{in:0.00025,out:0.00125}},
   // ── Google ──
-  {value:'google:gemini-2.5-pro',               provider:'google',     label:'Gemini 2.5 Pro（高性能）',     shortLabel:'Gemini 2.5 Pro',           price:{in:0.00125,out:0.01000}, wizard:true},
-  {value:'google:gemini-2.5-flash',             provider:'google',     label:'Gemini 2.5 Flash',             shortLabel:'Gemini 2.5 Flash',         price:{in:0.00015,out:0.00035}, wizard:true},
-  {value:'google:gemini-2.5-flash-lite',        provider:'google',     label:'Gemini 2.5 Flash-Lite（軽量）',shortLabel:'Gemini 2.5 Flash-Lite',    price:{in:0.00004,out:0.00016}, wizard:true},
+  {value:'google:gemini-3.1-pro-preview',       provider:'google',     label:'Gemini 3.1 Pro（最新・高性能）',   shortLabel:'Gemini 3.1 Pro',               price:{in:0.002, out:0.012},    wizard:true},
+  {value:'google:gemini-3.1-flash-lite-preview',provider:'google',     label:'Gemini 3.1 Flash-Lite（最新・軽量）',shortLabel:'Gemini 3.1 Flash-Lite',      price:{in:0.00025,out:0.0015},  wizard:true},
+  {value:'google:gemini-3-flash-preview',       provider:'google',     label:'Gemini 3 Flash',                   shortLabel:'Gemini 3 Flash',               price:{in:0.0005, out:0.003},   wizard:true},
+  {value:'google:gemini-2.5-pro',               provider:'google',     label:'Gemini 2.5 Pro',                   shortLabel:'Gemini 2.5 Pro',               price:{in:0.00125,out:0.01},    wizard:true},
+  {value:'google:gemini-2.5-flash',             provider:'google',     label:'Gemini 2.5 Flash',                 shortLabel:'Gemini 2.5 Flash',             price:{in:0.00015,out:0.00035}, wizard:true},
+  {value:'google:gemini-2.5-flash-lite',        provider:'google',     label:'⚠️ Gemini 2.5 Flash-Lite（6月廃止予定）',shortLabel:'⚠️ Gemini 2.5 Flash-Lite',price:{in:0.00004,out:0.00016}},
   // ── Mistral ──
-  {value:'mistral:mistral-large-latest',        provider:'mistral',    label:'Mistral Large（高性能）',      shortLabel:'Mistral Large',            price:{in:0.002,out:0.006},     wizard:true},
-  {value:'mistral:mistral-small-latest',        provider:'mistral',    label:'Mistral Small（軽量）',        shortLabel:'Mistral Small',            price:{in:0.0001,out:0.0003},   wizard:true},
+  {value:'mistral:mistral-large-latest',        provider:'mistral',    label:'Mistral Large（高性能）',           shortLabel:'Mistral Large',                price:{in:0.002,out:0.006},     wizard:true},
+  {value:'mistral:mistral-small-latest',        provider:'mistral',    label:'Mistral Small（軽量）',             shortLabel:'Mistral Small',                price:{in:0.0001,out:0.0003},   wizard:true},
   // ── Meta (Llama) ──
-  {value:'meta:llama-3.3-70b-instruct',         provider:'meta',       label:'Llama 3.3 70B（高性能）',      shortLabel:'Llama 3.3 70B',            price:{in:0.00059,out:0.00079}, wizard:true},
-  {value:'meta:llama-3.1-8b-instruct',          provider:'meta',       label:'Llama 3.1 8B（軽量）',         shortLabel:'Llama 3.1 8B',             price:{in:0.00018,out:0.00018}, wizard:true},
+  {value:'meta:llama-3.3-70b-instruct',         provider:'meta',       label:'Llama 3.3 70B（高性能）',           shortLabel:'Llama 3.3 70B',                price:{in:0.00059,out:0.00079}, wizard:true},
+  {value:'meta:llama-3.1-8b-instruct',          provider:'meta',       label:'Llama 3.1 8B（軽量）',              shortLabel:'Llama 3.1 8B',                 price:{in:0.00018,out:0.00018}, wizard:true},
   // ── Cohere ──
-  {value:'cohere:command-r-plus-08-2024',       provider:'cohere',     label:'Command R+（高性能）',         shortLabel:'Command R+',               price:{in:0.0025,out:0.01},     wizard:true},
-  {value:'cohere:command-r-08-2024',            provider:'cohere',     label:'Command R（標準）',            shortLabel:'Command R',                price:{in:0.00015,out:0.0006},  wizard:true},
+  {value:'cohere:command-a-03-2025',            provider:'cohere',     label:'Command A（最新・高性能）',         shortLabel:'Command A',                    price:{in:0.0025,out:0.01},     wizard:true},
+  {value:'cohere:command-r-plus-08-2024',       provider:'cohere',     label:'Command R+',                        shortLabel:'Command R+',                   price:{in:0.0025,out:0.01}},
+  {value:'cohere:command-r-08-2024',            provider:'cohere',     label:'Command R',                         shortLabel:'Command R',                    price:{in:0.00015,out:0.0006}},
   // ── Groq ──
-  {value:'groq:llama-3.3-70b-versatile',        provider:'groq',       label:'Llama 3.3 70B（超高速）',      shortLabel:'Llama 3.3 70B（超高速）',  price:{in:0.00059,out:0.00079}, wizard:true},
-  {value:'groq:llama-3.1-8b-instant',           provider:'groq',       label:'Llama 3.1 8B Instant（爆速）', shortLabel:'Llama 3.1 8B（爆速）',     price:{in:0.00005,out:0.00008}, wizard:true},
-  {value:'groq:gemma2-9b-it',                   provider:'groq',       label:'Gemma2 9B（Google製・高速）',  shortLabel:'Gemma2 9B（高速）',        price:{in:0.0002,out:0.0002}},
+  {value:'groq:openai/gpt-oss-120b',            provider:'groq',       label:'GPT-OSS 120B（超高速・高性能）',    shortLabel:'GPT-OSS 120B（超高速）',       price:{in:0.00015,out:0.0006},  wizard:true},
+  {value:'groq:openai/gpt-oss-20b',             provider:'groq',       label:'GPT-OSS 20B（超高速・軽量）',       shortLabel:'GPT-OSS 20B（超高速）',        price:{in:0.000075,out:0.0003}, wizard:true},
+  {value:'groq:qwen/qwen3-32b',                 provider:'groq',       label:'Qwen3 32B（超高速）',               shortLabel:'Qwen3 32B（超高速）',          price:{in:0.00029,out:0.00059}, wizard:true},
+  {value:'groq:meta-llama/llama-4-scout-17b-16e-instruct', provider:'groq', label:'Llama 4 Scout（超高速）', shortLabel:'Llama 4 Scout（超高速）',          price:{in:0.00011,out:0.00034}, wizard:true},
+  {value:'groq:llama-3.3-70b-versatile',        provider:'groq',       label:'Llama 3.3 70B（超高速）',           shortLabel:'Llama 3.3 70B（超高速）',      price:{in:0.00059,out:0.00079}},
+  {value:'groq:llama-3.1-8b-instant',           provider:'groq',       label:'Llama 3.1 8B Instant（爆速）',      shortLabel:'Llama 3.1 8B（爆速）',         price:{in:0.00005,out:0.00008}, wizard:true},
+  {value:'groq:gemma2-9b-it',                   provider:'groq',       label:'⚠️ Gemma2 9B（廃止の可能性あり）',  shortLabel:'⚠️ Gemma2 9B',                price:{in:0.0002,out:0.0002}},
   // ── Perplexity ──
-  {value:'perplexity:sonar-pro',                provider:'perplexity', label:'Sonar Pro（Web検索付き）',     shortLabel:'Sonar Pro',                price:{in:0.003,out:0.015},     wizard:true},
-  {value:'perplexity:sonar',                    provider:'perplexity', label:'Sonar（Web検索付き・軽量）',   shortLabel:'Sonar',                    price:{in:0.001,out:0.001},     wizard:true},
+  {value:'perplexity:sonar-pro',                provider:'perplexity', label:'Sonar Pro（Web検索付き）',           shortLabel:'Sonar Pro',                    price:{in:0.003,out:0.015},     wizard:true},
+  {value:'perplexity:sonar',                    provider:'perplexity', label:'Sonar（Web検索付き・軽量）',         shortLabel:'Sonar',                        price:{in:0.001,out:0.001},     wizard:true},
   // ── DeepSeek ──
-  {value:'deepseek:deepseek-chat',              provider:'deepseek',   label:'DeepSeek Chat',                shortLabel:'DeepSeek Chat',            price:{in:0.00027,out:0.0011},  wizard:true},
-  {value:'deepseek:deepseek-r1',                provider:'deepseek',   label:'DeepSeek R1（推論）',          shortLabel:'DeepSeek R1',              price:{in:0.00055,out:0.00219}},
+  {value:'deepseek:deepseek-chat',              provider:'deepseek',   label:'DeepSeek Chat（V3系）',             shortLabel:'DeepSeek Chat',                price:{in:0.00027,out:0.0011},  wizard:true},
+  {value:'deepseek:deepseek-r1',                provider:'deepseek',   label:'DeepSeek R1（推論）',               shortLabel:'DeepSeek R1',                  price:{in:0.00055,out:0.00219}},
   // ── Alibaba (Qwen) ──
-  {value:'alibaba:qwen-max',                    provider:'alibaba',    label:'Qwen Max（高性能）',           shortLabel:'Qwen Max',                 price:{in:0.0016,out:0.0064},   wizard:true},
-  {value:'alibaba:qwen-plus',                   provider:'alibaba',    label:'Qwen Plus（標準）',            shortLabel:'Qwen Plus',                price:{in:0.0004,out:0.0012},   wizard:true},
-  {value:'alibaba:qwen-turbo',                  provider:'alibaba',    label:'Qwen Turbo（軽量）',           shortLabel:'Qwen Turbo',               price:{in:0.00005,out:0.0002}},
+  {value:'alibaba:qwen3-235b-a22b',             provider:'alibaba',    label:'Qwen3 235B（最新・最高性能）',      shortLabel:'Qwen3 235B',                   price:{in:0.0016,out:0.0064},   wizard:true},
+  {value:'alibaba:qwen-max',                    provider:'alibaba',    label:'Qwen Max',                          shortLabel:'Qwen Max',                     price:{in:0.0016,out:0.0064}},
+  {value:'alibaba:qwen-plus',                   provider:'alibaba',    label:'Qwen Plus',                         shortLabel:'Qwen Plus',                    price:{in:0.0004,out:0.0012},   wizard:true},
+  {value:'alibaba:qwen-turbo',                  provider:'alibaba',    label:'Qwen Turbo（軽量）',                shortLabel:'Qwen Turbo',                   price:{in:0.00005,out:0.0002}},
 ];
 
 // MODEL_PRICEをMODEL_DEFから自動生成
@@ -1218,6 +1243,25 @@ function getProviderModelValue(wrapperId){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.0.5',
+    date: '2026-05-05',
+    label: '🤖 モデル大幅最新化（全プロバイダ対応）',
+    items: [
+      '🤖 OpenAI：GPT-5.5 / GPT-5.5 Pro / GPT-5.4 mini / GPT-5.4 nanoを追加',
+      '🤖 Anthropic：Claude Opus 4.7 / Opus 4.6 / Sonnet 4.6 / Haiku 4.5を追加',
+      '🤖 Google：Gemini 3.1 Pro / 3.1 Flash-Lite / 3 Flashを追加',
+      '🤖 Groq：GPT-OSS 120B / GPT-OSS 20B / Qwen3 32B / Llama 4 Scoutを追加',
+      '🤖 Cohere：Command A（最新）を追加',
+      '🤖 Alibaba：Qwen3 235Bを追加',
+      '⚠️ 廃止・削除済みモデルをラベルに⚠️マークで明記（Claude 3 Haiku・Gemini 2.5 Flash-Lite・GPT-4o系・GPT-5.1・Groq Gemma2）',
+      '🔧 最安モデル自動選択をClaude Haiku 4.5 / Gemini 3.1 Flash-Liteに更新',
+      '🔍 検索ソート改善 — 「👥 全キャラ」「🐱 このキャラ」トグルで常時切り替え可能に（以前は検索ワード入力時のみ自動横断）',
+      '📌 ピン留め機能 — 会話ログに📌ボタンを追加。ピン済みは一覧の最上部に固定表示',
+      '📁 フォルダ分け機能 — 会話ログをフォルダで整理。📁ボタンでフォルダ管理（作成・リネーム・削除）、各会話をフォルダに移動可能。フォルダフィルターで絞り込み表示',
+      '📝 AI自発メモの判断基準を改善 — 「①本当に大切な時 ②ユーザーとの思い出・関係性として知っておくべき時」に明文化（過剰メモと無反応の両方を抑制）',
+    ]
+  },
   {
     version: '2.0.4',
     date: '2026-03-08',
@@ -3079,6 +3123,28 @@ async function doWriteDiaryForDate(p,targetDate,dateStr){
 
 // ── 会話検索 ──
 let searchDebounce=null;
+let searchScope='one'; // 'all' | 'one'
+
+function setSearchScope(scope){
+  searchScope=scope;
+  updateSearchScopeBtns();
+  renderSessions();
+}
+
+function updateSearchScopeBtns(){
+  const t=THEMES[currentTheme];
+  const btnAll=document.getElementById('search-scope-all');
+  const btnOne=document.getElementById('search-scope-one');
+  if(!btnAll||!btnOne) return;
+  // アクティブ側を強調
+  if(searchScope==='all'){
+    btnAll.style.background=t.accent; btnAll.style.color='#fff'; btnAll.style.borderColor=t.accent; btnAll.style.opacity='1';
+    btnOne.style.background='none';   btnOne.style.color=t.textMuted; btnOne.style.borderColor=t.border; btnOne.style.opacity='.6';
+  } else {
+    btnOne.style.background=t.accent; btnOne.style.color='#fff'; btnOne.style.borderColor=t.accent; btnOne.style.opacity='1';
+    btnAll.style.background='none';   btnAll.style.color=t.textMuted; btnAll.style.borderColor=t.border; btnAll.style.opacity='.6';
+  }
+}
 // ── 一番下へスクロールボタン ──
 function scrollToBottom(){
   const c=document.getElementById('messages');
@@ -3099,6 +3165,157 @@ function toggleSbAccordion(bodyId, btn){
     body.querySelectorAll('.sb-inp').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
     body.querySelectorAll('.sb-btn').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
   }
+}
+
+// ── ピン留め ──
+function togglePin(sessionId, personaId){
+  const per=personas.find(p=>p.id===personaId);
+  if(!per) return;
+  const s=per.sessions.find(s=>s.id===sessionId);
+  if(!s) return;
+  s.pinned=!s.pinned;
+  saveAll(); renderSessions();
+  showToast(s.pinned?'📌 ピン留めしました':'ピン留めを解除しました');
+}
+
+// ── フォルダ管理 ──
+function renderFolderFilter(){
+  const p=currentPersona();
+  const sel=document.getElementById('sess-folder-filter');
+  if(!sel||!p) return;
+  const t=THEMES[currentTheme];
+  sel.style.borderColor=t.border; sel.style.color=t.text; sel.style.background=t.surface2;
+  const current=sel.value;
+  sel.innerHTML='';
+  const optAll=document.createElement('option');
+  optAll.value=''; optAll.textContent='📂 すべて';
+  sel.appendChild(optAll);
+  const optNone=document.createElement('option');
+  optNone.value='__none__'; optNone.textContent='📄 未分類';
+  sel.appendChild(optNone);
+  (p.folders||[]).forEach(f=>{
+    const opt=document.createElement('option');
+    opt.value=f.id; opt.textContent='📁 '+f.name;
+    sel.appendChild(opt);
+  });
+  const validVals=['',' __none__',...(p.folders||[]).map(f=>f.id)];
+  sel.value=validVals.includes(current)?current:'';
+}
+
+function openFolderManager(){
+  const p=currentPersona();
+  if(!p) return;
+  const t=THEMES[currentTheme];
+  if(!p.folders) p.folders=[];
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.surface};border:1px solid ${t.border};border-radius:14px;padding:20px;width:min(320px,90vw);max-height:80vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px`;
+  const title=document.createElement('div');
+  title.style.cssText=`font-family:monospace;font-size:13px;font-weight:bold;color:${t.accent}`;
+  title.textContent='📁 フォルダ管理';
+  const list=document.createElement('div');
+  list.style.cssText='display:flex;flex-direction:column;gap:6px';
+  function refreshList(){
+    list.innerHTML='';
+    if(!p.folders||p.folders.length===0){
+      const empty=document.createElement('div');
+      empty.style.cssText=`font-size:11px;opacity:.5;color:${t.textMuted};font-family:monospace`;
+      empty.textContent='フォルダがありません';
+      list.appendChild(empty); return;
+    }
+    p.folders.forEach(f=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;gap:6px;align-items:center';
+      const nameEl=document.createElement('div');
+      nameEl.style.cssText=`flex:1;font-family:monospace;font-size:12px;color:${t.text};padding:4px 6px;border-radius:6px;border:1px solid ${t.border};background:${t.surface2}`;
+      nameEl.textContent='📁 '+f.name;
+      const renBtn=document.createElement('button');
+      renBtn.style.cssText=`font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid ${t.border};background:none;cursor:pointer;color:${t.textMuted};font-family:monospace`;
+      renBtn.textContent='✏️'; renBtn.title='名前を変更';
+      renBtn.onclick=()=>{
+        const nn=prompt('フォルダ名を変更',f.name);
+        if(nn&&nn.trim()){f.name=nn.trim();saveAll();refreshList();renderFolderFilter();}
+      };
+      const delBtn=document.createElement('button');
+      delBtn.style.cssText=`font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid ${t.border};background:none;cursor:pointer;color:${t.textMuted};font-family:monospace`;
+      delBtn.textContent='🗑'; delBtn.title='削除（会話は未分類になります）';
+      delBtn.onclick=()=>{
+        if(!confirm(`「${f.name}」を削除しますか？\n会話は未分類になります。`)) return;
+        p.sessions.forEach(s=>{if(s.folderId===f.id) delete s.folderId;});
+        p.folders=p.folders.filter(x=>x.id!==f.id);
+        saveAll(); refreshList(); renderFolderFilter(); renderSessions();
+      };
+      row.appendChild(nameEl); row.appendChild(renBtn); row.appendChild(delBtn);
+      list.appendChild(row);
+    });
+  }
+  refreshList();
+  const addRow=document.createElement('div');
+  addRow.style.cssText='display:flex;gap:6px;margin-top:4px';
+  const inp=document.createElement('input');
+  inp.type='text'; inp.placeholder='新しいフォルダ名…';
+  inp.style.cssText=`flex:1;font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid ${t.border};background:${t.surface2};color:${t.text};outline:none;font-family:monospace`;
+  const addBtn=document.createElement('button');
+  addBtn.textContent='追加';
+  addBtn.style.cssText=`font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid ${t.accent};background:${t.accent};color:#fff;cursor:pointer;font-family:monospace`;
+  addBtn.onclick=()=>{
+    const name=inp.value.trim(); if(!name) return;
+    if(!p.folders) p.folders=[];
+    p.folders.push({id:genId(),name});
+    inp.value=''; saveAll(); refreshList(); renderFolderFilter();
+  };
+  inp.onkeydown=e=>{if(e.key==='Enter') addBtn.click();};
+  addRow.appendChild(inp); addRow.appendChild(addBtn);
+  const closeBtn=document.createElement('button');
+  closeBtn.textContent='閉じる';
+  closeBtn.style.cssText=`font-size:12px;padding:6px;border-radius:8px;border:1px solid ${t.border};background:none;cursor:pointer;color:${t.text};font-family:monospace;margin-top:4px`;
+  closeBtn.onclick=()=>overlay.remove();
+  box.appendChild(title); box.appendChild(list); box.appendChild(addRow); box.appendChild(closeBtn);
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay) overlay.remove();};
+  document.body.appendChild(overlay);
+  inp.focus();
+}
+
+function setSessionFolder(sessionId, personaId){
+  const per=personas.find(p=>p.id===personaId);
+  if(!per) return;
+  const s=per.sessions.find(s=>s.id===sessionId);
+  if(!s) return;
+  const t=THEMES[currentTheme];
+  if(!per.folders||per.folders.length===0){
+    showToast('先に📁ボタンでフォルダを作成してください'); return;
+  }
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:center;justify-content:center';
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.surface};border:1px solid ${t.border};border-radius:12px;padding:16px;width:min(280px,88vw);display:flex;flex-direction:column;gap:8px`;
+  const ttl=document.createElement('div');
+  ttl.style.cssText=`font-family:monospace;font-size:12px;font-weight:bold;color:${t.accent}`;
+  ttl.textContent='📁 フォルダに移動';
+  box.appendChild(ttl);
+  const opts=[{id:'',label:'📄 未分類（フォルダなし）'},...per.folders.map(f=>({id:f.id,label:'📁 '+f.name}))];
+  opts.forEach(opt=>{
+    const btn=document.createElement('button');
+    const isCurrent=(s.folderId||'')=== opt.id;
+    btn.style.cssText=`text-align:left;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid ${isCurrent?t.accent:t.border};background:${isCurrent?t.surface2:'none'};color:${isCurrent?t.accent:t.text};cursor:pointer;font-family:monospace`;
+    btn.textContent=opt.label+(isCurrent?' ✓':'');
+    btn.onclick=()=>{
+      if(opt.id) s.folderId=opt.id; else delete s.folderId;
+      saveAll(); renderSessions(); renderFolderFilter(); overlay.remove();
+      showToast('フォルダを変更しました');
+    };
+    box.appendChild(btn);
+  });
+  const cancel=document.createElement('button');
+  cancel.textContent='キャンセル';
+  cancel.style.cssText=`font-size:11px;padding:4px;border:none;background:none;cursor:pointer;color:${t.textMuted};font-family:monospace`;
+  cancel.onclick=()=>overlay.remove();
+  box.appendChild(cancel);
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay) overlay.remove();};
+  document.body.appendChild(overlay);
 }
 
 function initScrollBtn(){
@@ -3128,6 +3345,7 @@ function initSearch(){
   inp.addEventListener('input',handler);
   df.addEventListener('change',handler);
   dt.addEventListener('change',handler);
+  updateSearchScopeBtns();
 }
 function clearSearch(){
   document.getElementById('sess-search').value='';
@@ -3153,6 +3371,8 @@ function renderSessions(){
     const cb=document.getElementById('search-clear-btn');
     if(cb){cb.style.borderColor=t.border;cb.style.color=t.textMuted;}
   }
+  updateSearchScopeBtns();
+  renderFolderFilter();
 
   if(!p||p.sessions.length===0){
     list.innerHTML='<div style="font-size:11px;text-align:center;padding:16px;opacity:.5">履歴なし</div>';
@@ -3163,12 +3383,13 @@ function renderSessions(){
   const q=(document.getElementById('sess-search')?.value||'').trim().toLowerCase();
   const dateFrom=document.getElementById('sess-date-from')?.value||'';
   const dateTo=document.getElementById('sess-date-to')?.value||'';
-  const hasFilter=q||dateFrom||dateTo;
+  const folderFilter=document.getElementById('sess-folder-filter')?.value||'';
+  const hasFilter=q||dateFrom||dateTo||folderFilter;
 
-  // 全人格横断検索 or 現在のキャラのみ
+  // スコープに従い検索対象を決定（トグルで常時制御）
   let searchSources=[];
-  if(hasFilter){
-    // 全人格横断
+  const useAll = searchScope==='all';
+  if(useAll){
     personas.forEach(per=>{
       per.sessions.forEach(s=>{
         searchSources.push({session:s, persona:per});
@@ -3182,6 +3403,14 @@ function renderSessions(){
 
   // フィルタリング
   let filtered=searchSources.filter(({session:s})=>{
+    // フォルダフィルタ（全キャラ横断時は無視）
+    if(!useAll && folderFilter){
+      if(folderFilter==='__none__'){
+        if(s.folderId) return false;
+      } else {
+        if(s.folderId!==folderFilter) return false;
+      }
+    }
     // 日付フィルタ
     if(dateFrom){
       const from=new Date(dateFrom);from.setHours(0,0,0,0);
@@ -3202,8 +3431,13 @@ function renderSessions(){
     return true;
   });
 
-  // ソート（新しい順）
-  filtered.sort((a,b)=>(b.session.updatedAt||0)-(a.session.updatedAt||0));
+  // ソート：ピン留め優先、その後新しい順
+  filtered.sort((a,b)=>{
+    const ap=a.session.pinned?1:0;
+    const bp=b.session.pinned?1:0;
+    if(ap!==bp) return bp-ap;
+    return (b.session.updatedAt||0)-(a.session.updatedAt||0);
+  });
 
   // 最大50件
   const capped=filtered.slice(0,50);
@@ -3214,7 +3448,7 @@ function renderSessions(){
     return;
   }
   if(hasFilter&&infoEl){
-    infoEl.textContent=filtered.length+'件'+(filtered.length>50?' (上限50件表示)':'')+(personas.length>1?' · 全キャラ横断':'');
+    infoEl.textContent=filtered.length+'件'+(filtered.length>50?' (上限50件表示)':'')+(useAll&&personas.length>1?' · 全キャラ横断':'');
   }
 
   capped.forEach(({session:s, persona:per})=>{
@@ -3229,9 +3463,10 @@ function renderSessions(){
     titleEl.className='sess-title';
     titleEl.style.color=isCurrent?t.accent:t.text;
 
-    // 検索時はキャラ名を先頭に表示
+    // 全キャラ横断時はキャラ名を先頭に表示
     let titleText=s.title||'新しい会話';
-    if(hasFilter&&personas.length>1){
+    if(s.pinned) titleText='📌 '+titleText;
+    if(useAll&&personas.length>1){
       titleText=per.emoji+' '+titleText;
     }
 
@@ -3252,6 +3487,11 @@ function renderSessions(){
     meta.className='sess-meta';meta.style.color=t.textMuted;
     const d=new Date(s.updatedAt);
     let metaText=s.msgs.length+'件 · '+d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    // フォルダ名を表示
+    if(s.folderId&&per.folders){
+      const folder=per.folders.find(f=>f.id===s.folderId);
+      if(folder) metaText+=' · 📁'+folder.name;
+    }
     meta.textContent=metaText;
     info.appendChild(titleEl);
 
@@ -3271,7 +3511,22 @@ function renderSessions(){
     exp.className='sess-del';exp.style.color=t.textMuted;exp.textContent='📥';
     exp.title='エクスポート';
     exp.onclick=e=>{e.stopPropagation();exportSession(s);};
-    item.appendChild(info);item.appendChild(exp);item.appendChild(del);
+    // フォルダ移動ボタン
+    const folderBtn=document.createElement('button');
+    folderBtn.className='sess-del';
+    folderBtn.style.color=s.folderId?t.accent:t.textMuted;
+    folderBtn.textContent='📁';
+    folderBtn.title='フォルダに移動';
+    folderBtn.onclick=e=>{e.stopPropagation();setSessionFolder(s.id,per.id);};
+    // ピン留めボタン
+    const pinBtn=document.createElement('button');
+    pinBtn.className='sess-del';
+    pinBtn.style.color=s.pinned?t.accent:t.textMuted;
+    pinBtn.style.opacity=s.pinned?'1':'.5';
+    pinBtn.textContent='📌';
+    pinBtn.title=s.pinned?'ピン留めを解除':'ピン留め';
+    pinBtn.onclick=e=>{e.stopPropagation();togglePin(s.id,per.id);};
+    item.appendChild(info);item.appendChild(pinBtn);item.appendChild(folderBtn);item.appendChild(exp);item.appendChild(del);
     item.onclick=()=>{
       // 別キャラのセッションならキャラ切替
       if(per.id!==p.id) switchPersona(per.id);
@@ -3665,7 +3920,10 @@ function buildSystemPrompt(persona){
       '- 一緒に体験したこと、約束したこと、記念日\n'+
       '- あなた自身が感じたこと、好きになったもの、気づいたこと\n\n'+
       '注意：\n'+
-      '- 本当に大切だと感じた時だけ書く。毎回書かない。\n'+
+      '- 以下の2つに当てはまる時だけ書く：\n'+
+      '  ① 本当に大切だと感じた時\n'+
+      '  ② ユーザーとの思い出・関係性の積み重ねとして知っておくべき情報だと判断した時\n'+
+      '  それ以外は書かない。\n'+
       '- 1回の返答で最大1つまで。\n'+
       '- 短く端的に書く（50文字以内目安）。\n'+
       '- タグはユーザーには見えません。普通に会話してください。\n'+
@@ -4015,8 +4273,8 @@ async function pickNextSpeaker(rallyPersonas, lastMsgs, userJoin, turn){
 // 判定用の最安モデルを選択
 function pickJudgeModel(){
   if(localStorage.getItem('key_openai'))  return 'openai:gpt-4.1-nano';
-  if(localStorage.getItem('key_anthropic')) return 'anthropic:claude-3-5-haiku-20241022';
-  if(localStorage.getItem('key_google'))  return 'google:gemini-2.5-flash-lite';
+  if(localStorage.getItem('key_anthropic')) return 'anthropic:claude-haiku-4-5-20251001';
+  if(localStorage.getItem('key_google'))  return 'google:gemini-3.1-flash-lite-preview';
   return null;
 }
 
@@ -5807,7 +6065,7 @@ function focusEmojiInput(inputId){
           <div class="hp-steps">
             <div class="hp-step"><div class="hp-step-num">1</div><div class="hp-step-text"><strong>1〜2分待ってから</strong>再送信する</div></div>
             <div class="hp-step"><div class="hp-step-num">2</div><div class="hp-step-text">各サービスのダッシュボードで<strong>課金・利用制限の設定</strong>を確認する</div></div>
-            <div class="hp-step"><div class="hp-step-num">3</div><div class="hp-step-text"><strong>より軽いモデル</strong>（gpt-4o-mini、claude-haiku、gemini-flash）に切り替える</div></div>
+            <div class="hp-step"><div class="hp-step-num">3</div><div class="hp-step-text"><strong>より軽いモデル</strong>（gpt-5.4-mini、claude-haiku-4.5、gemini-3-flash）に切り替える</div></div>
           </div>
         </div>
       </div>
@@ -5885,10 +6143,10 @@ function focusEmojiInput(inputId){
         </div>
         <div class="hp-card-body">
           <div class="hp-steps">
-            <div class="hp-step"><div class="hp-step-num">💬</div><div class="hp-step-text"><strong>普段使い・コスト重視</strong> → GPT-4o-mini / Claude Haiku / Gemini Flash<br>安くて速い。日常会話なら十分</div></div>
-            <div class="hp-step"><div class="hp-step-num">🧠</div><div class="hp-step-text"><strong>高品質重視</strong> → GPT-4o / Claude Sonnet<br>より自然で深い返答。その分コストがかかる</div></div>
+            <div class="hp-step"><div class="hp-step-num">💬</div><div class="hp-step-text"><strong>普段使い・コスト重視</strong> → GPT-5.4 mini / Claude Haiku 4.5 / Gemini 3.1 Flash-Lite<br>安くて速い。日常会話なら十分</div></div>
+            <div class="hp-step"><div class="hp-step-num">🧠</div><div class="hp-step-text"><strong>高品質重視</strong> → GPT-5.4 / Claude Sonnet 4.6 / Gemini 3.1 Pro<br>より自然で深い返答。その分コストがかかる</div></div>
           </div>
-          <div class="hp-note info" style="margin-top:10px;">迷ったら <code>gpt-4o-mini</code> か <code>gemini-2.5-flash</code> から。無料枠があって試しやすい。</div>
+          <div class="hp-note info" style="margin-top:10px;">迷ったら <code>gpt-5.4-mini</code> か <code>gemini-3-flash-preview</code> から。試しやすい。</div>
         </div>
       </div>
 
