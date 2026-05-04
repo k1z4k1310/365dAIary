@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>——</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=Cinzel:wght@400;600&display=swap');
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html,body{
+    width:100%;height:100%;overflow:hidden;
+    background:#000;
+  }
+
+  /* ── 背景パーティクルキャンバス ── */
+  #canvas{
+    position:fixed;inset:0;
+    width:100%;height:100%;
+    pointer-events:none;
+    z-index:1;
+  }
+
+  /* ── 放射光エフェクト ── */
+  .radial{
+    position:fixed;inset:0;
+    background:radial-gradient(ellipse 60% 50% at 50% 50%,
+      rgba(180,160,80,0.07) 0%,
+      rgba(100,140,200,0.05) 40%,
+      transparent 70%);
+    z-index:2;
+    animation:radialPulse 3s ease-in-out infinite alternate;
+  }
+  @keyframes radialPulse{
+    from{opacity:0.4;}
+    to{opacity:1;}
+  }
+
+  /* ── メインコンテナ ── */
+  .stage{
+    position:fixed;inset:0;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    z-index:10;
+  }
+
+  /* ── クラウン装飾 ── */
+  .crown{
+    font-size:clamp(28px,6vw,48px);
+    opacity:0;
+    transform:translateY(-20px) scale(0.8);
+    animation:crownIn 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s forwards;
+    filter:drop-shadow(0 0 12px rgba(212,175,55,0.8)) drop-shadow(0 0 30px rgba(212,175,55,0.4));
+    margin-bottom:clamp(16px,4vw,28px);
+  }
+  @keyframes crownIn{
+    to{opacity:1;transform:translateY(0) scale(1);}
+  }
+
+  /* ── 仕切り線 ── */
+  .divider{
+    width:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(212,175,55,0.8),rgba(160,200,255,0.6),rgba(212,175,55,0.8),transparent);
+    opacity:0;
+    animation:dividerIn 0.8s ease 0.7s forwards;
+    margin-bottom:clamp(20px,5vw,36px);
+    box-shadow:0 0 8px rgba(212,175,55,0.4);
+  }
+  @keyframes dividerIn{
+    to{width:min(320px,70vw);opacity:1;}
+  }
+
+  /* ── メインテキスト ── */
+  .main-text{
+    font-family:'Shippori Mincho','游明朝',serif;
+    font-weight:600;
+    font-size:clamp(13px,3.2vw,19px);
+    color:#fff;
+    text-align:center;
+    line-height:2.1;
+    letter-spacing:0.18em;
+    padding:0 clamp(20px,6vw,48px);
+    max-width:500px;
+    opacity:0;
+    animation:textIn 1s ease 1.0s forwards;
+    text-shadow:
+      0 0 20px rgba(212,175,55,0.5),
+      0 0 40px rgba(140,180,255,0.25),
+      0 1px 2px rgba(0,0,0,0.8);
+  }
+  @keyframes textIn{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  /* ── 下部装飾テキスト ── */
+  .sub-text{
+    font-family:'Cinzel','Shippori Mincho',serif;
+    font-size:clamp(8px,1.8vw,11px);
+    color:rgba(212,175,55,0.5);
+    letter-spacing:0.35em;
+    text-transform:uppercase;
+    margin-top:clamp(24px,5vw,40px);
+    opacity:0;
+    animation:subIn 0.8s ease 1.8s forwards;
+  }
+  @keyframes subIn{
+    to{opacity:1;}
+  }
+
+  /* ── 全体フェードアウト ── */
+  .fade-out{
+    animation:fadeOut 1.2s ease forwards !important;
+  }
+  @keyframes fadeOut{
+    to{opacity:0;}
+  }
+
+  /* ── 四隅装飾 ── */
+  .corner{
+    position:fixed;
+    width:clamp(20px,4vw,30px);
+    height:clamp(20px,4vw,30px);
+    opacity:0;
+    animation:cornerIn 0.5s ease 0.5s forwards;
+    z-index:5;
+  }
+  .corner::before,.corner::after{
+    content:'';position:absolute;background:rgba(212,175,55,0.5);
+  }
+  .corner::before{width:100%;height:1px;top:0;left:0;}
+  .corner::after{width:1px;height:100%;top:0;left:0;}
+  .corner.tl{top:clamp(12px,3vw,24px);left:clamp(12px,3vw,24px);}
+  .corner.tr{top:clamp(12px,3vw,24px);right:clamp(12px,3vw,24px);transform:scaleX(-1);}
+  .corner.bl{bottom:clamp(12px,3vw,24px);left:clamp(12px,3vw,24px);transform:scaleY(-1);}
+  .corner.br{bottom:clamp(12px,3vw,24px);right:clamp(12px,3vw,24px);transform:scale(-1);}
+  @keyframes cornerIn{to{opacity:1;}}
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+<div class="radial"></div>
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="stage" id="stage">
+  <div class="crown">💎</div>
+  <div class="divider"></div>
+  <div class="main-text">
+    貴様、目が合ったな。<br>
+    貴様がカナタ様をどう思っていようが<br>
+    構わん。<br>
+    運命はもう、動き出した。
+  </div>
+  <div class="sub-text">— 天嶺カナタ —</div>
+</div>
+
+<script>
+// ── パーティクル ──
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// パーティクル生成
+const COLORS = [
+  'rgba(212,175,55,',   // 金
+  'rgba(255,255,255,',  // 白
+  'rgba(140,180,255,',  // 蒼
+  'rgba(200,220,255,',  // 淡蒼
+];
+
+function createParticle(){
+  return {
+    x: Math.random() * W,
+    y: Math.random() * H,
+    r: Math.random() * 1.8 + 0.3,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3 - 0.15,
+    alpha: Math.random() * 0.6 + 0.1,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    twinkleSpeed: Math.random() * 0.02 + 0.005,
+    twinkleOffset: Math.random() * Math.PI * 2,
+    // キラキラ（大きめ輝点）
+    isStar: Math.random() < 0.08,
+  };
+}
+
+for(let i = 0; i < 180; i++) particles.push(createParticle());
+
+// 輝点（ゆらゆら大粒）
+const glows = Array.from({length: 12}, () => ({
+  x: Math.random() * W,
+  y: Math.random() * H,
+  r: Math.random() * 40 + 15,
+  alpha: Math.random() * 0.06 + 0.02,
+  color: COLORS[Math.floor(Math.random() * COLORS.length)],
+  vx: (Math.random() - 0.5) * 0.2,
+  vy: (Math.random() - 0.5) * 0.2,
+  pulse: Math.random() * Math.PI * 2,
+  pulseSpeed: Math.random() * 0.01 + 0.005,
+}));
+
+let frame = 0;
+function animate(){
+  ctx.clearRect(0, 0, W, H);
+  frame++;
+
+  // ゆらゆらグロー
+  glows.forEach(g => {
+    g.x += g.vx; g.y += g.vy;
+    g.pulse += g.pulseSpeed;
+    if(g.x < -g.r) g.x = W + g.r;
+    if(g.x > W + g.r) g.x = -g.r;
+    if(g.y < -g.r) g.y = H + g.r;
+    if(g.y > H + g.r) g.y = -g.r;
+    const a = g.alpha * (0.7 + 0.3 * Math.sin(g.pulse));
+    const grad = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r);
+    grad.addColorStop(0, g.color + a + ')');
+    grad.addColorStop(1, g.color + '0)');
+    ctx.beginPath();
+    ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+  });
+
+  // パーティクル
+  particles.forEach((p, i) => {
+    p.x += p.vx; p.y += p.vy;
+    p.twinkleOffset += p.twinkleSpeed;
+    const twinkle = 0.5 + 0.5 * Math.sin(p.twinkleOffset);
+    const a = p.alpha * twinkle;
+
+    if(p.y < -5) { particles[i] = createParticle(); particles[i].y = H + 5; return; }
+    if(p.x < -5 || p.x > W + 5) { particles[i] = createParticle(); return; }
+
+    if(p.isStar){
+      // 十字キラキラ
+      ctx.save();
+      ctx.globalAlpha = a * 0.9;
+      ctx.strokeStyle = p.color + '1)';
+      ctx.lineWidth = 0.8;
+      const sz = p.r * 3;
+      ctx.beginPath();
+      ctx.moveTo(p.x - sz, p.y); ctx.lineTo(p.x + sz, p.y);
+      ctx.moveTo(p.x, p.y - sz); ctx.lineTo(p.x, p.y + sz);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 本体ドット
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2);
+    grad.addColorStop(0, p.color + a + ')');
+    grad.addColorStop(1, p.color + '0)');
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ── フラグ立て & リダイレクト ──
+function unlock(){
+  try {
+    localStorage.setItem('secret_oc_unlocked', '1');
+  } catch(e) {}
+  // 2.5秒後にフェードアウト → リダイレクト
+  setTimeout(() => {
+    // body全体をじわっと暗転
+    document.body.style.transition = 'opacity 1.2s ease';
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+      window.location.href = './index.html';
+    }, 1200);
+  }, 8000);
+}
+
+// DOM読み込み後すぐ実行
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', unlock);
+} else {
+  unlock();
+}
+</script>
+</body>
+</html>

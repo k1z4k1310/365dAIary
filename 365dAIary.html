@@ -1047,11 +1047,12 @@ const THEMES = {
   choco:    {name:'🍫 チョコレート', bg:'#2c1c16',surface:'#3a2820',surface2:'#4a3428',border:'#6a4838',text:'#f8e0d4',textMuted:'#b89080',accent:'#f07898',userBubble:'#4a2030',userBorder:'#a04868',userText:'#ffe0ea',aiBubble:'#342018',aiBorder:'#5a3828',sendBtn:'linear-gradient(135deg,#e06080,#f8a0b8)',newBtn:'linear-gradient(135deg,#e06080,#f8a0b8)'},
   koneko:   {name:'🐈 こねこ',  bg:'#faf4f2',surface:'#f4ece6',surface2:'#ecdcd6',border:'#d8b8b0',text:'#382420',textMuted:'#a08078',accent:'#c08878',userBubble:'#f0dcd4',userBorder:'#d0a8a0',userText:'#301818',aiBubble:'#fcf6f4',aiBorder:'#e4ccc4',sendBtn:'linear-gradient(135deg,#c08878,#d8a898)',newBtn:'linear-gradient(135deg,#c08878,#d8a898)'},
   jonu:     {name:'✨ じょぬ',   bg:'#e8f8f8',surface:'#d0f0f0',surface2:'#b8e8e8',border:'#70c8d8',text:'#0a2030',textMuted:'#408090',accent:'#2090b0',userBubble:'#b8e8f8',userBorder:'#60b8d0',userText:'#002030',aiBubble:'#f0fcfc',aiBorder:'#90d8e8',sendBtn:'linear-gradient(135deg,#2090b0,#40c8d8)',newBtn:'linear-gradient(135deg,#2090b0,#40c8d8)'},
+  legend:   {name:'💎 レジェンド', bg:'#ffffff',surface:'#f0f4ff',surface2:'#e4ecff',border:'#1a3fa0',text:'#c8a000',textMuted:'#1a3fa0',accent:'#c8a000',userBubble:'#e4ecff',userBorder:'#1a3fa0',userText:'#b09000',aiBubble:'#f8faff',aiBorder:'#1a3fa0',sendBtn:'linear-gradient(135deg,#1a3fa0,#1a3fa0)',newBtn:'linear-gradient(135deg,#1a3fa0,#1a3fa0)'},
 };
 
 const DEFAULT_THEMES = ['light','dark'];
 const CUSTOM_THEMES  = ['ichigo','tenshi','obake','vampire','yumekawa','vitamin','rival','forest','awa','yoru','honey','choco','koneko'];
-const HIDDEN_THEMES  = ['jonu'];
+const HIDDEN_THEMES  = ['jonu','legend'];
 
 // ══════════════════════════════════════════════
 //  STATE
@@ -1260,6 +1261,7 @@ const CHANGELOG = [
       '📌 ピン留め機能 — 会話ログに📌ボタンを追加。ピン済みは一覧の最上部に固定表示',
       '📁 フォルダ分け機能 — 会話ログをフォルダで整理。📁ボタンでフォルダ管理（作成・リネーム・削除）、各会話をフォルダに移動可能。フォルダフィルターで絞り込み表示',
       '📝 AI自発メモの判断基準を改善 — 「①本当に大切な時 ②ユーザーとの思い出・関係性として知っておくべき時」に明文化（過剰メモと無反応の両方を抑制）',
+      '💎 隠しテーマ「レジェンド」追加 — カナタ様解放フラグがある端末のみ利用可。深夜の王宮をイメージした濃紺×白×金のカラー。初回起動時に自動で適用',
     ]
   },
   {
@@ -5806,6 +5808,25 @@ async function startApp(){
 
   // テーマ適用
   applyTheme(currentTheme);
+
+  // ── カナタ様フラグ検知：初回のみレジェンドテーマに切替 ──
+  if(localStorage.getItem('secret_oc_unlocked')==='1'){
+    // レジェンドテーマを解放済みリストに追加
+    if(!unlockedThemes.includes('legend')){
+      unlockedThemes.push('legend');
+      await idbSet('ai_unlocked', unlockedThemes);
+    }
+    // 初回だけテーマを切り替え（legend_applied フラグで管理）
+    if(!localStorage.getItem('legend_theme_applied')){
+      localStorage.setItem('legend_theme_applied','1');
+      currentTheme='legend';
+      await idbSet('ai_theme','legend');
+      applyTheme('legend');
+      setTimeout(()=>{
+        showToast('💎 カナタ様が解放されました！\nお試しOCから追加できます👑');
+      }, 800);
+    }
+  }
   renderQA();
   updateCostDisplay();
   initSearch();
