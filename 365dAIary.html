@@ -5810,15 +5810,16 @@ async function startApp(){
   applyTheme(currentTheme);
 
   // ── カナタ様フラグ検知：初回のみレジェンドテーマに切替 ──
-  if(localStorage.getItem('secret_oc_unlocked')==='1'){
-    // レジェンドテーマを解放済みリストに追加
-    if(!unlockedThemes.includes('legend')){
+  const kanataFlag = localStorage.getItem('secret_oc_unlocked');
+  // デバッグ用（確認後に削除）
+  setTimeout(()=>{ showToast('🔍 debug: secret_oc_unlocked=' + kanataFlag + ' / legend=' + unlockedThemes.includes('legend')); }, 500);
+  if(kanataFlag==='1'){
+    // レジェンドテーマを解放済みリストに追加（初回のみ）
+    const isFirstUnlock = !unlockedThemes.includes('legend');
+    if(isFirstUnlock){
       unlockedThemes.push('legend');
       await idbSet('ai_unlocked', unlockedThemes);
-    }
-    // 初回だけテーマを切り替え（legend_applied フラグで管理）
-    if(!localStorage.getItem('legend_theme_applied')){
-      localStorage.setItem('legend_theme_applied','1');
+      // 初回解放時だけテーマを切り替え
       currentTheme='legend';
       await idbSet('ai_theme','legend');
       applyTheme('legend');
