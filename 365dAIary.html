@@ -586,6 +586,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <button class="wiz-btn" id="wiz-btn" onclick="finishWizard()">✦ はじめる</button>
     <div style="text-align:center;margin-top:8px;font-family:monospace;font-size:10px;opacity:.5">── または ──</div>
     <button class="wiz-btn" style="background:transparent;border:1px solid;opacity:.8;font-size:12px" onclick="showTrialPicker()">🎁 お試しキャラで遊んでみる</button>
+    <div id="wiz-kanata-wrap" style="display:none;margin-top:4px">
+      <button class="wiz-btn" id="wiz-kanata-btn" onclick="addKanataFromWizard()" style="font-size:13px;letter-spacing:1px">💎 カナタ様と話す</button>
+    </div>
   </div>
 </div>
 
@@ -5582,6 +5585,13 @@ function showWizard(){
   document.querySelectorAll('.wiz-label').forEach(el=>el.style.color=t.textMuted);
   document.querySelectorAll('.wiz-input').forEach(el=>{el.style.background=t.surface2;el.style.borderColor=t.border;el.style.color=t.text;});
   document.getElementById('wiz-btn').style.background=t.sendBtn;
+  // カナタ様フラグがある場合のみボタンを表示
+  const kanataWrap=document.getElementById('wiz-kanata-wrap');
+  const kanataBtn=document.getElementById('wiz-kanata-btn');
+  if(kanataWrap&&localStorage.getItem('secret_oc_unlocked')==='1'){
+    kanataWrap.style.display='block';
+    if(kanataBtn) kanataBtn.style.background='linear-gradient(135deg,#1a3fa0,#c8a000)';
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -5695,6 +5705,25 @@ function addSecretOC(){
   renderQA();
   updateCostDisplay();
   showToast('💎 ひみつのキャラ「'+oc.aiName+'」を追加しました！');
+}
+
+// ── ウィザードからカナタ様を直接追加 ──
+function addKanataFromWizard(){
+  const oc=SECRET_OC_KANATA;
+  const p=createPersona(oc.aiName, oc.userName, oc.model);
+  p.emoji=String(oc.emoji);
+  p.systemPrompt=String(oc.systemPrompt);
+  p.isTrial=true;
+  if(oc.memory){
+    p.memories=[{cat:'設定',text:String(oc.memory)}];
+  }
+  personas.push(p);
+  try{ saveAllNow(); }catch(e){ console.error('save error',e); }
+  document.getElementById('wizard-screen').style.display='none';
+  switchPersona(p.id);
+  renderQA();
+  updateCostDisplay();
+  showToast('💎 カナタ様と話せます👑\nAPIキーを設定してメッセージを送ってみてください');
 }
 
 // ── 5人到達で隠しOC解放チェック ──
@@ -5811,8 +5840,6 @@ async function startApp(){
 
   // ── カナタ様フラグ検知：初回のみレジェンドテーマに切替 ──
   const kanataFlag = localStorage.getItem('secret_oc_unlocked');
-  // デバッグ用（確認後に削除）
-  setTimeout(()=>{ showToast('🔍 debug: secret_oc_unlocked=' + kanataFlag + ' / legend=' + unlockedThemes.includes('legend')); }, 500);
   if(kanataFlag==='1'){
     // レジェンドテーマを解放済みリストに追加（初回のみ）
     const isFirstUnlock = !unlockedThemes.includes('legend');
