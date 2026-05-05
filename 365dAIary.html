@@ -2239,13 +2239,14 @@ function syncWidgetState(){
       })),
     }));
     const state = {
-      theme:        currentTheme,
-      accentColor:  t.accent.startsWith("#") ? t.accent : "#9b8ec4",
-      bgColor:      t.bg,
-      currentPid:   currentPid,
-      totalCost:    totalCost,
-      personas:     lightPersonas,
-      updatedAt:    Date.now(),
+      theme:          currentTheme,
+      accentColor:    t.accent.startsWith("#") ? t.accent : "#9b8ec4",
+      bgColor:        t.bg,
+      currentPid:     currentPid,
+      totalCost:      totalCost,
+      personas:       lightPersonas,
+      unlockedThemes: unlockedThemes,
+      updatedAt:      Date.now(),
     };
     localStorage.setItem("widget_state", JSON.stringify(state));
     // BroadcastChannelでwidgetに即時通知
@@ -2330,7 +2331,7 @@ function switchPersona(pid){
   if(!p) return;
   // 最後のセッションを選択、なければnull
   currentSid = p.sessions.length>0 ? p.sessions[p.sessions.length-1].id : null;
-  store('ai_current_pid', pid);
+  idbSet('ai_current_pid', pid).catch(()=>store('ai_current_pid', pid));
   updatePersonaTabs();
   updateAiNameBar();
   loadPersonaToSidebar();
@@ -2924,8 +2925,14 @@ function updateDiaryUI(){
     const textEl=document.createElement('div');
     textEl.style.cssText='font-size:11px;line-height:1.7;color:'+t.text+';white-space:pre-wrap;word-break:break-word';
     textEl.textContent=d.text;
+    // 📌 思い出メモに追加ボタン
+    const memoBtn=document.createElement('button');
+    memoBtn.style.cssText='margin-top:5px;font-size:9px;padding:2px 7px;border-radius:4px;border:1px solid '+t.border+';background:none;cursor:pointer;color:'+t.textMuted+';font-family:monospace';
+    memoBtn.textContent='📌 メモに追加';
+    memoBtn.onclick=()=>diaryToMemo(d);
     el.appendChild(dateEl);
     el.appendChild(textEl);
+    el.appendChild(memoBtn);
     container.appendChild(el);
   });
   if(p.diary.length>3){
@@ -2949,7 +2956,17 @@ function showAllDiary(){
   [...p.diary].reverse().forEach(d=>{
     const el=document.createElement('div');
     el.style.cssText='padding:10px;border-radius:8px;border:1px solid '+t.border+';margin-bottom:8px;background:'+t.surface2;
-    el.innerHTML='<div style="font-size:9px;opacity:.5;margin-bottom:4px;font-family:monospace">📅 '+d.date+'</div><div style="font-size:11px;line-height:1.8;color:'+t.text+';white-space:pre-wrap">'+escHtml(d.text)+'</div>';
+    const dateDiv=document.createElement('div');
+    dateDiv.style.cssText='font-size:9px;opacity:.5;margin-bottom:4px;font-family:monospace';
+    dateDiv.textContent='📅 '+d.date;
+    const textDiv=document.createElement('div');
+    textDiv.style.cssText='font-size:11px;line-height:1.8;color:'+t.text+';white-space:pre-wrap';
+    textDiv.textContent=d.text;
+    const memoBtn=document.createElement('button');
+    memoBtn.style.cssText='margin-top:6px;font-size:9px;padding:2px 7px;border-radius:4px;border:1px solid '+t.border+';background:none;cursor:pointer;color:'+t.textMuted+';font-family:monospace';
+    memoBtn.textContent='📌 メモに追加';
+    memoBtn.onclick=()=>{ diaryToMemo(d); document.body.removeChild(overlay); };
+    el.appendChild(dateDiv); el.appendChild(textDiv); el.appendChild(memoBtn);
     box.appendChild(el);
   });
   const close=document.createElement('button');
@@ -2960,6 +2977,23 @@ function showAllDiary(){
   overlay.appendChild(box);
   overlay.onclick=e=>{if(e.target===overlay)document.body.removeChild(overlay);};
   document.body.appendChild(overlay);
+}
+
+// 日記を思い出メモに転記
+function diaryToMemo(d){
+  const p=currentPersona();
+  if(!p) return;
+  const t=THEMES[currentTheme];
+  const memoText='[日記 '+d.date+'] '+d.text;
+  // 同じ内容が既にあれば追加しない
+  if(p.memories.some(m=>m.text===memoText)){
+    showToast('📌 この日記はすでにメモにあります');
+    return;
+  }
+  p.memories.push({cat:'日記', text:memoText});
+  saveAll();
+  renderMemories();
+  showToast('📌 思い出メモに追加しました！');
 }
 
 async function writeDiary(){
@@ -3851,7 +3885,7 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
 // ══════════════════════════════════════════════
 function addCost(c){
   totalCost+=c;
-  store('ai_cost',totalCost);
+  idbSet('ai_cost',totalCost).catch(()=>store('ai_cost',totalCost));
   syncWidgetState();
   updateCostDisplay();
   // 上限チェック
@@ -4458,7 +4492,7 @@ async function executeRally(rallyPersonas, userJoin, continueMode=false){
       // ユーザーが送信するまで待つ
       const userText = await new Promise(resolve=>{ rallyUserResolve=resolve; });
       rallyUserWaiting=false;
-      if(rallyAbort) break;
+      if(userText==='__RALLY_STOP__' || rallyAbort) break;
       sess.msgs.push({role:'user',content:userText,timestamp:Date.now()});
       renderMessages(); renderSessions();
       const input2=document.getElementById('input');
@@ -4509,6 +4543,15 @@ async function executeRally(rallyPersonas, userJoin, continueMode=false){
           return {role:'user',content:speaker+'「'+m.content+'」'};
         }
       });
+      // 空履歴の場合（初手）はユーザー役の種を入れて全社API対応
+      if(rallyHistory.length === 0){
+        rallyHistory.push({
+          role: 'user',
+          content: rallyTopic
+            ? `今回の会話テーマは「${rallyTopic}」です。あなたから自然に会話を始めてください。`
+            : 'あなたから自然に会話を始めてください。'
+        });
+      }
       const reply=await callAPI(provider,model,sysPrompt,rallyHistory,ac.signal);
       if(rallyAbort) break;
       await pseudoStream(sess,reply,rp.aiName);
@@ -4541,6 +4584,11 @@ function showRallyContinueBtn(){
 function stopRally(){
   isRallying=false;rallyAbort=true;
   rallyUserWaiting=false;
+  // ユーザー参加待ちのPromiseを解放
+  if(rallyUserResolve){
+    rallyUserResolve('__RALLY_STOP__');
+    rallyUserResolve=null;
+  }
   setLoading(false);
   document.getElementById('rally-bar').classList.remove('active');
   document.getElementById('rally-status').textContent='⚡ ラリー中...';
@@ -4647,7 +4695,7 @@ function switchThemeTab(tab){
 
 function setTheme(name){
   currentTheme=name;
-  store('ai_theme',name);
+  idbSet('ai_theme',name).catch(()=>store('ai_theme',name));
   applyTheme(name);
   syncWidgetState();
 }
@@ -4783,7 +4831,7 @@ function renderQA(){
       a.addEventListener('click',()=>{
         if(!unlockedThemes.includes('jonu')){
           unlockedThemes.push('jonu');
-          store('ai_unlocked',unlockedThemes);
+          idbSet('ai_unlocked',unlockedThemes).catch(()=>store('ai_unlocked',unlockedThemes));
           showToast('✨ 隠しテーマ「じょぬ」が解放されました！');
           buildThemeGrids();
         }
@@ -5735,6 +5783,17 @@ function showKanataPopup(currentPersonas){
   const kanataPersona = currentPersonas.find(p=>p.aiName==='カナタ様');
   const hasOtherPersonas = currentPersonas.filter(p=>p.aiName!=='カナタ様').length > 0;
 
+  // ③カナタ様すでにいる場合は初回のみ表示
+  if(kanataPersona){
+    if(localStorage.getItem('kanata_greeted')==='1') {
+      // 2回目以降はカナタ様に自動切替だけする
+      switchPersona(kanataPersona.id);
+      updatePersonaTabs();
+      return;
+    }
+    localStorage.setItem('kanata_greeted','1');
+  }
+
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6)';
 
@@ -5786,6 +5845,7 @@ function showKanataPopup(currentPersonas){
     kanataBtn.textContent = '💎 カナタ様と話す';
     kanataBtn.onclick = ()=>{
       overlay.remove();
+      localStorage.setItem('kanata_greeted','1');
       // カナタ様を追加
       const oc = SECRET_OC_KANATA;
       const p = createPersona(oc.aiName, oc.userName, oc.model);
@@ -5908,8 +5968,17 @@ async function startApp(){
 
   // IndexedDBから読み込む
   personas       = await idbGet('ai_personas',    []);
-  // 日記フィールド補完（既存データ対応）
-  personas.forEach(p=>{ if(!p.diary) p.diary=[]; if(!p.diaryMode) p.diaryMode='off'; if(!p.autoMemoMode) p.autoMemoMode='off'; if(!p.timeAwareMode) p.timeAwareMode='off'; });
+  // 既存データ・壊れたデータへの配列補完
+  personas.forEach(p=>{
+    if(!p.memories)      p.memories      = [];
+    if(!p.diary)         p.diary         = [];
+    if(!p.sessions)      p.sessions      = [];
+    if(!p.diaryMode)     p.diaryMode     = 'off';
+    if(!p.autoMemoMode)  p.autoMemoMode  = 'off';
+    if(!p.timeAwareMode) p.timeAwareMode = 'off';
+    // モデル形式が古い場合（provider:model形式でない）
+    if(p.model && !p.model.includes(':')) p.model = 'openai:' + p.model;
+  });
   currentPid     = await idbGet('ai_current_pid', null);
   totalCost      = await idbGet('ai_cost',        0);
   currentTheme   = await idbGet('ai_theme',       'dark');
