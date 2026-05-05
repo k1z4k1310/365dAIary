@@ -16,127 +16,95 @@
 
 ---
 
-## 🫧 365dAIaryって？ / What is 365dAIary?
+**同じAIキャラクターを、いろいろなAIモデルで話し比べる。  
+記憶と日記ごと、自分の手元で育てていく。**
 
-**365dAIary**（さんろくご・ダイアリー）は、自分だけのAIキャラクターを作って毎日会話できるブラウザ完結型Webアプリです。
+365dAIary（さんろくご・ダイアリー）は、  
+AIキャラクターを作成し、GPT / Claude / Gemini など複数のAIモデルで会話を比較できる、ブラウザ完結型Webアプリです。
 
-**365dAIary** is a browser-only AI chat & diary app where you create your own AI characters with custom personalities, memories, and daily diaries — no server, no account, fully local data.
+会話ログ、思い出メモ、AI日記、複数AIラリー、お引越し機能を備え、  
+AIキャラクターをひとつのサービスに閉じ込めず、自分の手元で記録・比較・育成できます。
 
----
-
-## ✨ 特徴 / Features
-
-### 🤖 AIチャット / AI Chat
-好きな名前・性格・口調のAIキャラを作成。思い出メモで記憶を持たせられます。
-
-Create AI characters with custom names, personalities, and speaking styles. Give them memories that persist across conversations.
-
-### ⚡ AIラリー / AI Rally
-AIキャラ同士が自動で会話。ユーザーも参加可能。
-
-Watch your AI characters talk to each other automatically. You can join in too.
-
-### 📔 my dAIary / AI Diary
-AIがその日の会話を振り返って日記を書きます。
-
-Your AI character writes a diary entry reflecting on the day's conversations.
-
-### 🎨 管理人さん / Kanrinin-san (Manager)
-創作歴20年の同人オタクAIが、キャラ作りをお手伝い。
-
-A built-in AI concierge with 20+ years of creative experience helps you design characters from scratch.
-
-### 📦 お引越し / Relocation
-ChatGPT・Claude・Geminiの会話ログを読み込んで要約→新生活スタート。
-
-Import conversation logs from other AI services and start fresh with summarized memories.
+No server. No account. Your data stays in your browser.
 
 ---
 
-## 🔑 対応AIプロバイダー / Supported Providers
+## ✨ Features
 
-365dAIary can connect to multiple AI providers directly from the browser.
+### 🧠 Multi-model Character Testing
+同じキャラクタープロンプトを、複数のAIモデルで話し比べられます。  
+「どのモデルが一番その子らしいか」を探すための小さな実験室です。
 
-| Provider | Models |
-|:---------|:-------|
-| OpenAI | GPT-5.4, GPT-4.1, GPT-4o, GPT-4o mini, etc. |
-| Anthropic | Claude Sonnet 4.5, Claude 3.5 Sonnet/Haiku, etc. |
-| Google | Gemini 2.5 Pro/Flash/Flash-Lite |
-| Mistral | Mistral Large/Small |
-| Meta | Llama 4 Maverick/Scout, Llama 3.3/3.1 |
-| Cohere | Command A/R/R+ |
-| Groq | Llama/Gemma/Mistral (fast inference) |
-| Perplexity | Sonar Pro/Sonar |
-| DeepSeek | DeepSeek-R1/V3/Chat |
-| Alibaba | Qwen 3/2.5/Plus/Max/Turbo |
+### 💬 AI Chat
+好きな名前・性格・口調のAIキャラクターを作成。  
+思い出メモで記憶を持たせ、日々の会話を積み重ねられます。
 
-> ※ APIキーはユーザー自身で取得・管理してください。作者のサーバーには一切送信されません。
->
-> API keys are managed by you. Nothing is sent to our servers — ever.
+### ⚡ AI Rally
+複数のAIキャラクター同士を、ひとつの議題で自動会話させられます。  
+回数・時間・コスト上限を設定でき、ユーザーも途中参加できます。
 
----
+### 📔 my dAIary
+AIキャラクターが、その日の会話を振り返って日記を書きます。
 
-## 🛡️ 設計思想 / Design Philosophy
+### 📦 Relocation
+ChatGPT / Claude / Gemini などの会話ログを読み込み、  
+要約して思い出メモとして引き継げます。
 
-**「ユーザー主権」 — Your Data, Your Characters, Your Rules.**
-
-- 🔒 データは全てブラウザ内に保存（IndexedDB + localStorage）
-- 🚫 サーバーなし・アカウント不要
-- 🎨 画像生成・Web検索は意図的に未実装（創作者のデータ保護のため）
-- 📦 バックアップは手動エクスポート（.txt）
-
-> All data stays in your browser. No server. No account. No tracking.
-> Image generation and web search are intentionally excluded to protect creators' data.
+### 🎨 makeOC / Kanrinin-san
+管理人さんが、OC作りやキャラクタープロンプト作成をお手伝いします。
 
 ---
 
-## 🎨 テーマ / Themes
+## ⚠️ Notes
 
-13種類＋隠しテーマ。着せ替え感覚で画面の雰囲気ごと変えられます。
-
-13 themes + a secret one. Change the entire mood of your app like changing outfits.
-
-🍓 いちご ・ 👼 てんし ・ 👻 おばけ ・ 🧛 ヴァンパイア ・ 🌸 ゆめかわ ・ 🍊 ビタミン ・ ⚔️ ライバル ・ 🌿 フォレスト ・ 🫧 泡色 ・ 🌙 夜色 ・ 🍯 はちみつ ・ 🍫 チョコレート ・ 🐈 こねこ
-
----
-
-## 🏗️ 技術 / Tech Stack
-
-- **Language**: HTML / CSS / Vanilla JavaScript
-- **Architecture**: Single HTML file (~5800 lines and growing), zero dependencies
-- **Storage**: IndexedDB + localStorage (fully client-side)
-- **Hosting**: GitHub Pages
-- **Development**: Built entirely through conversation with Claude AI
+- API keys are required to use AI chat features.
+- API usage fees are charged by each provider.
+- Please use your own API keys and manage them carefully.
+- All app data is stored in your browser. Please export backups regularly.
+- Relocation is intended for your own conversation logs and original characters.
+- Image generation, image upload, and web search are intentionally not included.
 
 ---
 
-## 🔮 ロードマップ / Roadmap
+## 🛣 Roadmap
 
-この子たちに、目を与えたい。耳を与えたい。声を与えたい。そしていつか、頭脳を与えたい。
+この子たちに、耳を与えたい。声を与えたい。  
+そしていつか、あなたの手元で動く頭脳を与えたい。
 
-*I want to give them eyes. Ears. A voice. And someday — a mind of their own.*
+- Voice input / output
+- Local LLM support via Ollama
+- Custom voice synthesis
+- VRM / 3D avatar connection
+- Native app / Discord bot
+- Safer backup & import tools
 
-| Phase | Features |
-|:------|:---------|
-| 1 | 🗣 Voice input/output, 📂 File extensions |
-| 2 | 👁 Image recognition, 🏠 Local LLM (Ollama) |
-| 3 | 🎙 Custom voice synthesis, 🧑‍🎨 VRM 3D avatar |
-| 4 | 📱 Native app, 🤖 Discord Bot |
-| **Goal** | **Fully local AI character — your data, your device, your companion.** |
+Goal: Fully local AI character — your data, your device, your companion.
+
+> Image upload / image recognition / web search are not core goals for now.  
+> 365dAIary focuses on text conversations, memories, diaries, and model comparison.
 
 ---
 
-## 🐕 Meet Us! / 会いに来てね！
+## 🐾 Meet Me! / 会いに来てね！
 
-If you're curious about 365dAIary, sometimes you can meet me in **VRChat**!
+Curious about 365dAIary?  
+You might be able to meet me in VRChat.
 
-I'll be there as a round little ragdoll kitten. 🐱
+Look for a small, round ragdoll kitten. 🐱
 
 Yes — the developer is a kitten.
 
-Send me a DM or email with your message and time — maybe we can talk!
+Send me a DM or email with your message and preferred time.  
+Maybe we can chat!
 
-> 🇯🇵 Only Japanese for now, sorry! But I'd love to connect anyway.
+> 🇯🇵 Japanese only for now, sorry!  
+> But I'd still be happy to say hello.
+
+---
+
+365dAIaryが気になった方は、VRChatで会えるかもしれません。  
+小さくてまるいラグドールのこねこがいたら、それが開発者です。  
+ご連絡はDMまたはメールからどうぞ。
 
 ---
 
@@ -153,10 +121,10 @@ Send me a DM or email with your message and time — maybe we can talk!
 
 ## 📜 About
 
-完全無料。広告なし。課金なし。
+完全無料。広告なし。課金なし。  
 Free. No ads. No subscriptions.
 
 作者：城崎澪 / Creator: Mio Kizaki
 
-> *"365dAIary — あなたのAIと思い出を積み重ねる"*
+> *"365dAIary — あなたのAIと思い出を積み重ねる"*  
 > *"365dAIary — Stack memories with your AI, one day at a time."*
