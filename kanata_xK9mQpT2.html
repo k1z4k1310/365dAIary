@@ -277,7 +277,7 @@ function unlock(){
   try {
     localStorage.setItem('secret_oc_unlocked', '1');
   } catch(e) {}
-  // 2.5秒後にフェードアウト → リダイレクト
+// 8秒後にフェードアウト → リダイレクト
   setTimeout(() => {
     // body全体をじわっと暗転
     document.body.style.transition = 'opacity 1.2s ease';

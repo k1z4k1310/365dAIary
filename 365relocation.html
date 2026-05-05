@@ -63,7 +63,7 @@ body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var
 <button id="scroll-bottom-btn" onclick="scrollToBottom()" style="display:none;position:fixed;bottom:80px;right:16px;z-index:90;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--accent);font-size:16px;cursor:pointer;opacity:.8;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:monospace" title="一番下へ">↓</button>
 
 <!-- キャラ登録ボタン（プロンプト完成後に表示） -->
-<div class="register-btn" style="display:none()">
+<div class="register-btn" id="register-btn" onclick="registerCharacter()" style="display:none">
   🚀 このキャラを365dAIaryに登録する
 </div>
 
@@ -336,6 +336,7 @@ function renderMessages(){
   // プロンプト完成検出→登録ボタン表示
   const lastAi=chatLog.filter(m=>m.role==='assistant').slice(-1)[0];
   const regBtn=document.getElementById('register-btn');
+  if(!regBtn) return;
   if(lastAi && lastAi.content.includes('【プロンプト完成】')){
     regBtn.style.display='block';
     const t2=THEMES[currentTheme];

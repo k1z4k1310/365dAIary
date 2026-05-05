@@ -772,12 +772,10 @@ function registerCharacter(){
   const charName=name.trim();
 
   // 共通メモがあれば確認
+  let includeSharedMemo = false;
   if(sharedMemo){
-    if(!confirm('「'+proj.name+'」の共通メモを思い出メモに入れますか？\n\n'+sharedMemo.slice(0,100)+(sharedMemo.length>100?'…':''))){
-      // 共通メモなしで登録
-    }
+    includeSharedMemo = confirm('「'+proj.name+'」の共通メモを思い出メモに入れますか？\n\n'+sharedMemo.slice(0,100)+(sharedMemo.length>100?'…':''));
   }
-  const includeSharedMemo=sharedMemo&&confirm.length!==undefined;// confirmが呼ばれてtrueならinclude
 
   // IndexedDBからmainのpersonas読み込み → 追加 → 書き戻し
   const DB_NAME='365dAIaryDB';
@@ -795,7 +793,7 @@ function registerCharacter(){
     getReq.onsuccess=()=>{
       let personas=getReq.result||[];
       // 共通メモ → 思い出メモ用
-      const sharedMemories=sharedMemo?[{cat:'🌍 世界観（共通）',text:sharedMemo}]:[];
+      const sharedMemories=includeSharedMemo?[{cat:'🌍 世界観（共通）',text:sharedMemo}]:[];
       // 同名キャラチェック
       const existing=personas.find(p=>p.aiName===charName);
       if(existing){
@@ -806,10 +804,10 @@ function registerCharacter(){
         }
         existing.systemPrompt=prompt;
         // 共通メモがあれば思い出メモに追加（重複チェック）
-        if(sharedMemo&&!existing.memories?.some(m=>m.cat==='🌍 世界観（共通）')){
+        if(includeSharedMemo&&!existing.memories?.some(m=>m.cat==='🌍 世界観（共通）')){
           if(!existing.memories) existing.memories=[];
           existing.memories.unshift({cat:'🌍 世界観（共通）',text:sharedMemo});
-        } else if(sharedMemo){
+        } else if(includeSharedMemo){
           // 既にあれば更新
           const idx=existing.memories.findIndex(m=>m.cat==='🌍 世界観（共通）');
           if(idx>=0) existing.memories[idx].text=sharedMemo;
@@ -828,7 +826,7 @@ function registerCharacter(){
           diaryMode:'off',
           sessions:[]
         });
-        showToast('🚀 「'+charName+'」を365dAIaryに登録しました！'+(sharedMemo?'共通メモも追加済み！':'')+'メインアプリを開いてね');
+        showToast('🚀 「'+charName+'」を365dAIaryに登録しました！'+(includeSharedMemo?'共通メモも追加済み！':'')+'メインアプリを開いてね');
       }
       const tx2=db.transaction(STORE_NAME,'readwrite');
       const st2=tx2.objectStore(STORE_NAME);

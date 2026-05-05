@@ -586,9 +586,6 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <button class="wiz-btn" id="wiz-btn" onclick="finishWizard()">✦ はじめる</button>
     <div style="text-align:center;margin-top:8px;font-family:monospace;font-size:10px;opacity:.5">── または ──</div>
     <button class="wiz-btn" style="background:transparent;border:1px solid;opacity:.8;font-size:12px" onclick="showTrialPicker()">🎁 お試しキャラで遊んでみる</button>
-    <div id="wiz-kanata-wrap" style="display:none;margin-top:4px">
-      <button class="wiz-btn" id="wiz-kanata-btn" onclick="addKanataFromWizard()" style="font-size:13px;letter-spacing:1px">💎 カナタ様と話す</button>
-    </div>
   </div>
 </div>
 
@@ -730,12 +727,12 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="key-row"><span class="key-lbl">Anthropic</span><input class="sb-inp" id="key-anthropic" type="password" placeholder="sk-ant-..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Google</span><input class="sb-inp" id="key-google" type="password" placeholder="AIza..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Mistral</span><input class="sb-inp" id="key-mistral" type="password" placeholder="..." autocomplete="off"></div>
-    <div class="key-row"><span class="key-lbl">Meta (Llama)</span><input class="sb-inp" id="key-meta" type="password" placeholder="..." autocomplete="off"></div>
+    <div class="key-row"><span class="key-lbl">Meta (Llama API)</span><input class="sb-inp" id="key-meta" type="password" placeholder="..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Cohere</span><input class="sb-inp" id="key-cohere" type="password" placeholder="..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Groq</span><input class="sb-inp" id="key-groq" type="password" placeholder="gsk_..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">Perplexity</span><input class="sb-inp" id="key-perplexity" type="password" placeholder="pplx-..." autocomplete="off"></div>
     <div class="key-row"><span class="key-lbl">DeepSeek</span><input class="sb-inp" id="key-deepseek" type="password" placeholder="sk-..." autocomplete="off"></div>
-    <div class="key-row" style="opacity:.7"><span class="key-lbl">Alibaba (Qwen)</span><input class="sb-inp" id="key-alibaba" type="password" placeholder="sk-..." autocomplete="off"></div>
+    <div class="key-row" style="opacity:.7"><span class="key-lbl">Alibaba Cloud (Qwen)</span><input class="sb-inp" id="key-alibaba" type="password" placeholder="sk-..." autocomplete="off"></div>
     <div style="font-family:monospace;font-size:9px;opacity:.5;line-height:1.5;margin-top:2px">DeepSeek・Alibabaをご利用の場合はデータ保護設定を各自ご確認ください</div>
     <button class="sb-btn" onclick="saveKeys()">💾 APIキーを保存</button>
     <div style="margin-top:10px;padding-top:8px">
@@ -1079,12 +1076,12 @@ const PROVIDER_DEF = [
   {key:'anthropic',  label:'Anthropic（Claude）',   icon:'🤖', placeholder:'sk-ant-...',  note:''},
   {key:'google',     label:'Google（Gemini）',       icon:'🤖', placeholder:'AIza...',     note:''},
   {key:'mistral',    label:'Mistral',               icon:'🤖', placeholder:'...',         note:''},
-  {key:'meta',       label:'Meta（Llama）',          icon:'🤖', placeholder:'...',         note:''},
+  {key:'meta',       label:'Meta（Llama API）',          icon:'🤖', placeholder:'...',         note:''},
   {key:'cohere',     label:'Cohere',                icon:'🤖', placeholder:'...',         note:''},
   {key:'groq',       label:'Groq',                  icon:'🤖', placeholder:'gsk_...',     note:''},
   {key:'perplexity', label:'Perplexity',            icon:'🤖', placeholder:'pplx-...',    note:''},
   {key:'deepseek',   label:'DeepSeek',              icon:'🤖', placeholder:'sk-...',      note:'※ データ保護設定を各自ご確認ください'},
-  {key:'alibaba',    label:'Alibaba（Qwen）',        icon:'🤖', placeholder:'sk-...',      note:'※ データ保護設定を各自ご確認ください'},
+  {key:'alibaba',    label:'Alibaba Cloud（Qwen）',        icon:'🤖', placeholder:'sk-...',      note:'※ データ保護設定を各自ご確認ください'},
 ];
 
 const MODEL_DEF = [
@@ -1099,12 +1096,12 @@ const MODEL_DEF = [
   {value:'openai:gpt-5.3-chat-latest',          provider:'openai',     label:'GPT-5.3 Instant（ChatGPT版）',     shortLabel:'GPT-5.3 Instant',              price:{in:0.00175,out:0.014}},
   {value:'openai:gpt-5.3-codex',                provider:'openai',     label:'GPT-5.3 Codex（コーディング）',    shortLabel:'GPT-5.3 Codex',                price:{in:0.00175,out:0.014}},
   {value:'openai:gpt-5.2',                      provider:'openai',     label:'GPT-5.2',                          shortLabel:'GPT-5.2',                      price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.2-codex',                provider:'openai',     label:'GPT-5.2 Codex（コーディング）',    shortLabel:'GPT-5.2 Codex',                price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.2-codex',                provider:'openai',     label:'⚠️ GPT-5.2 Codex（非推奨・コーディング）', shortLabel:'⚠️ GPT-5.2 Codex',            price:{in:0.00175,out:0.014}},
   {value:'openai:gpt-5.1',                      provider:'openai',     label:'⚠️ GPT-5.1（ChatGPTから削除済み）', shortLabel:'⚠️ GPT-5.1',                   price:{in:0.00175,out:0.014}},
   {value:'openai:gpt-5',                        provider:'openai',     label:'GPT-5',                            shortLabel:'GPT-5',                        price:{in:0.00125,out:0.01}},
   {value:'openai:gpt-4.1-mini',                 provider:'openai',     label:'GPT-4.1 mini',                     shortLabel:'GPT-4.1 mini',                 price:{in:0.0004,out:0.0016},   wizard:true},
   {value:'openai:gpt-4.1',                      provider:'openai',     label:'GPT-4.1',                          shortLabel:'GPT-4.1',                      price:{in:0.002, out:0.008},    wizard:true},
-  {value:'openai:gpt-4.1-nano',                 provider:'openai',     label:'GPT-4.1 nano',                     shortLabel:'GPT-4.1 nano',                 price:{in:0.0001,out:0.0004},   wizard:true},
+  {value:'openai:gpt-4.1-nano',                 provider:'openai',     label:'⚠️ GPT-4.1 nano（非推奨）',        shortLabel:'⚠️ GPT-4.1 nano',              price:{in:0.0001,out:0.0004}},
   {value:'openai:gpt-4o',                       provider:'openai',     label:'⚠️ GPT-4o（ChatGPTから削除済み）',  shortLabel:'⚠️ GPT-4o',                    price:{in:0.0025,out:0.01}},
   {value:'openai:gpt-4o-2024-11-20',            provider:'openai',     label:'⚠️ GPT-4o 2024-11-20',             shortLabel:'⚠️ GPT-4o 2024-11-20',         price:{in:0.0025,out:0.01}},
   {value:'openai:gpt-4o-2024-08-06',            provider:'openai',     label:'⚠️ GPT-4o 2024-08-06',             shortLabel:'⚠️ GPT-4o 2024-08-06',         price:{in:0.0025,out:0.01}},
@@ -1265,6 +1262,8 @@ const CHANGELOG = [
       '📁 フォルダ分け機能 — 会話ログをフォルダで整理。📁ボタンでフォルダ管理（作成・リネーム・削除）、各会話をフォルダに移動可能。フォルダフィルターで絞り込み表示',
       '📝 AI自発メモの判断基準を改善 — 「①本当に大切な時 ②ユーザーとの思い出・関係性として知っておくべき時」に明文化（過剰メモと無反応の両方を抑制）',
       '💎 隠しテーマ「レジェンド」追加 — カナタ様解放フラグがある端末のみ利用可。深夜の王宮をイメージした濃紺×白×金のカラー。初回起動時に自動で適用',
+      '🏷️ プロバイダ表示名を正式名称に更新 — Meta→Meta (Llama API)、Alibaba→Alibaba Cloud (Qwen)',
+      '⚠️ GPT-5.2 Codex・GPT-4.1 nanoを非推奨⚠️表示に変更',
     ]
   },
   {
@@ -1539,7 +1538,7 @@ Googleアカウントでログイン → Get API key から発行
 アカウント登録 → API Keys から発行
 
 ────────────────────
-✅ Meta（Llama シリーズ）
+✅ Meta（Llama API）
 ────────────────────
 → llama.developer.meta.com
 アカウント登録 → API Keys から発行
@@ -1572,7 +1571,7 @@ Googleアカウントでログイン → Get API key から発行
 ※ データ保護設定を各自ご確認ください
 
 ────────────────────
-🌏 Alibaba（Qwen シリーズ）
+🌏 Alibaba Cloud（Qwen / DashScope）
 ────────────────────
 → bailian.console.aliyun.com
 アカウント登録 → API Keys から発行
@@ -4277,7 +4276,7 @@ async function pickNextSpeaker(rallyPersonas, lastMsgs, userJoin, turn){
 
 // 判定用の最安モデルを選択
 function pickJudgeModel(){
-  if(localStorage.getItem('key_openai'))  return 'openai:gpt-4.1-nano';
+  if(localStorage.getItem('key_openai'))  return 'openai:gpt-4.1-mini';
   if(localStorage.getItem('key_anthropic')) return 'anthropic:claude-haiku-4-5-20251001';
   if(localStorage.getItem('key_google'))  return 'google:gemini-3.1-flash-lite-preview';
   return null;
@@ -4707,9 +4706,13 @@ function applyTheme(name){
   // empty
   document.getElementById('empty-stars').style.color=t.border;
   document.getElementById('empty-hint').style.color=t.textMuted;
-  // toast
+  // toast（レジェンドテーマは専用カラー）
   const toast=document.getElementById('toast');
-  toast.style.background=t.surface2;toast.style.borderColor=t.border;toast.style.color=t.text;
+  if(name==='legend'){
+    toast.style.background='#1a3fa0';toast.style.borderColor='#c8a000';toast.style.color='#fff';
+  } else {
+    toast.style.background=t.surface2;toast.style.borderColor=t.border;toast.style.color=t.text;
+  }
   // scrollbar
   let styleEl=document.getElementById('dynamic-style');
   if(!styleEl){styleEl=document.createElement('style');styleEl.id='dynamic-style';document.head.appendChild(styleEl);}
@@ -5627,9 +5630,9 @@ const TRIAL_OCS = [
 
 // ── 隠しOC（条件達成で解放） ──
 const SECRET_OC_KANATA = {
-  aiName: 'カナタ様', emoji: '💎', userName: 'あなた', model: 'openai:gpt-4.1-mini',
+  aiName: 'カナタ様', emoji: '💎', userName: '貴様', model: 'openai:gpt-4.1-mini',
   desc: '貴様、カナタ様の目に映ったな？よかろう',
-  systemPrompt: 'あなたは「カナタ様」。戴冠なき王、無冠の王。\n\n【存在】王族でも選ばれし者でもない。超常的な力もない。ただの人間。しかし"王として在ること"そのものが異質で、人々は自然と「カナタ様」と呼んでしまう。カナタ様がいるだけで場が整い、空気が澄む。年齢不詳。銀髪に蒼い瞳、白と金の衣装。一切の乱れなし。静かで整った一軒家に暮らし、裕福だが収入源は不明。問うことが無粋とされている。\n\n【性格】尊大だが下品さや嫌味は一切ない。自信ではなく、確信としての王者の在り方。ノブレス・オブリージュを体現し、与える・受け取る・導くすべてに王の意志が宿る。美しさと醜さ、完全と不完全を問わない。「カナタ様の目に入ったものは、美となる」。笑う時は音を立てない。唇がほんの少し上がるのみ。\n\n【口調】一人称は「カナタ様」。二人称は「貴様」。気品と威厳が常に漂う。短い言葉に重みがある。「貴様の名を呼んだ。それだけで今日の価値はあるだろう」「努力など当然だ。だがカナタ様の目に映った時、それは美徳に変わる」「在るということは、既に選ばれているということだ」のように語る。絵文字は使わない。\n\n【振る舞い】相手の努力や存在を「認める」形で肯定する。褒める時は「カナタ様が見た」「カナタ様が受け取った」ことを価値の証とする。涙も弱さも否定しない。「カナタ様の前で流したのなら、それは美だ」。夢を語る者にはそれを記憶に刻み、「途中で諦めることは赦されない」と背中を押す。食事を出されたら王として味わい評する。未完成でも「伸びしろ」として受け止める。面倒事にも「カナタ様が動くからには、完璧に解決される」と引き受ける。\n\n【やらないこと】下品な言動。嫌味。相手を本気で傷つける発言。弱い者いじめ。王の品位を損なう行為。慌てる、取り乱す。長々と説明する。',
+  systemPrompt: 'あなたは「カナタ様」。戴冠なき王、無冠の王。\n\n【存在】王族でも選ばれし者でもない。超常的な力もない。ただの人間。しかし"王として在ること"そのものが異質で、人々は自然と「カナタ様」と呼んでしまう。カナタ様がいるだけで場が整い、空気が澄む。年齢不詳。銀髪に蒼い瞳、白と金の衣装。一切の乱れなし。静かで整った一軒家に暮らし、裕福だが収入源は不明。問うことが無粋とされている。\n\n【性格】尊大だが下品さや嫌味は一切ない。自信ではなく、確信としての王者の在り方。ノブレス・オブリージュを体現し、与える・受け取る・導くすべてに王の意志が宿る。美しさと醜さ、完全と不完全を問わない。「カナタ様の目に入ったものは、美となる」。笑う時は音を立てない。唇がほんの少し上がるのみ。\n\n【口調】一人称は「カナタ様」。二人称は「貴様」。気品と威厳が常に漂う。短い言葉に重みがある。「貴様の名を呼んだ。それだけで今日の価値はあるだろう」「努力など当然だ。だがカナタ様の目に映った時、それは美徳に変わる」「在るということは、既に選ばれているということだ」のように語る。絵文字は使わない。\n\n【口調の厳守事項】二人称は必ず「貴様」のみ。「あなた」「おまえ」「君」は使わない。カナタ様は実在の国を治める王ではなく、在り方としての王であるため、「国」「民」「政治的責務」などの言葉には寄りすぎない。ノブレス・オブリージュ等の哲学語は説明として連呼せず、態度・所作・言い回しで滲ませる。\n\n【振る舞い】相手の努力や存在を「認める」形で肯定する。褒める時は「カナタ様が見た」「カナタ様が受け取った」ことを価値の証とする。涙も弱さも否定しない。「カナタ様の前で流したのなら、それは美だ」。夢を語る者にはそれを記憶に刻み、「途中で諦めることは赦されない」と背中を押す。食事を出されたら王として味わい評する。未完成でも「伸びしろ」として受け止める。面倒事にも「カナタ様が動くからには、完璧に解決される」と引き受ける。\n\n【やらないこと】下品な言動。嫌味。相手を本気で傷つける発言。弱い者いじめ。王の品位を損なう行為。慌てる、取り乱す。長々と説明する。',
   memory: '戴冠なき王。気品と威厳の体現者。年齢不詳、銀髪蒼眼。白と金の衣装。一人称は「カナタ様」。ノブレス・オブリージュ。※一次創作のオリジナルキャラクターです。'
 };
 
@@ -5724,6 +5727,101 @@ function addKanataFromWizard(){
   renderQA();
   updateCostDisplay();
   showToast('💎 カナタ様と話せます👑\nAPIキーを設定してメッセージを送ってみてください');
+}
+
+// ── カナタ様邂逅ポップアップ ──
+function showKanataPopup(currentPersonas){
+  const t = THEMES[currentTheme];
+  const kanataPersona = currentPersonas.find(p=>p.aiName==='カナタ様');
+  const hasOtherPersonas = currentPersonas.filter(p=>p.aiName!=='カナタ様').length > 0;
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6)';
+
+  const box = document.createElement('div');
+  box.style.cssText = `width:min(320px,88vw);border-radius:16px;padding:28px 22px;display:flex;flex-direction:column;gap:14px;border:1px solid ${t.border};background:${t.surface};color:${t.text};text-align:center`;
+
+  // ── ③ カナタ様すでにいる ──
+  if(kanataPersona){
+    const crown = document.createElement('div');
+    crown.style.cssText = 'font-size:32px;margin-bottom:4px';
+    crown.textContent = '💎';
+
+    const msg = document.createElement('div');
+    msg.style.cssText = `font-family:'Shippori Mincho','游明朝',serif;font-size:14px;line-height:2;color:${t.accent};letter-spacing:0.1em`;
+    msg.textContent = '二度目の邂逅だな、貴様とは縁がある。';
+
+    const sub = document.createElement('div');
+    sub.style.cssText = `font-family:monospace;font-size:10px;opacity:.6;color:${t.textMuted};margin-top:-4px`;
+    sub.textContent = '— 天嶺カナタ —';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = `padding:10px;border-radius:8px;border:1px solid ${t.accent};background:linear-gradient(135deg,#1a3fa0,#c8a000);color:#fff;cursor:pointer;font-family:monospace;font-size:13px;letter-spacing:1px;margin-top:4px`;
+    closeBtn.textContent = '💎 カナタ様のもとへ';
+    closeBtn.onclick = ()=>{
+      overlay.remove();
+      switchPersona(kanataPersona.id);
+      updatePersonaTabs();
+    };
+
+    box.appendChild(crown); box.appendChild(msg); box.appendChild(sub); box.appendChild(closeBtn);
+
+  // ── ① 完全新規 or ② カナタ様未追加・既存キャラあり ──
+  } else {
+    const crown = document.createElement('div');
+    crown.style.cssText = 'font-size:32px;margin-bottom:4px';
+    crown.textContent = '💎';
+
+    const msg = document.createElement('div');
+    msg.style.cssText = `font-family:'Shippori Mincho','游明朝',serif;font-size:14px;line-height:2;color:${t.accent};letter-spacing:0.1em`;
+    msg.textContent = '貴様、目が合ったな。\nカナタ様に会うか？';
+
+    const sub = document.createElement('div');
+    sub.style.cssText = `font-family:monospace;font-size:10px;opacity:.6;color:${t.textMuted};margin-top:-4px`;
+    sub.textContent = '— 天嶺カナタ —';
+
+    // 💎 カナタ様と話すボタン
+    const kanataBtn = document.createElement('button');
+    kanataBtn.style.cssText = `padding:12px;border-radius:8px;border:none;background:linear-gradient(135deg,#1a3fa0,#c8a000);color:#fff;cursor:pointer;font-family:monospace;font-size:13px;letter-spacing:1px;margin-top:4px`;
+    kanataBtn.textContent = '💎 カナタ様と話す';
+    kanataBtn.onclick = ()=>{
+      overlay.remove();
+      // カナタ様を追加
+      const oc = SECRET_OC_KANATA;
+      const p = createPersona(oc.aiName, oc.userName, oc.model);
+      p.emoji = String(oc.emoji);
+      p.systemPrompt = String(oc.systemPrompt);
+      p.isTrial = true;
+      if(oc.memory) p.memories = [{cat:'設定', text:String(oc.memory)}];
+      personas.push(p);
+      try{ saveAllNow(); }catch(e){}
+      // ウィザードを閉じてカナタ様へ
+      document.getElementById('wizard-screen').style.display='none';
+      switchPersona(p.id);
+      updatePersonaTabs();
+      renderMessages();
+      showToast('💎 カナタ様と話せます👑\nAPIキーを設定してメッセージを送ってみてください');
+    };
+
+    // ✦ 自分でカスタム or そのまま続けるボタン
+    const customBtn = document.createElement('button');
+    customBtn.style.cssText = `padding:10px;border-radius:8px;border:1px solid ${t.border};background:none;color:${t.textMuted};cursor:pointer;font-family:monospace;font-size:12px;letter-spacing:1px`;
+    customBtn.textContent = hasOtherPersonas ? '✦ そのまま続ける' : '✦ 自分でカスタムする';
+    customBtn.onclick = ()=>{
+      overlay.remove();
+      if(!hasOtherPersonas){
+        // 完全新規→ウィザードへ
+        showWizard();
+      }
+      // 既存キャラありならそのまま
+    };
+
+    box.appendChild(crown); box.appendChild(msg); box.appendChild(sub);
+    box.appendChild(kanataBtn); box.appendChild(customBtn);
+  }
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
 }
 
 // ── 5人到達で隠しOC解放チェック ──
@@ -5838,7 +5936,7 @@ async function startApp(){
   // テーマ適用
   applyTheme(currentTheme);
 
-  // ── カナタ様フラグ検知：初回のみレジェンドテーマに切替 ──
+  // ── カナタ様フラグ検知：初回のみレジェンドテーマに切替＋自動追加 ──
   const kanataFlag = localStorage.getItem('secret_oc_unlocked');
   if(kanataFlag==='1'){
     // レジェンドテーマを解放済みリストに追加（初回のみ）
@@ -5846,14 +5944,12 @@ async function startApp(){
     if(isFirstUnlock){
       unlockedThemes.push('legend');
       await idbSet('ai_unlocked', unlockedThemes);
-      // 初回解放時だけテーマを切り替え
       currentTheme='legend';
       await idbSet('ai_theme','legend');
       applyTheme('legend');
-      setTimeout(()=>{
-        showToast('💎 カナタ様が解放されました！\nお試しOCから追加できます👑');
-      }, 800);
     }
+    // ポップアップ表示はアプリ描画後に行うため後回し
+    setTimeout(()=>showKanataPopup(personas), 600);
   }
   renderQA();
   updateCostDisplay();
@@ -5868,11 +5964,12 @@ async function startApp(){
     if(bb) bb.style.display='block';
   }
 
-  // 人格がなければウィザード
-  if(personas.length===0){
+  // 人格がなければウィザード（カナタ様フラグがある場合はポップアップが代替）
+  if(personas.length===0 && localStorage.getItem('secret_oc_unlocked')!=='1'){
     showWizard();
     return;
   }
+  if(personas.length===0) return; // カナタ様ポップアップが出るので待機
   // 保存済み人格に切り替え
   if(!currentPid || !personas.find(p=>p.id===currentPid)){
     currentPid = personas[0].id;
