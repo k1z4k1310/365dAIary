@@ -2332,6 +2332,7 @@ function switchPersona(pid){
   // 最後のセッションを選択、なければnull
   currentSid = p.sessions.length>0 ? p.sessions[p.sessions.length-1].id : null;
   idbSet('ai_current_pid', pid).catch(()=>store('ai_current_pid', pid));
+  store('ai_current_pid', pid); // localStorageにも保険として書く
   updatePersonaTabs();
   updateAiNameBar();
   loadPersonaToSidebar();
@@ -5780,19 +5781,11 @@ function addKanataFromWizard(){
 // ── カナタ様邂逅ポップアップ ──
 function showKanataPopup(currentPersonas){
   const t = THEMES[currentTheme];
+  // 表示したらフラグを立てる（再表示防止）
+  localStorage.setItem('kanata_greeted','1');
+
   const kanataPersona = currentPersonas.find(p=>p.aiName==='カナタ様');
   const hasOtherPersonas = currentPersonas.filter(p=>p.aiName!=='カナタ様').length > 0;
-
-  // ③カナタ様すでにいる場合は初回のみ表示
-  if(kanataPersona){
-    if(localStorage.getItem('kanata_greeted')==='1') {
-      // 2回目以降はカナタ様に自動切替だけする
-      switchPersona(kanataPersona.id);
-      updatePersonaTabs();
-      return;
-    }
-    localStorage.setItem('kanata_greeted','1');
-  }
 
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6)';
@@ -6017,8 +6010,10 @@ async function startApp(){
       await idbSet('ai_theme','legend');
       applyTheme('legend');
     }
-    // ポップアップ表示はアプリ描画後に行うため後回し
-    setTimeout(()=>showKanataPopup(personas), 600);
+    // ポップアップは初回のみ（kanata_greetedフラグで管理）
+    if(!localStorage.getItem('kanata_greeted')){
+      setTimeout(()=>showKanataPopup(personas), 600);
+    }
   }
   renderQA();
   updateCostDisplay();
@@ -6039,9 +6034,14 @@ async function startApp(){
     return;
   }
   if(personas.length===0) return; // カナタ様ポップアップが出るので待機
-  // 保存済み人格に切り替え
+  // 保存済み人格に切り替え（IndexedDB優先、fallbackにlocalStorage）
   if(!currentPid || !personas.find(p=>p.id===currentPid)){
-    currentPid = personas[0].id;
+    const lsPid = load('ai_current_pid', null);
+    if(lsPid && personas.find(p=>p.id===lsPid)){
+      currentPid = lsPid;
+    } else {
+      currentPid = personas[0].id;
+    }
   }
   switchPersona(currentPid);
   // 既存ユーザー向け：既に5人以上いるなら隠しOCフラグを静かに立てる
