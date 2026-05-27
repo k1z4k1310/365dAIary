@@ -127,6 +127,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 
 /* ── Session ── */
 .sess-item{padding:8px 10px;border-radius:6px;margin-bottom:3px;cursor:pointer;display:flex;gap:6px;align-items:flex-start;border:1px solid transparent}
+.sess-month-hdr{width:100%;background:none;border:none;cursor:pointer;padding:5px 6px;font-family:monospace;font-size:10px;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;border-radius:4px;margin-top:6px;margin-bottom:2px}
+.sess-month-hdr:first-child{margin-top:0}
+.sess-month-body{overflow:hidden;transition:max-height .2s ease}
 .sess-title{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sess-meta{font-size:10px;font-family:monospace;margin-top:2px}
 .sess-del{background:none;border:none;cursor:pointer;font-size:11px;flex-shrink:0}
@@ -163,7 +166,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 #pw-gate-hint{font-family:monospace;font-size:10px;color:#a898c8;line-height:1.9;background:#f0e8ff;border-radius:8px;padding:8px 12px;text-align:left}
 /* パスワード画面のQ&Aパネル */
 .pw-qa-section{background:#fefeff;border:1px solid #d8c0f8;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(160,120,240,.08)}
-.pw-qa-title{font-family:monospace;font-size:11px;letter-spacing:2px;color:#9080b8;padding:12px 16px;background:#f8f0ff;border-bottom:1px solid #e8d8fc;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.pw-qa-title{font-family:monospace;font-size:11px;letter-spacing:2px;color:#9080b8;padding:12px 16px;background:#f8f0ff;border-bottom:1px solid #e8d8fc;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;-webkit-tap-highlight-color:rgba(0,0,0,0.1);touch-action:manipulation}
 .pw-qa-title:hover{background:#f0e4ff}
 .pw-qa-inner{display:none}
 .pw-qa-inner.open{display:block}
@@ -352,7 +355,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     <div class="pw-qa-section" style="margin-top:8px">
       <div class="pw-qa-title" onclick="this.nextElementSibling.classList.toggle('open')" id="pw-changelog-toggle">
         <span>📋 アップデート履歴</span>
-        <span style="font-size:10px" id="pw-latest-badge"></span>
+        <span style="font-size:10px"><span id="pw-latest-badge"></span> ▶ タップして開く</span>
       </div>
       <div class="pw-qa-inner" id="pw-changelog-inner"></div>
     </div>
@@ -694,6 +697,14 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
         <input class="sb-inp" id="edit-ai-name" type="text" maxlength="20" placeholder="AIの表示名" style="flex:1">
       </div>
     </div>
+    <div class="wiz-field" style="gap:4px;margin-top:4px;margin-bottom:0">
+      <span style="font-family:monospace;font-size:10px;opacity:.7">ファンマーク絵文字（2種まで）</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input class="sb-inp" id="edit-fanmark1" type="text" placeholder="🌸" maxlength="4" style="width:44px;text-align:center;font-size:16px;padding:4px 2px;" oninput="validateEmoji(this)" onclick="focusEmojiInput('edit-fanmark1')">
+        <input class="sb-inp" id="edit-fanmark2" type="text" placeholder="✨" maxlength="4" style="width:44px;text-align:center;font-size:16px;padding:4px 2px;" oninput="validateEmoji(this)" onclick="focusEmojiInput('edit-fanmark2')">
+        <span style="font-family:monospace;font-size:9px;opacity:.45;line-height:1.4">タブ・ヘッダーに<br>表示されます</span>
+      </div>
+    </div>
     <div class="wiz-field" style="gap:4px;margin-top:4px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">あなたの呼び名</span>
       <input class="sb-inp" id="edit-user-name" type="text" maxlength="20" placeholder="あなたの呼び名">
@@ -716,7 +727,23 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
         <option value="on">ON（AIが自分でメモを書きます）</option>
       </select>
     </div>
+    <div class="wiz-field" style="gap:4px;margin-top:8px">
+      <span style="font-family:monospace;font-size:10px;opacity:.7">このキャラのテーマ（切替時に自動適用）</span>
+      <select class="sb-inp" id="edit-persona-theme" style="width:100%;font-size:11px;padding:4px 6px"></select>
+      <div style="font-family:monospace;font-size:9px;opacity:.45;line-height:1.4">「なし」にすると現在のテーマをそのまま使います</div>
+    </div>
+    <div class="wiz-field" style="gap:4px;margin-top:8px">
+      <span style="font-family:monospace;font-size:10px;opacity:.7">📔 日記をコンテキストに注入</span>
+      <select class="sb-inp" id="edit-diary-inject" style="width:100%;font-size:11px;padding:4px 6px">
+        <option value="off">OFF（注入しない）</option>
+        <option value="3">直近3件</option>
+        <option value="7">直近7件</option>
+        <option value="14">直近14件</option>
+      </select>
+      <div style="font-family:monospace;font-size:9px;opacity:.45;line-height:1.4">ONにするとトークン・コストが増えます</div>
+    </div>
     <button class="sb-btn" onclick="savePersonaSettings()">💾 このキャラの設定を保存</button>
+    <button class="sb-btn" onclick="exportPersonaJSON()" style="margin-top:4px">📤 このキャラをJSONで書き出す</button>
     <button class="sb-btn" onclick="deleteCurrentPersona()" style="margin-top:4px;color:#e05555">🗑 このキャラを削除</button>
   </div>
 
@@ -761,7 +788,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
     <button class="sb-btn" onclick="addMemory()">＋ 追加</button>
     <button class="sb-btn" onclick="clearMemory()" style="margin-top:3px">🗑 思い出メモを全削除</button>
-    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる (build:0309d)</div>
+    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる (build:0527d)</div>
   </div>
 
   <!-- my dAIary（AI日記） -->
@@ -790,22 +817,17 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <span>⚡ AI同士の会話（ラリー）</span><span class="sb-acc-arrow">▸</span>
     </button>
     <div class="sb-accordion-body" id="rally-body">
-      <div style="font-size:11px;opacity:.7;line-height:1.7;margin-bottom:6px">参加するキャラを選んでヘッダーの ⚡ で開始。</div>
-      <!-- 参加キャラチェックボックス -->
-      <div style="font-family:monospace;font-size:10px;opacity:.6;margin-bottom:4px;letter-spacing:1px">参加メンバー</div>
-      <div id="rally-members" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;padding:6px;border-radius:6px;border:1px solid"></div>
-      <!-- ユーザー参加チェック -->
-      <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer;margin-bottom:8px;padding:6px;border-radius:6px;border:1px solid" id="rally-user-label">
-        <input type="checkbox" id="rally-user-join" style="width:14px;height:14px;cursor:pointer">
-        <span>👤 自分も参加する</span>
-      </label>
-      <div id="rally-user-hint" style="display:none;font-size:10px;opacity:.6;line-height:1.7;margin-bottom:6px">自分のターンになると入力欄が有効になります。送信するとラリーが続きます。</div>
+      <div style="font-size:11px;opacity:.7;line-height:1.7;margin-bottom:6px">ヘッダーの ⚡ からキャラ選択・テーマ設定して開始。</div>
       <div class="key-row"><span class="key-lbl" style="width:80px">最大回数</span><input class="sb-inp" id="rally-max-turns" type="number" min="1" max="50" value="10" style="width:60px"></div>
       <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">上限（$）</span><input class="sb-inp" id="rally-max-cost" type="number" min="0.01" step="0.01" value="0.50" style="width:60px"></div>
       <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">タイムアウト</span><input class="sb-inp" id="rally-timeout" type="number" min="10" max="300" value="60" style="width:60px"><span style="font-family:monospace;font-size:10px;opacity:.6;margin-left:4px">秒</span></div>
       <div class="key-row" style="margin-top:4px"><span class="key-lbl" style="width:80px">テーマ</span><input class="sb-inp" id="rally-topic" type="text" placeholder="例：好きな食べ物について" style="width:140px;font-size:11px"></div>
       <div style="font-family:monospace;font-size:9px;opacity:.45;margin-top:2px;line-height:1.5">テーマを入れると最初の話題を指定できます（空欄＝自由会話）</div>
       <div style="font-family:monospace;font-size:9px;opacity:.55;margin-top:6px;line-height:1.7">回数・コスト・時間のいずれかに<br>達した時点で自動停止します。</div>
+      <!-- ラリープリセット -->
+      <div style="font-family:monospace;font-size:10px;opacity:.6;margin-top:12px;margin-bottom:4px;letter-spacing:1px">📋 ラリープリセット</div>
+      <div id="rally-presets-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:4px"></div>
+      <div style="font-size:9px;opacity:.45;font-family:monospace;line-height:1.5">⚡ 開始時にキャラ選択・テーマを保存できます</div>
     </div>
   </div>
 
@@ -829,6 +851,12 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
         <input type="file" id="import-file" accept=".txt,.json" style="display:none" onchange="importData(event)">
       </label>
       <div id="import-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
+      <div style="margin-top:8px;margin-bottom:4px;font-family:monospace;font-size:10px;opacity:.6;text-align:center">─ キャラJSON ─</div>
+      <label style="display:block;text-align:center;padding:8px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;border:1px dashed">
+        📥 キャラJSONを読み込む
+        <input type="file" id="import-persona-file" accept=".json" style="display:none" onchange="importPersonaJSON(event)">
+      </label>
+      <div id="import-persona-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
     </div>
   </div>
 
@@ -956,6 +984,10 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <input id="sess-date-to" type="date" style="flex:1;font-size:10px;padding:3px 4px;border-radius:4px;border:1px solid;background:none;color:inherit;font-family:monospace">
       <button id="search-clear-btn" onclick="clearSearch()" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid;background:none;cursor:pointer;color:inherit;font-family:monospace;opacity:.6">✕</button>
     </div>
+    <label style="display:flex;align-items:center;gap:5px;font-family:monospace;font-size:10px;cursor:pointer;opacity:.8">
+      <input type="checkbox" id="rally-only-filter" onchange="renderSessions()" style="cursor:pointer">
+      ⚡ ラリーのみ表示
+    </label>
     <div id="search-result-info" style="font-family:monospace;font-size:9px;opacity:.5;min-height:14px"></div>
   </div>
   <div id="sessions-list"></div>
@@ -1037,7 +1069,7 @@ const THEMES = {
   tenshi:   {name:'👼 天使',     bg:'#f0f8ff',surface:'#e8f4ff',surface2:'#d8ecff',border:'#a8d4ff',text:'#1a3050',textMuted:'#6090b0',accent:'#4080c0',userBubble:'#d8ecff',userBorder:'#90c0e8',userText:'#0a2040',aiBubble:'#f8fbff',aiBorder:'#c0dcf8',sendBtn:'linear-gradient(135deg,#60a0e0,#90c8f8)',newBtn:'linear-gradient(135deg,#60a0e0,#90c8f8)'},
   obake:    {name:'👻 おばけ',   bg:'#1a0a2e',surface:'#240e3a',surface2:'#2e1248',border:'#4a2060',text:'#d8c0f0',textMuted:'#7050a0',accent:'#c080f0',userBubble:'#2e1248',userBorder:'#6030a0',userText:'#f0d8ff',aiBubble:'#1e0e34',aiBorder:'#3a1860',sendBtn:'linear-gradient(135deg,#8040c0,#c060e8)',newBtn:'linear-gradient(135deg,#8040c0,#c060e8)'},
   vampire:  {name:'🧛 ヴァンパイア', bg:'#0e0808',surface:'#1a0c0c',surface2:'#221010',border:'#401818',text:'#e8d0d0',textMuted:'#806060',accent:'#c03030',userBubble:'#2a0e0e',userBorder:'#602020',userText:'#f0d8d8',aiBubble:'#160a0a',aiBorder:'#341414',sendBtn:'linear-gradient(135deg,#a02020,#c04040)',newBtn:'linear-gradient(135deg,#a02020,#c04040)'},
-  yumekawa: {name:'🌸 ゆめかわ', bg:'#fff0f8',surface:'#ffe4f0',surface2:'#ffd4ea',border:'#f0a0c8',text:'#502040',textMuted:'#c070a0',accent:'#e060a0',userBubble:'#ffd0e8',userBorder:'#f090c0',userText:'#400040',aiBubble:'#fff4fa',aiBorder:'#f0c0d8',sendBtn:'linear-gradient(135deg,#e068b0,#f0a0c8)',newBtn:'linear-gradient(135deg,#e068b0,#f0a0c8)'},
+  yumekawa: {name:'🌸 ゆめかわ', bg:'#fdf4ff',surface:'#f8e8ff',surface2:'#f0d8ff',border:'#cc88ee',text:'#3a1050',textMuted:'#9960bb',accent:'#b040d0',userBubble:'#ffe0f8',userBorder:'#f0a0e0',userText:'#60006a',aiBubble:'#fdf8ff',aiBorder:'#ddb0f0',sendBtn:'linear-gradient(135deg,#c060e0,#f090d0)',newBtn:'linear-gradient(135deg,#c060e0,#f090d0)'},
   vitamin:  {name:'🍊 ビタミン', bg:'#fff6ec',surface:'#ffedd8',surface2:'#ffe0c0',border:'#f0b060',text:'#402810',textMuted:'#b08040',accent:'#40b0d0',userBubble:'#d8f4ff',userBorder:'#80c8e0',userText:'#0a3050',aiBubble:'#fff8f0',aiBorder:'#f0c888',sendBtn:'linear-gradient(135deg,#40b0d0,#f09030)',newBtn:'linear-gradient(135deg,#40b0d0,#f09030)'},
   rival:    {name:'⚔ ライバル',  bg:'#fff0f0',surface:'#ffe8e8',surface2:'#ffd8d8',border:'#f0a0a0',text:'#200000',textMuted:'#a05050',accent:'#e01010',userBubble:'#ffd0d0',userBorder:'#f08080',userText:'#400000',aiBubble:'#d0e8ff',aiBorder:'#4090e0',sendBtn:'linear-gradient(135deg,#e01010,#1060e0)',newBtn:'linear-gradient(135deg,#e01010,#1060e0)'},
   forest:   {name:'🌿 フォレスト', bg:'#f0f8ec',surface:'#e4f0d8',surface2:'#d8ecd0',border:'#90c078',text:'#1a3010',textMuted:'#608040',accent:'#e080a8',userBubble:'#ffd8ea',userBorder:'#e090b8',userText:'#401030',aiBubble:'#f0f8e8',aiBorder:'#a8d080',sendBtn:'linear-gradient(135deg,#50a030,#e878a0)',newBtn:'linear-gradient(135deg,#50a030,#e878a0)'},
@@ -1046,12 +1078,13 @@ const THEMES = {
   honey:    {name:'🍯 はちみつ', bg:'#fdf8ec',surface:'#f8f0d8',surface2:'#f0e4c0',border:'#d8c080',text:'#3a2800',textMuted:'#a08840',accent:'#c89820',userBubble:'#f8ecc0',userBorder:'#d8b860',userText:'#302000',aiBubble:'#fefaf0',aiBorder:'#e8d8a0',sendBtn:'linear-gradient(135deg,#c89820,#e8b830)',newBtn:'linear-gradient(135deg,#c89820,#e8b830)'},
   choco:    {name:'🍫 チョコレート', bg:'#2c1c16',surface:'#3a2820',surface2:'#4a3428',border:'#6a4838',text:'#f8e0d4',textMuted:'#b89080',accent:'#f07898',userBubble:'#4a2030',userBorder:'#a04868',userText:'#ffe0ea',aiBubble:'#342018',aiBorder:'#5a3828',sendBtn:'linear-gradient(135deg,#e06080,#f8a0b8)',newBtn:'linear-gradient(135deg,#e06080,#f8a0b8)'},
   koneko:   {name:'🐈 こねこ',  bg:'#faf4f2',surface:'#f4ece6',surface2:'#ecdcd6',border:'#d8b8b0',text:'#382420',textMuted:'#a08078',accent:'#c08878',userBubble:'#f0dcd4',userBorder:'#d0a8a0',userText:'#301818',aiBubble:'#fcf6f4',aiBorder:'#e4ccc4',sendBtn:'linear-gradient(135deg,#c08878,#d8a898)',newBtn:'linear-gradient(135deg,#c08878,#d8a898)'},
+  neon:     {name:'🌐 ネオン',  bg:'#080c08',surface:'#0c120c',surface2:'#101810',border:'#aaee00',text:'#eeffcc',textMuted:'#88bb44',accent:'#ddff00',userBubble:'#0a160a',userBorder:'#aaee00',userText:'#ddff00',aiBubble:'#080e08',aiBorder:'#447700',sendBtn:'linear-gradient(135deg,#aaee00,#ddff00)',newBtn:'linear-gradient(135deg,#aaee00,#ddff00)'},
   jonu:     {name:'✨ じょぬ',   bg:'#e8f8f8',surface:'#d0f0f0',surface2:'#b8e8e8',border:'#70c8d8',text:'#0a2030',textMuted:'#408090',accent:'#2090b0',userBubble:'#b8e8f8',userBorder:'#60b8d0',userText:'#002030',aiBubble:'#f0fcfc',aiBorder:'#90d8e8',sendBtn:'linear-gradient(135deg,#2090b0,#40c8d8)',newBtn:'linear-gradient(135deg,#2090b0,#40c8d8)'},
   legend:   {name:'💎 レジェンド', bg:'#ffffff',surface:'#f0f4ff',surface2:'#e4ecff',border:'#1a3fa0',text:'#c8a000',textMuted:'#1a3fa0',accent:'#c8a000',userBubble:'#e4ecff',userBorder:'#1a3fa0',userText:'#b09000',aiBubble:'#f8faff',aiBorder:'#1a3fa0',sendBtn:'linear-gradient(135deg,#1a3fa0,#1a3fa0)',newBtn:'linear-gradient(135deg,#1a3fa0,#1a3fa0)'},
 };
 
 const DEFAULT_THEMES = ['light','dark'];
-const CUSTOM_THEMES  = ['ichigo','tenshi','obake','vampire','yumekawa','vitamin','rival','forest','awa','yoru','honey','choco','koneko'];
+const CUSTOM_THEMES  = ['ichigo','tenshi','obake','vampire','yumekawa','vitamin','rival','forest','awa','yoru','honey','choco','koneko','neon'];
 const HIDDEN_THEMES  = ['jonu','legend'];
 
 // ══════════════════════════════════════════════
@@ -1068,6 +1101,7 @@ let rallyAbort = false;
 let totalCost  = 0;
 let currentTheme = 'dark';
 let unlockedThemes = [];
+let pendingNewPersonaBackup = false; // 新キャラ初回会話後バックアップ促進フラグ
 
 // ── Model definitions (single source of truth) ──
 // 会社情報（2段階プルダウン用）
@@ -1111,18 +1145,19 @@ const MODEL_DEF = [
   {value:'anthropic:claude-opus-4-7',           provider:'anthropic',  label:'Claude Opus 4.7（最新）',          shortLabel:'Claude Opus 4.7',              price:{in:0.005, out:0.025},    wizard:true},
   {value:'anthropic:claude-opus-4-6',           provider:'anthropic',  label:'Claude Opus 4.6',                  shortLabel:'Claude Opus 4.6',              price:{in:0.005, out:0.025},    wizard:true},
   {value:'anthropic:claude-sonnet-4-6',         provider:'anthropic',  label:'Claude Sonnet 4.6',                shortLabel:'Claude Sonnet 4.6',            price:{in:0.003, out:0.015},    wizard:true},
-  {value:'anthropic:claude-sonnet-4-5',         provider:'anthropic',  label:'Claude Sonnet 4.5',                shortLabel:'Claude Sonnet 4.5',            price:{in:0.003, out:0.015},    wizard:true},
+  {value:'anthropic:claude-sonnet-4-5',         provider:'anthropic',  label:'⚠️ Claude Sonnet 4.5（旧世代）',   shortLabel:'⚠️ Claude Sonnet 4.5',         price:{in:0.003, out:0.015}},
   {value:'anthropic:claude-haiku-4-5-20251001', provider:'anthropic',  label:'Claude Haiku 4.5',                 shortLabel:'Claude Haiku 4.5',             price:{in:0.001, out:0.005},    wizard:true},
-  {value:'anthropic:claude-3-5-sonnet-20241022',provider:'anthropic',  label:'Claude 3.5 Sonnet',                shortLabel:'Claude 3.5 Sonnet',            price:{in:0.003, out:0.015}},
-  {value:'anthropic:claude-3-5-haiku-20241022', provider:'anthropic',  label:'Claude 3.5 Haiku',                 shortLabel:'Claude 3.5 Haiku',             price:{in:0.0008, out:0.004}},
+  {value:'anthropic:claude-3-5-sonnet-20241022',provider:'anthropic',  label:'⚠️ Claude 3.5 Sonnet（廃止済み）', shortLabel:'⚠️ Claude 3.5 Sonnet',         price:{in:0.003, out:0.015}},
+  {value:'anthropic:claude-3-5-haiku-20241022', provider:'anthropic',  label:'⚠️ Claude 3.5 Haiku（廃止済み）',  shortLabel:'⚠️ Claude 3.5 Haiku',          price:{in:0.0008, out:0.004}},
   {value:'anthropic:claude-3-haiku-20240307',   provider:'anthropic',  label:'⚠️ Claude 3 Haiku（廃止済み）',    shortLabel:'⚠️ Claude 3 Haiku',            price:{in:0.00025,out:0.00125}},
   // ── Google ──
   {value:'google:gemini-3.1-pro-preview',       provider:'google',     label:'Gemini 3.1 Pro（最新・高性能）',   shortLabel:'Gemini 3.1 Pro',               price:{in:0.002, out:0.012},    wizard:true},
   {value:'google:gemini-3.1-flash-lite-preview',provider:'google',     label:'Gemini 3.1 Flash-Lite（最新・軽量）',shortLabel:'Gemini 3.1 Flash-Lite',      price:{in:0.00025,out:0.0015},  wizard:true},
-  {value:'google:gemini-3-flash-preview',       provider:'google',     label:'Gemini 3 Flash',                   shortLabel:'Gemini 3 Flash',               price:{in:0.0005, out:0.003},   wizard:true},
+  {value:'google:gemini-3.5-flash',             provider:'google',     label:'Gemini 3.5 Flash（最新・エージェント）',shortLabel:'Gemini 3.5 Flash',           price:{in:0.00025,out:0.001},   wizard:true},
+  {value:'google:gemini-3-flash-preview',       provider:'google',     label:'⚠️ Gemini 3 Flash（廃止済み）',    shortLabel:'⚠️ Gemini 3 Flash',            price:{in:0.0005, out:0.003}},
   {value:'google:gemini-2.5-pro',               provider:'google',     label:'Gemini 2.5 Pro',                   shortLabel:'Gemini 2.5 Pro',               price:{in:0.00125,out:0.01},    wizard:true},
   {value:'google:gemini-2.5-flash',             provider:'google',     label:'Gemini 2.5 Flash',                 shortLabel:'Gemini 2.5 Flash',             price:{in:0.00015,out:0.00035}, wizard:true},
-  {value:'google:gemini-2.5-flash-lite',        provider:'google',     label:'⚠️ Gemini 2.5 Flash-Lite（6月廃止予定）',shortLabel:'⚠️ Gemini 2.5 Flash-Lite',price:{in:0.00004,out:0.00016}},
+  {value:'google:gemini-2.5-flash-lite',        provider:'google',     label:'⚠️ Gemini 2.5 Flash-Lite（廃止済み）',shortLabel:'⚠️ Gemini 2.5 Flash-Lite', price:{in:0.00004,out:0.00016}},
   // ── Mistral ──
   {value:'mistral:mistral-large-latest',        provider:'mistral',    label:'Mistral Large（高性能）',           shortLabel:'Mistral Large',                price:{in:0.002,out:0.006},     wizard:true},
   {value:'mistral:mistral-small-latest',        provider:'mistral',    label:'Mistral Small（軽量）',             shortLabel:'Mistral Small',                price:{in:0.0001,out:0.0003},   wizard:true},
@@ -1140,7 +1175,6 @@ const MODEL_DEF = [
   {value:'groq:meta-llama/llama-4-scout-17b-16e-instruct', provider:'groq', label:'Llama 4 Scout（超高速）', shortLabel:'Llama 4 Scout（超高速）',          price:{in:0.00011,out:0.00034}, wizard:true},
   {value:'groq:llama-3.3-70b-versatile',        provider:'groq',       label:'Llama 3.3 70B（超高速）',           shortLabel:'Llama 3.3 70B（超高速）',      price:{in:0.00059,out:0.00079}},
   {value:'groq:llama-3.1-8b-instant',           provider:'groq',       label:'Llama 3.1 8B Instant（爆速）',      shortLabel:'Llama 3.1 8B（爆速）',         price:{in:0.00005,out:0.00008}, wizard:true},
-  {value:'groq:gemma2-9b-it',                   provider:'groq',       label:'⚠️ Gemma2 9B（廃止の可能性あり）',  shortLabel:'⚠️ Gemma2 9B',                price:{in:0.0002,out:0.0002}},
   // ── Perplexity ──
   {value:'perplexity:sonar-pro',                provider:'perplexity', label:'Sonar Pro（Web検索付き）',           shortLabel:'Sonar Pro',                    price:{in:0.003,out:0.015},     wizard:true},
   {value:'perplexity:sonar',                    provider:'perplexity', label:'Sonar（Web検索付き・軽量）',         shortLabel:'Sonar',                        price:{in:0.001,out:0.001},     wizard:true},
@@ -1244,6 +1278,26 @@ function getProviderModelValue(wrapperId){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.0.6',
+    date: '2026-05-27',
+    label: '🎨 テーマ・UI大幅強化＋キャラ機能拡充',
+    items: [
+      '🌐 新テーマ「ネオン」追加 — 黒地×ライム×イエローのサイバーパンク配色',
+      '🌸 テーマ「ゆめかわ」リデザイン — ピンク一色からパープル×ピンクのドリーミーな配色に変更',
+      '🤖 モデル最新化 — Gemini 3.5 Flash追加。廃止済みモデル（Claude 3.5 Sonnet/Haiku・Gemini 3 Flash・Gemini 2.5 Flash-Lite・Groq Gemma2）を⚠️表示または削除',
+      '🤖 Claude Sonnet 4.5を⚠️旧世代表示に変更',
+      '📅 会話履歴の月別アコーディオン — ログが増えても月ごとに折りたたんで整理。直近の月は開いた状態で表示',
+      '⚡ ラリー絞り込み検索 — 検索パネルに「⚡ ラリーのみ表示」チェックボックスを追加',
+      '⚡ ラリー開始UIを一体化 — キャラ選択・自分参加・テーマ設定を開始ポップアップにまとめ。サイドバーのテーマ入力値を初期値に反映（同期修正）',
+      '📋 ラリープリセット — キャラ選択＋テーマを名前付きで保存・呼び出し・削除できる機能を追加。サイドバーのキャラチェック欄と差し替え',
+      '💾 バックアップ促進ポップアップ — 3つのタイミング（総セッション10の倍数・1セッション50件・新キャラ5件目）で案内。1日1回まで制限あり',
+      '📤 キャラ単体ポータブルJSON — キャラを個別にJSONで書き出し・読み込み可能。同名キャラがいる場合は確認UIでマージ（会話履歴・思い出メモ・プロンプト選択）',
+      '✦ 初回起動バックアップ案内 — 初めてアプリを開いた時にIndexedDBの注意事項とバックアップの重要性を案内',
+      '🏷️ キャラごとのファンマーク絵文字 — VTuberファンマのようにキャラを象徴する絵文字を2種まで設定。タブ・AIネームバーに表示',
+      '🎨 キャラごとのテーマカラー設定 — キャラタブ切り替え時に指定テーマが自動適用。キャラ設定欄でテーマを割り当て可能（未設定は現在のテーマを維持）',
+    ]
+  },
   {
     version: '2.0.5',
     date: '2026-05-05',
@@ -2333,6 +2387,11 @@ function switchPersona(pid){
   currentSid = p.sessions.length>0 ? p.sessions[p.sessions.length-1].id : null;
   idbSet('ai_current_pid', pid).catch(()=>store('ai_current_pid', pid));
   store('ai_current_pid', pid); // localStorageにも保険として書く
+  // キャラ固有テーマが設定されていれば切り替え
+  if(p.personaTheme && THEMES[p.personaTheme]){
+    currentTheme = p.personaTheme;
+    idbSet('ai_theme', currentTheme).catch(()=>store('ai_theme', currentTheme));
+  }
   updatePersonaTabs();
   updateAiNameBar();
   loadPersonaToSidebar();
@@ -2340,6 +2399,35 @@ function switchPersona(pid){
   renderSessions();
   renderMemories();
   updateDiaryUI();
+}
+
+// ── キャラテーマ選択セレクトを構築 ──
+function buildPersonaThemeSelect(currentVal){
+  const sel=document.getElementById('edit-persona-theme');
+  if(!sel) return;
+  const t=THEMES[currentTheme];
+  sel.innerHTML='';
+  sel.style.background=t.surface2;
+  sel.style.borderColor=t.border;
+  sel.style.color=t.text;
+  // 「なし」
+  const noneOpt=document.createElement('option');
+  noneOpt.value=''; noneOpt.textContent='— なし（現在のテーマを維持）';
+  sel.appendChild(noneOpt);
+  // 全テーマを追加
+  const allThemes=[...DEFAULT_THEMES,...CUSTOM_THEMES,...HIDDEN_THEMES];
+  allThemes.forEach(key=>{
+    const th=THEMES[key];
+    if(!th) return;
+    // 隠しテーマは解放済みのみ表示
+    if(HIDDEN_THEMES.includes(key)&&!unlockedThemes.includes(key)) return;
+    const opt=document.createElement('option');
+    opt.value=key;
+    opt.textContent=th.name;
+    if(key===currentVal) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  if(currentVal) sel.value=currentVal;
 }
 
 function updatePersonaTabs(){
@@ -2350,7 +2438,8 @@ function updatePersonaTabs(){
   personas.forEach(p=>{
     const btn = document.createElement('button');
     btn.className = 'ptab' + (p.id===currentPid?' active':'');
-    btn.textContent = p.aiName;
+    const fm = p.fanmarks&&p.fanmarks.length ? ' '+p.fanmarks.join('') : '';
+    btn.textContent = p.aiName + fm;
     btn.dataset.pid = p.id;
     btn.style.background = p.id===currentPid ? t.surface2 : t.surface;
     btn.style.color = p.id===currentPid ? t.accent : t.textMuted;
@@ -2373,7 +2462,8 @@ function updateAiNameBar(){
   const p = currentPersona();
   const bar = document.getElementById('ai-name-bar');
   const t = THEMES[currentTheme];
-  bar.textContent = p ? p.aiName : '365dAIary';
+  const _fm = p&&p.fanmarks&&p.fanmarks.length ? ' '+p.fanmarks.join('') : '';
+  bar.textContent = p ? p.aiName + _fm : '365dAIary';
   bar.style.background = t.surface;
   bar.style.borderColor = t.border;
   bar.style.color = t.accent;
@@ -2385,6 +2475,9 @@ function loadPersonaToSidebar(){
   if(!p) return;
   document.getElementById('edit-ai-name').value   = p.aiName;
   document.getElementById('edit-emoji').value      = p.emoji || '💬';
+  document.getElementById('edit-fanmark1').value   = (p.fanmarks&&p.fanmarks[0])||'';
+  document.getElementById('edit-fanmark2').value   = (p.fanmarks&&p.fanmarks[1])||'';
+  buildPersonaThemeSelect(p.personaTheme||'');
   document.getElementById('edit-user-name').value = p.userName;
   buildProviderModelUI('edit-model-ui', 'full', p.model);
   // お試しOCのプロンプトはロック
@@ -2454,6 +2547,8 @@ function confirmAddPersona(){
   closeAddPersonaModal();
   switchPersona(p.id);
   showToast('✦ キャラ「'+aiName+'」を追加しました');
+  // 新キャラ初回会話後にバックアップを促すフラグ
+  pendingNewPersonaBackup=true;
 }
 
 // ── キャラ複製モーダル ──
@@ -2588,6 +2683,10 @@ function savePersonaSettings(){
   p.model    = getProviderModelValue('edit-model-ui');
   const emojiVal = document.getElementById('edit-emoji').value.trim();
   if(emojiVal) p.emoji = emojiVal;
+  const fm1 = document.getElementById('edit-fanmark1').value.trim();
+  const fm2 = document.getElementById('edit-fanmark2').value.trim();
+  p.fanmarks = [fm1, fm2].filter(Boolean);
+  p.personaTheme = document.getElementById('edit-persona-theme')?.value||'';
   if(!p.isTrial){
     p.systemPrompt = document.getElementById('system-prompt').value;
   }
@@ -3391,6 +3490,8 @@ function clearSearch(){
   document.getElementById('sess-date-from').value='';
   document.getElementById('sess-date-to').value='';
   document.getElementById('search-result-info').textContent='';
+  const rallyChk=document.getElementById('rally-only-filter');
+  if(rallyChk) rallyChk.checked=false;
   renderSessions();
 }
 
@@ -3423,7 +3524,8 @@ function renderSessions(){
   const dateFrom=document.getElementById('sess-date-from')?.value||'';
   const dateTo=document.getElementById('sess-date-to')?.value||'';
   const folderFilter=document.getElementById('sess-folder-filter')?.value||'';
-  const hasFilter=q||dateFrom||dateTo||folderFilter;
+  const rallyOnly=document.getElementById('rally-only-filter')?.checked||false;
+  const hasFilter=q||dateFrom||dateTo||folderFilter||rallyOnly;
 
   // スコープに従い検索対象を決定（トグルで常時制御）
   let searchSources=[];
@@ -3467,6 +3569,11 @@ function renderSessions(){
       const msgMatch=s.msgs.some(m=>(m.content||'').toLowerCase().includes(q));
       if(!titleMatch&&!msgMatch) return false;
     }
+    // ラリーのみ
+    if(rallyOnly){
+      const isRallySess=s.msgs.some(m=>m.role==='system-info'&&(m.content||'').includes('ラリー開始'));
+      if(!isRallySess) return false;
+    }
     return true;
   });
 
@@ -3490,7 +3597,8 @@ function renderSessions(){
     infoEl.textContent=filtered.length+'件'+(filtered.length>50?' (上限50件表示)':'')+(useAll&&personas.length>1?' · 全キャラ横断':'');
   }
 
-  capped.forEach(({session:s, persona:per})=>{
+  // ── アイテム描画ヘルパー ──
+  function buildSessItem(s, per){
     const item=document.createElement('div');
     item.className='sess-item';
     const isCurrent=per.id===p.id&&s.id===currentSid;
@@ -3501,15 +3609,9 @@ function renderSessions(){
     const titleEl=document.createElement('div');
     titleEl.className='sess-title';
     titleEl.style.color=isCurrent?t.accent:t.text;
-
-    // 全キャラ横断時はキャラ名を先頭に表示
     let titleText=s.title||'新しい会話';
     if(s.pinned) titleText='📌 '+titleText;
-    if(useAll&&personas.length>1){
-      titleText=per.emoji+' '+titleText;
-    }
-
-    // キーワードがある場合、メッセージプレビューを表示
+    if(useAll&&personas.length>1) titleText=per.emoji+' '+titleText;
     let preview='';
     if(q){
       const hit=s.msgs.find(m=>(m.content||'').toLowerCase().includes(q));
@@ -3520,20 +3622,17 @@ function renderSessions(){
         preview=(start>0?'…':'')+hit.content.slice(start,end)+(end<hit.content.length?'…':'');
       }
     }
-
     titleEl.textContent=titleText;
     const meta=document.createElement('div');
     meta.className='sess-meta';meta.style.color=t.textMuted;
     const d=new Date(s.updatedAt);
     let metaText=s.msgs.length+'件 · '+d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    // フォルダ名を表示
     if(s.folderId&&per.folders){
       const folder=per.folders.find(f=>f.id===s.folderId);
       if(folder) metaText+=' · 📁'+folder.name;
     }
     meta.textContent=metaText;
     info.appendChild(titleEl);
-
     if(preview){
       const prevEl=document.createElement('div');
       prevEl.style.cssText='font-size:10px;opacity:.6;line-height:1.5;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
@@ -3542,7 +3641,6 @@ function renderSessions(){
       info.appendChild(prevEl);
     }
     info.appendChild(meta);
-
     const del=document.createElement('button');
     del.className='sess-del';del.style.color=t.textMuted;del.textContent='🗑';
     del.onclick=e=>{e.stopPropagation();deleteSession(s.id);};
@@ -3550,14 +3648,12 @@ function renderSessions(){
     exp.className='sess-del';exp.style.color=t.textMuted;exp.textContent='📥';
     exp.title='エクスポート';
     exp.onclick=e=>{e.stopPropagation();exportSession(s);};
-    // フォルダ移動ボタン
     const folderBtn=document.createElement('button');
     folderBtn.className='sess-del';
     folderBtn.style.color=s.folderId?t.accent:t.textMuted;
     folderBtn.textContent='📁';
     folderBtn.title='フォルダに移動';
     folderBtn.onclick=e=>{e.stopPropagation();setSessionFolder(s.id,per.id);};
-    // ピン留めボタン
     const pinBtn=document.createElement('button');
     pinBtn.className='sess-del';
     pinBtn.style.color=s.pinned?t.accent:t.textMuted;
@@ -3567,11 +3663,71 @@ function renderSessions(){
     pinBtn.onclick=e=>{e.stopPropagation();togglePin(s.id,per.id);};
     item.appendChild(info);item.appendChild(pinBtn);item.appendChild(folderBtn);item.appendChild(exp);item.appendChild(del);
     item.onclick=()=>{
-      // 別キャラのセッションならキャラ切替
       if(per.id!==p.id) switchPersona(per.id);
       selectSession(s.id);toggleRight();
     };
-    list.appendChild(item);
+    return item;
+  }
+
+  // ── フィルター中は月別アコーディオンなしでそのまま表示 ──
+  if(hasFilter){
+    capped.forEach(({session:s,persona:per})=>list.appendChild(buildSessItem(s,per)));
+    return;
+  }
+
+  // ── 通常表示：ピン留めを先頭に、残りを月別アコーディオンで表示 ──
+  const pinned=capped.filter(({session:s})=>s.pinned);
+  const normal=capped.filter(({session:s})=>!s.pinned);
+
+  // ピン留め
+  pinned.forEach(({session:s,persona:per})=>list.appendChild(buildSessItem(s,per)));
+
+  // 月別グループ化
+  const groups=new Map(); // 'YYYY年M月' → [{session,persona}]
+  normal.forEach(entry=>{
+    const d=new Date(entry.session.updatedAt);
+    const key=d.getFullYear()+'年'+(d.getMonth()+1)+'月';
+    if(!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push(entry);
+  });
+
+  // 直近の月キーを特定
+  const latestKey=groups.size>0?groups.keys().next().value:null;
+
+  groups.forEach((entries,monthKey)=>{
+    const isLatest=monthKey===latestKey;
+    // ── ヘッダーボタン ──
+    const hdr=document.createElement('button');
+    hdr.className='sess-month-hdr';
+    hdr.style.color=t.textMuted;
+    hdr.style.borderBottom='1px solid '+t.border;
+    const label=document.createElement('span');
+    label.textContent='📅 '+monthKey+' ('+entries.length+'件)';
+    const arrow=document.createElement('span');
+    arrow.textContent=isLatest?'▾':'▸';
+    arrow.style.transition='transform .2s';
+    hdr.appendChild(label);hdr.appendChild(arrow);
+
+    // ── ボディ ──
+    const body=document.createElement('div');
+    body.className='sess-month-body';
+    entries.forEach(({session:s,persona:per})=>body.appendChild(buildSessItem(s,per)));
+
+    // 開閉状態
+    if(isLatest){
+      body.style.maxHeight='9999px';
+    } else {
+      body.style.maxHeight='0';
+    }
+
+    hdr.onclick=()=>{
+      const open=body.style.maxHeight!=='0px'&&body.style.maxHeight!=='0';
+      body.style.maxHeight=open?'0':'9999px';
+      arrow.textContent=open?'▸':'▾';
+    };
+
+    list.appendChild(hdr);
+    list.appendChild(body);
   });
 }
 
@@ -4069,6 +4225,31 @@ async function send(){
   sendAbortController=null;
   sess.updatedAt=Date.now();
   saveAllNow();
+  // ── バックアップ促進チェック（3フラグ） ──
+  const _today=new Date().toDateString();
+  if(localStorage.getItem('backup_nudge_date')!==_today){
+    // ① 総セッション数が10の倍数
+    const _totalSess=personas.reduce((acc,per)=>acc+per.sessions.length,0);
+    if(_totalSess>0 && _totalSess%10===0){
+      setTimeout(()=>checkBackupNudge('sessions'),600);
+    }
+    // ② このセッションの会話が50件
+    else if(sess.msgs.filter(m=>m.role==='user').length%50===0 &&
+            sess.msgs.filter(m=>m.role==='user').length>0){
+      setTimeout(()=>checkBackupNudge('longsess'),600);
+    }
+    // ③ 新キャラとの会話が5件目
+    else if(pendingNewPersonaBackup){
+      const _userMsgs=sess.msgs.filter(m=>m.role==='user').length;
+      if(_userMsgs>=5){
+        pendingNewPersonaBackup=false;
+        setTimeout(()=>checkBackupNudge('newpersona'),600);
+      }
+    }
+  } else if(pendingNewPersonaBackup){
+    // 今日表示済みでもフラグは5件で解除（ポップアップは出さない）
+    if(sess.msgs.filter(m=>m.role==='user').length>=5) pendingNewPersonaBackup=false;
+  }
   setLoading(false);
   renderSessions();
 }
@@ -4356,61 +4537,145 @@ function fallbackPick(rallyPersonas, lastMsgs, userJoin){
 }
 
 async function startRally(){
-  // 参加人格を取得（チェックONのもの）
-  const checked = [...document.querySelectorAll('#rally-members input[type=checkbox]:checked')];
-  const rallyPersonas = checked.map(cb=>personas.find(p=>p.id===cb.dataset.pid)).filter(Boolean);
-  const userJoin = document.getElementById('rally-user-join')?.checked || false;
-
-  if(rallyPersonas.length < 1){showToast('⚠ 参加するキャラを1つ以上選んでください');return;}
-  if(rallyPersonas.length < 2 && !userJoin){showToast('⚠ ラリーにはAI2つ以上、またはAI1つ＋自分参加が必要です');return;}
   if(isRallying){stopRally();return;}
-
-  // テーマ入力ポップアップ
-  showRallyTopicPrompt(rallyPersonas, userJoin);
+  showRallyStartOverlay();
 }
 
-function showRallyTopicPrompt(rallyPersonas, userJoin){
+// ── ラリープリセット管理 ──
+function getRallyPresets(){
+  try{ return JSON.parse(localStorage.getItem('rally_presets')||'[]'); }
+  catch(e){ return []; }
+}
+function saveRallyPresets(presets){
+  localStorage.setItem('rally_presets', JSON.stringify(presets));
+}
+function renderRallyPresetsList(){
+  const t=THEMES[currentTheme];
+  const container=document.getElementById('rally-presets-list');
+  if(!container) return;
+  container.innerHTML='';
+  const presets=getRallyPresets();
+  if(presets.length===0){
+    container.innerHTML='<div style="font-size:10px;opacity:.4;font-family:monospace">保存済みプリセットなし</div>';
+    return;
+  }
+  presets.forEach((preset,idx)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:4px';
+    const btn=document.createElement('button');
+    btn.className='sb-btn';
+    btn.style.flex='1';
+    btn.style.textAlign='left';
+    btn.style.fontSize='10px';
+    btn.style.padding='4px 8px';
+    btn.textContent='▶ '+preset.name;
+    btn.title=preset.pids.length+'キャラ'+(preset.topic?' · '+preset.topic:'');
+    btn.onclick=()=>showRallyStartOverlay(preset);
+    const del=document.createElement('button');
+    del.style.cssText='background:none;border:none;cursor:pointer;font-size:11px;opacity:.5;flex-shrink:0';
+    del.style.color=t.textMuted;
+    del.textContent='🗑';
+    del.onclick=()=>{
+      const ps=getRallyPresets();
+      ps.splice(idx,1);
+      saveRallyPresets(ps);
+      renderRallyPresetsList();
+    };
+    row.appendChild(btn);
+    row.appendChild(del);
+    container.appendChild(row);
+  });
+}
+
+// ── ラリー開始オーバーレイ（キャラ選択＋テーマ一体型） ──
+function showRallyStartOverlay(preset=null){
   let overlay=document.getElementById('rally-topic-overlay');
   if(overlay) overlay.remove();
   overlay=document.createElement('div');
   overlay.id='rally-topic-overlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
   const t=THEMES[currentTheme];
-  const names=rallyPersonas.map(r=>r.emoji+' '+r.aiName).join(' × ')+(userJoin?' × あなた':'');
   const box=document.createElement('div');
-  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:22px 20px;max-width:320px;width:90%;color:${t.text};`;
+  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:20px;max-width:340px;width:100%;color:${t.text};max-height:80vh;overflow-y:auto;`;
+
+  // サイドバーのテーマを初期値に
+  const sbTopic=document.getElementById('rally-topic')?.value||'';
+  const initTopic=preset?preset.topic:sbTopic;
+
+  // キャラリスト構築
+  let memberHTML='';
+  personas.forEach(p=>{
+    const checked=preset ? preset.pids.includes(p.id) : true;
+    memberHTML+=`<label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer;padding:4px 0">
+      <input type="checkbox" data-pid="${p.id}" ${checked?'checked':''} style="width:14px;height:14px;cursor:pointer">
+      <span>${p.emoji||''} ${p.aiName}</span>
+    </label>`;
+  });
+  const userChecked=preset?preset.userJoin:false;
+
   box.innerHTML=`
-    <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:6px">⚡ ラリー開始</div>
-    <div style="font-size:11px;text-align:center;opacity:.6;margin-bottom:14px">${names}</div>
-    <div style="font-size:11px;margin-bottom:6px;opacity:.8">会話のテーマ（空欄＝自由会話）</div>
-    <input type="text" id="rally-topic-input" placeholder="例：好きな食べ物について" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid ${t.border};background:${t.surface};color:${t.text};font-size:13px;font-family:inherit;">
-    <div style="display:flex;gap:8px;margin-top:14px;">
-      <button id="rally-topic-cancel" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:1px solid ${t.border};background:transparent;color:${t.text};">キャンセル</button>
-      <button id="rally-topic-start" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff;">⚡ 開始！</button>
+    <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:14px">⚡ ラリー設定</div>
+    <div style="font-family:monospace;font-size:10px;opacity:.6;margin-bottom:6px;letter-spacing:1px">参加メンバー</div>
+    <div id="rally-overlay-members" style="border:1px solid ${t.border};border-radius:6px;padding:6px;margin-bottom:8px">
+      ${memberHTML}
+      <label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer;padding:4px 0;margin-top:4px;border-top:1px solid ${t.border}">
+        <input type="checkbox" id="rally-overlay-user-join" ${userChecked?'checked':''} style="width:14px;height:14px;cursor:pointer">
+        <span>👤 自分も参加する</span>
+      </label>
     </div>
+    <div style="font-size:11px;margin-bottom:6px;opacity:.8">会話のテーマ（空欄＝自由会話）</div>
+    <input type="text" id="rally-topic-input" placeholder="例：好きな食べ物について" value="${initTopic.replace(/"/g,'&quot;')}" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid ${t.border};background:${t.surface};color:${t.text};font-size:13px;font-family:inherit;margin-bottom:12px">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button id="rally-topic-cancel" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:1px solid ${t.border};background:transparent;color:${t.text}">キャンセル</button>
+      <button id="rally-topic-start" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff">⚡ 開始！</button>
+    </div>
+    <button id="rally-preset-save" style="width:100%;padding:7px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:1px solid ${t.border};background:transparent;color:${t.text};opacity:.7">📋 この設定をプリセットに保存</button>
   `;
   overlay.appendChild(box);
-  overlay.onclick=e=>{if(e.target===overlay){overlay.remove();}};
+  overlay.onclick=e=>{if(e.target===overlay) overlay.remove();};
   document.body.appendChild(overlay);
-  // フォーカス
   setTimeout(()=>document.getElementById('rally-topic-input')?.focus(),100);
-  // ボタンイベント
+
+  // キャンセル
   document.getElementById('rally-topic-cancel').onclick=()=>overlay.remove();
-  document.getElementById('rally-topic-start').onclick=()=>{
+
+  // 開始
+  function doStart(){
+    const checkedEls=[...box.querySelectorAll('#rally-overlay-members input[type=checkbox][data-pid]:checked')];
+    const rallyPersonas=checkedEls.map(cb=>personas.find(p=>p.id===cb.dataset.pid)).filter(Boolean);
+    const userJoin=document.getElementById('rally-overlay-user-join')?.checked||false;
+    if(rallyPersonas.length<1){showToast('⚠ 参加するキャラを1つ以上選んでください');return;}
+    if(rallyPersonas.length<2&&!userJoin){showToast('⚠ ラリーにはAI2つ以上、またはAI1つ＋自分参加が必要です');return;}
     const topic=document.getElementById('rally-topic-input').value.trim();
     // サイドバーのテーマ欄にも反映
     const topicEl=document.getElementById('rally-topic');
     if(topicEl) topicEl.value=topic;
     overlay.remove();
-    executeRally(rallyPersonas, userJoin);
-  };
-  // Enterで開始
+    executeRally(rallyPersonas,userJoin,false,topic);
+  }
+  document.getElementById('rally-topic-start').onclick=doStart;
   document.getElementById('rally-topic-input').addEventListener('keydown',e=>{
-    if(e.key==='Enter'){e.preventDefault();document.getElementById('rally-topic-start').click();}
+    if(e.key==='Enter'){e.preventDefault();doStart();}
   });
+
+  // プリセット保存
+  document.getElementById('rally-preset-save').onclick=()=>{
+    const checkedEls=[...box.querySelectorAll('#rally-overlay-members input[type=checkbox][data-pid]:checked')];
+    const pids=checkedEls.map(cb=>cb.dataset.pid);
+    const userJoin=document.getElementById('rally-overlay-user-join')?.checked||false;
+    const topic=document.getElementById('rally-topic-input').value.trim();
+    if(pids.length===0){showToast('⚠ キャラを1つ以上選んでください');return;}
+    const name=prompt('プリセット名を入力してください');
+    if(!name||!name.trim()) return;
+    const presets=getRallyPresets();
+    presets.push({name:name.trim(),pids,userJoin,topic});
+    saveRallyPresets(presets);
+    renderRallyPresetsList();
+    showToast('📋 プリセット「'+name.trim()+'」を保存しました');
+  };
 }
 
-async function executeRally(rallyPersonas, userJoin, continueMode=false){
+async function executeRally(rallyPersonas, userJoin, continueMode=false, topicArg=null){
   rallyUserJoin = userJoin; // 「このまま続ける」用に保持
   rallyPersonasSaved = rallyPersonas; // 「このまま続ける」用に保持
   const maxTurns  = parseInt(document.getElementById('rally-max-turns').value)||10;
@@ -4428,7 +4693,7 @@ async function executeRally(rallyPersonas, userJoin, continueMode=false){
 
   // セッション確保
   const p=currentPersona();
-  const rallyTopic = (document.getElementById('rally-topic')?.value||'').trim();
+  const rallyTopic = topicArg !== null ? topicArg : (document.getElementById('rally-topic')?.value||'').trim();
   const emojiNames = rallyPersonas.map(r=>(r.emoji||'💬')).join('');
   const rallyTitle = rallyTopic
     ? emojiNames + ' ' + rallyTopic
@@ -4780,10 +5045,13 @@ function applyTheme(name){
   if(importLabel){importLabel.style.borderColor=t.border;importLabel.style.color=t.textMuted;importLabel.style.background='none';}
   const importStatus=document.getElementById('import-status');
   if(importStatus&&!importStatus.style.color){importStatus.style.color=t.textMuted;}
+  const importPersonaLabel=document.querySelector('label[for="import-persona-file"],label:has(#import-persona-file)');
+  if(importPersonaLabel){importPersonaLabel.style.borderColor=t.border;importPersonaLabel.style.color=t.textMuted;importPersonaLabel.style.background='none';}
   // qa accordion
   renderQA();
   renderChangelog();
   renderRallyMembers();
+  renderRallyPresetsList();
   // persona & session
   updatePersonaTabs();
   updateAiNameBar();
@@ -4970,6 +5238,265 @@ function closeAll(){
 // ══════════════════════════════════════════════
 //  BACKUP / RESTORE
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  キャラ単体ポータブルJSON
+// ══════════════════════════════════════════════
+
+// ── エクスポート ──
+function exportPersonaJSON(){
+  const p=currentPersona();
+  if(!p){showToast('⚠ キャラを選択してください');return;}
+  const data={
+    _type:'365dAIary_persona',
+    _version:1,
+    aiName:p.aiName,
+    emoji:p.emoji||'',
+    userName:p.userName||'あなた',
+    model:p.model||'',
+    systemPrompt:p.systemPrompt||'',
+    memories:[...(p.memories||[])],
+    sessions:(p.sessions||[]).map(s=>({...s,msgs:[...s.msgs]})),
+  };
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const safeName=(p.aiName||'persona').replace(/[\/:*?"<>|]/g,'_');
+  a.download='365dAIary_'+safeName+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('📤 '+p.aiName+' のJSONを書き出しました');
+}
+
+// ── インポート ──
+function importPersonaJSON(event){
+  const file=event.target.files[0];
+  const status=document.getElementById('import-persona-status');
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data._type!=='365dAIary_persona'){
+        if(status) status.textContent='⚠ キャラJSONファイルではありません';
+        return;
+      }
+      // 同名キャラを検索
+      const existing=personas.find(p=>p.aiName===data.aiName);
+      if(!existing){
+        // 新規追加
+        const np=createPersona(data.aiName, data.userName||'あなた', data.model||'');
+        if(data.emoji) np.emoji=data.emoji;
+        np.systemPrompt=data.systemPrompt||'';
+        np.memories=[...(data.memories||[])];
+        np.sessions=[...(data.sessions||[])];
+        personas.push(np);
+        await saveAll();
+        switchPersona(np.id);
+        if(status) status.textContent='✅ '+data.aiName+' を追加しました';
+        showToast('✦ キャラ「'+data.aiName+'」を読み込みました');
+      } else {
+        // 同名キャラあり → マージ確認UI
+        showPersonaMergeUI(existing, data, status);
+      }
+    } catch(err){
+      if(status) status.textContent='⚠ 読み込みエラー: '+err.message;
+    }
+    // ファイル入力をリセット
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ── マージ確認UI ──
+function showPersonaMergeUI(existing, incoming, statusEl){
+  const t=THEMES[currentTheme];
+  let overlay=document.getElementById('persona-merge-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='persona-merge-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+  // 統計情報
+  const exSessions=existing.sessions||[];
+  const inSessions=incoming.sessions||[];
+  const exLastDate=exSessions.length?new Date(Math.max(...exSessions.map(s=>s.updatedAt||0))).toLocaleDateString('ja-JP'):'なし';
+  const inLastDate=inSessions.length?new Date(Math.max(...inSessions.map(s=>s.updatedAt||0))).toLocaleDateString('ja-JP'):'なし';
+
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:22px 20px;max-width:340px;width:100%;color:${t.text};max-height:85vh;overflow-y:auto;`;
+
+  // システムプロンプトが異なる場合の選択肢
+  const promptDiffers=existing.systemPrompt!==incoming.systemPrompt;
+  const promptSection=promptDiffers?`
+    <div style="font-family:monospace;font-size:10px;opacity:.6;margin-bottom:6px;letter-spacing:1px">システムプロンプト</div>
+    <label style="display:flex;align-items:flex-start;gap:6px;font-size:11px;cursor:pointer;margin-bottom:4px">
+      <input type="radio" name="merge-prompt" value="existing" checked style="margin-top:2px;flex-shrink:0">
+      <span>現在のプロンプトを使う<br><span style="opacity:.5;font-size:10px">${existing.systemPrompt.slice(0,40).replace(/</g,'&lt;')}…</span></span>
+    </label>
+    <label style="display:flex;align-items:flex-start;gap:6px;font-size:11px;cursor:pointer;margin-bottom:10px">
+      <input type="radio" name="merge-prompt" value="incoming" style="margin-top:2px;flex-shrink:0">
+      <span>読み込んだプロンプトを使う<br><span style="opacity:.5;font-size:10px">${incoming.systemPrompt.slice(0,40).replace(/</g,'&lt;')}…</span></span>
+    </label>`
+  :`<div style="font-size:10px;opacity:.5;margin-bottom:10px">システムプロンプトは同じです</div>`;
+
+  box.innerHTML=`
+    <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:14px">🔀 キャラをマージ</div>
+    <div style="font-size:11px;opacity:.7;margin-bottom:12px">「${existing.aiName}」が既に存在します。<br>読み込んだデータとマージしますか？</div>
+    <div style="font-size:11px;border:1px solid ${t.border};border-radius:8px;padding:10px;margin-bottom:12px;font-family:monospace">
+      <div style="opacity:.5;font-size:10px;margin-bottom:4px">現在のデータ</div>
+      <div>会話 ${exSessions.length}件 · 最終: ${exLastDate}</div>
+      <div style="opacity:.5;font-size:10px;margin:8px 0 4px">読み込むデータ</div>
+      <div>会話 ${inSessions.length}件 · 最終: ${inLastDate}</div>
+    </div>
+    <div style="font-size:10px;opacity:.6;margin-bottom:10px;line-height:1.6">・会話履歴 → 日付順マージ（重複除外）<br>・思い出メモ → 全件追加（完全重複は除外）</div>
+    ${promptSection}
+    <div style="display:flex;gap:8px;">
+      <button id="merge-cancel" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:1px solid ${t.border};background:transparent;color:${t.text}">キャンセル</button>
+      <button id="merge-exec" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff;font-weight:bold">マージ実行</button>
+    </div>
+  `;
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay) overlay.remove();};
+  document.body.appendChild(overlay);
+
+  document.getElementById('merge-cancel').onclick=()=>overlay.remove();
+  document.getElementById('merge-exec').onclick=async ()=>{
+    // プロンプト選択
+    const promptChoice=promptDiffers
+      ? box.querySelector('input[name="merge-prompt"]:checked')?.value||'existing'
+      : 'existing';
+
+    // ① 会話履歴マージ（重複セッションID除外、日付順）
+    const existingIds=new Set(existing.sessions.map(s=>s.id));
+    const newSessions=incoming.sessions.filter(s=>!existingIds.has(s.id));
+    const mergedSessions=[...existing.sessions,...newSessions]
+      .sort((a,b)=>(a.updatedAt||0)-(b.updatedAt||0));
+
+    // ② 思い出メモマージ（完全重複除外）
+    const existingMemos=new Set(existing.memories.map(m=>typeof m==='string'?m:m.text||m));
+    const newMemos=(incoming.memories||[]).filter(m=>{
+      const txt=typeof m==='string'?m:m.text||m;
+      return !existingMemos.has(txt);
+    });
+    const mergedMemories=[...existing.memories,...newMemos];
+
+    // ③ システムプロンプト
+    if(promptChoice==='incoming') existing.systemPrompt=incoming.systemPrompt;
+
+    // 適用
+    existing.sessions=mergedSessions;
+    existing.memories=mergedMemories;
+
+    await saveAll();
+    switchPersona(existing.id);
+    overlay.remove();
+    if(statusEl) statusEl.textContent='✅ マージ完了（会話+'+newSessions.length+'件, メモ+'+newMemos.length+'件）';
+    showToast('🔀 「'+existing.aiName+'」にマージしました');
+  };
+}
+
+// ── 初回起動バックアップ案内 ──
+function showFirstLaunchBackupGuide(){
+  const t=THEMES[currentTheme];
+  let overlay=document.getElementById('first-launch-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='first-launch-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:24px 20px;max-width:320px;width:100%;color:${t.text};`;
+  box.innerHTML=`
+    <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:14px;color:${t.accent}">✦ ようこそ！365dAIaryへ</div>
+    <div style="font-size:12px;line-height:1.9;margin-bottom:16px;opacity:.9">
+      はじめに、大切なことをひとつだけ。<br><br>
+      このアプリのデータはお使いの端末の<b>IndexedDB</b>に保存されます。ブラウザのキャッシュをクリアしたり、端末を変えたりすると<b>データが消えてしまいます</b>。<br><br>
+      ⚙ → 💾 バックアップ・復元<br>
+      から定期的にデータを保存しておくことを<b>強くおすすめします</b> 🙏
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="first-launch-close" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:1px solid ${t.border};background:transparent;color:${t.text};">わかった！</button>
+      <button id="first-launch-open-backup" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:none;background:${t.accent};color:#fff;">バックアップって？</button>
+    </div>
+  `;
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  document.getElementById('first-launch-close').onclick=()=>overlay.remove();
+  document.getElementById('first-launch-open-backup').onclick=()=>{
+    overlay.remove();
+    // サイドバーを開いてバックアップセクションをスクロール
+    toggleLeft();
+    setTimeout(()=>{
+      const backupSec=document.getElementById('backup-sec');
+      if(backupSec) backupSec.scrollIntoView({behavior:'smooth',block:'center'});
+      // アコーディオンを開く
+      const backupBody=document.getElementById('backup-body');
+      const backupHdr=backupSec?.querySelector('.sb-accordion-hdr');
+      if(backupBody && backupBody.style.maxHeight==='0px'){
+        if(backupHdr) backupHdr.click();
+      }
+    },300);
+  };
+}
+
+// ── バックアップ促進ポップアップ ──
+function showBackupNudge(reason){
+  // 1日1回まで
+  const today=new Date().toDateString();
+  if(localStorage.getItem('backup_nudge_date')===today) return;
+  localStorage.setItem('backup_nudge_date', today);
+
+  const t=THEMES[currentTheme];
+  let overlay=document.getElementById('backup-nudge-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='backup-nudge-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+  const msgs={
+    sessions: '📂 会話がどんどん増えてきましたね！
+ここで一旦、データをバックアップしませんか？
+
+IndexedDBのデータはブラウザの状態によって
+消えることがあります。大切な記録を守るために
+定期的な保存をおすすめします 💾',
+    longsess:  '💬 長い会話をありがとう！
+ここで一旦バックアップしませんか？
+
+大切なやりとりが消えてしまわないように、
+ここで一度保存しておくのがおすすめです 💾',
+    newpersona:'✦ 新しいキャラとの会話が始まりましたね！
+ここでバックアップしておきませんか？
+
+大切な出会いのデータを守るために、
+ここで一度保存しておくのがおすすめです 💾',
+  };
+  const msg=msgs[reason]||msgs.sessions;
+
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:24px 20px;max-width:320px;width:100%;color:${t.text};`;
+  box.innerHTML=`
+    <div style="font-family:monospace;font-size:12px;letter-spacing:1px;text-align:center;margin-bottom:14px;color:${t.accent}">💾 バックアップのすすめ</div>
+    <div style="font-size:12px;line-height:1.8;margin-bottom:18px;white-space:pre-wrap;opacity:.9">${msg}</div>
+    <div style="display:flex;gap:8px;">
+      <button id="backup-nudge-later" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:1px solid ${t.border};background:transparent;color:${t.text};">後で</button>
+      <button id="backup-nudge-now" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff;font-weight:bold;">今すぐバックアップ</button>
+    </div>
+  `;
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay) overlay.remove();};
+  document.body.appendChild(overlay);
+  document.getElementById('backup-nudge-later').onclick=()=>overlay.remove();
+  document.getElementById('backup-nudge-now').onclick=()=>{overlay.remove();exportData();};
+}
+
+// ── バックアップ促進チェック（返信完了後に呼ぶ） ──
+function checkBackupNudge(reason){
+  const today=new Date().toDateString();
+  if(localStorage.getItem('backup_nudge_date')===today) return; // 今日すでに表示済み
+  showBackupNudge(reason);
+}
+
 function exportData(){
   // APIキーは含めない
   const data = {
@@ -5363,6 +5890,11 @@ async function initPasswordScreen(){
   // Q&A・アップデート履歴描画（ステップ1でも見られる）
   try{ renderPwQA(); }catch(e){ console.error('renderPwQA error:', e); }
   try{ renderPwChangelog(); }catch(e){ console.error('renderPwChangelog error:', e); }
+  // iOS Safari対応：インラインonclickの代わりにイベントリスナーで登録
+  document.querySelectorAll('.pw-qa-title').forEach(el=>{
+    el.addEventListener('click', function(){ this.nextElementSibling.classList.toggle('open'); });
+    el.addEventListener('touchend', function(e){ e.preventDefault(); this.nextElementSibling.classList.toggle('open'); });
+  });
   // Widgetリンクを同じドメインから自動生成
   try{
     const wlink = document.getElementById('pw-widget-link');
@@ -6028,6 +6560,12 @@ async function startApp(){
     if(bb) bb.style.display='block';
   }
 
+  // ── 初回起動バックアップ案内 ──
+  if(!localStorage.getItem('first_launch_done')){
+    localStorage.setItem('first_launch_done','1');
+    setTimeout(()=>showFirstLaunchBackupGuide(), 1200);
+  }
+
   // 人格がなければウィザード（カナタ様フラグがある場合はポップアップが代替）
   if(personas.length===0 && localStorage.getItem('secret_oc_unlocked')!=='1'){
     showWizard();
@@ -6060,6 +6598,14 @@ window.addEventListener('beforeunload', ()=>{ try{ saveAllNow(); }catch(e){} });
   try{
     if(sessionStorage.getItem('ai_auth')==='1'){
       document.getElementById('pw-screen').style.display='none';
+      // パスワード画面の描画（スキップ時も呼ぶ）
+      try{ renderPwQA(); }catch(e){}
+      try{ renderPwChangelog(); }catch(e){}
+      // iOS Safari対応：アコーディオンのtouchendイベント登録
+      document.querySelectorAll('.pw-qa-title').forEach(el=>{
+        el.addEventListener('click', function(){ this.nextElementSibling.classList.toggle('open'); });
+        el.addEventListener('touchend', function(e){ e.preventDefault(); this.nextElementSibling.classList.toggle('open'); });
+      });
       await startApp();
     } else {
       await initPasswordScreen();
