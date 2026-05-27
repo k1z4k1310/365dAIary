@@ -5454,22 +5454,9 @@ function showBackupNudge(reason){
   overlay.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
 
   const msgs={
-    sessions: '📂 会話がどんどん増えてきましたね！
-ここで一旦、データをバックアップしませんか？
-
-IndexedDBのデータはブラウザの状態によって
-消えることがあります。大切な記録を守るために
-定期的な保存をおすすめします 💾',
-    longsess:  '💬 長い会話をありがとう！
-ここで一旦バックアップしませんか？
-
-大切なやりとりが消えてしまわないように、
-ここで一度保存しておくのがおすすめです 💾',
-    newpersona:'✦ 新しいキャラとの会話が始まりましたね！
-ここでバックアップしておきませんか？
-
-大切な出会いのデータを守るために、
-ここで一度保存しておくのがおすすめです 💾',
+    sessions: '📂 会話がどんどん増えてきましたね！\nここで一旦、データをバックアップしませんか？\n\nIndexedDBのデータはブラウザの状態によって\n消えることがあります。大切な記録を守るために\n定期的な保存をおすすめします 💾',
+    longsess:  '💬 長い会話をありがとう！\nここで一旦バックアップしませんか？\n\n大切なやりとりが消えてしまわないように、\nここで一度保存しておくのがおすすめです 💾',
+    newpersona:'✦ 新しいキャラとの会話が始まりましたね！\nここでバックアップしておきませんか？\n\n大切な出会いのデータを守るために、\nここで一度保存しておくのがおすすめです 💾',
   };
   const msg=msgs[reason]||msgs.sessions;
 
@@ -5890,11 +5877,17 @@ async function initPasswordScreen(){
   // Q&A・アップデート履歴描画（ステップ1でも見られる）
   try{ renderPwQA(); }catch(e){ console.error('renderPwQA error:', e); }
   try{ renderPwChangelog(); }catch(e){ console.error('renderPwChangelog error:', e); }
-  // iOS Safari対応：インラインonclickの代わりにイベントリスナーで登録
-  document.querySelectorAll('.pw-qa-title').forEach(el=>{
-    el.addEventListener('click', function(){ this.nextElementSibling.classList.toggle('open'); });
-    el.addEventListener('touchend', function(e){ e.preventDefault(); this.nextElementSibling.classList.toggle('open'); });
-  });
+  // アコーディオンのクリックを確実に登録（iOS Safari対応）
+  setTimeout(()=>{
+    document.querySelectorAll('.pw-qa-title').forEach(el=>{
+      // インラインonclickを除去して再登録
+      el.removeAttribute('onclick');
+      el.addEventListener('click', function(){
+        this.nextElementSibling.classList.toggle('open');
+      }, {passive:true});
+    });
+  }, 100);
+
   // Widgetリンクを同じドメインから自動生成
   try{
     const wlink = document.getElementById('pw-widget-link');
@@ -6601,11 +6594,14 @@ window.addEventListener('beforeunload', ()=>{ try{ saveAllNow(); }catch(e){} });
       // パスワード画面の描画（スキップ時も呼ぶ）
       try{ renderPwQA(); }catch(e){}
       try{ renderPwChangelog(); }catch(e){}
-      // iOS Safari対応：アコーディオンのtouchendイベント登録
-      document.querySelectorAll('.pw-qa-title').forEach(el=>{
-        el.addEventListener('click', function(){ this.nextElementSibling.classList.toggle('open'); });
-        el.addEventListener('touchend', function(e){ e.preventDefault(); this.nextElementSibling.classList.toggle('open'); });
-      });
+      setTimeout(()=>{
+        document.querySelectorAll('.pw-qa-title').forEach(el=>{
+          el.removeAttribute('onclick');
+          el.addEventListener('click', function(){
+            this.nextElementSibling.classList.toggle('open');
+          }, {passive:true});
+        });
+      }, 100);
       await startApp();
     } else {
       await initPasswordScreen();
