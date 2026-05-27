@@ -835,7 +835,9 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
   <!-- Backup / Restore（アコーディオン） -->
   <div class="sb-accordion" id="backup-sec">
     <button class="sb-accordion-hdr" onclick="toggleSbAccordion('backup-body',this)">
-      <span>💾 バックアップ・復元</span><span class="sb-acc-arrow">▸</span>
+      <span>💾 バックアップ・復元</span>
+      <span id="backup-status-badge" style="font-size:9px;font-family:monospace;opacity:.7;margin-right:4px"></span>
+      <span class="sb-acc-arrow">▸</span>
     </button>
     <div class="sb-accordion-body" id="backup-body">
       <div style="font-size:11px;line-height:1.8;margin-bottom:8px;opacity:.75">
@@ -2085,41 +2087,88 @@ AIの「キャラ」を構成するデータが含まれます。
 開発者のX（旧Twitter）：
 @k1z4k1_310LLM`},
 
-  {q:'⚠ エラーが出たら？', a:
+  {q:'⚠ エラーが出たら？ 対処法まとめ', a:
 `────────────────────
-エラー別の対処法
+API通信エラー
 ────────────────────
-【APIエラー 401】
-→ APIキーが間違っている or 期限切れ
-→ ⚙からAPIキーを再入力してください
+【401 — 認証エラー】
+APIキーが間違っているか、期限切れです。
+→ ⚙ → APIキー欄を確認・再入力
+→ キーの先頭・末尾のスペースに注意
+→ OpenAI: sk-... / Anthropic: sk-ant-... / Google: AIza...
 
-【APIエラー 404】
-→ 選択中のモデルが廃止された可能性
-→ 別のモデルに変更してみてください
+【403 — アクセス拒否】
+キーに権限がないか、地域制限の可能性。
+→ 別のモデルや別のプロバイダに切り替え
+→ DeepSeek・Alibabaはデータ保護設定を確認
 
-【APIエラー 429】
-→ APIの利用上限に達しています
+【404 — モデルが見つからない】
+選択中のモデルが廃止・変更された可能性。
+→ ⚙ → モデルを別のものに変更
+→ ⚠️マークのモデルは廃止済みです
+
+【429 — 利用上限 / レート制限】
+無料枠を使い切った、または短時間で送り過ぎです。
+→ しばらく時間を置いてから再試行（目安：1時間〜1日）
+→ Flash-Lite・mini系の軽いモデルに切り替える
+→ 複数人で同じキーを使っている場合は自分のキーを取得
+→ Gemini無料枠はリセットに1日かかることがあります
+
+【500 / 503 — サーバーエラー】
+AI各社のサーバーで障害が発生中です。
 → 少し時間を置いてから再試行
-→ またはより軽いモデルに切り替え
-
-【APIエラー 500 / 503】
-→ AI各社のサーバー障害の可能性
-→ 時間を置くか、別の会社のモデルを試す
-→ 各社のステータスページで確認：
+→ 別の会社のモデルに切り替えると続けられます
+→ 状況確認：
   OpenAI: status.openai.com
   Anthropic: status.anthropic.com
   Google: status.cloud.google.com
 
-【画面が開かない】
-→ GitHub Pagesの障害 or
-  ブラウザキャッシュの問題
-→ しばらく待つか、キャッシュクリアを試す
+【502 / 504 — タイムアウト】
+サーバーの応答が遅すぎます。
+→ 時間を置いて再試行
+→ 軽いモデルに切り替えると改善することがあります
+
+【通信エラー / Failed to fetch】
+ネットワーク接続の問題です。
+→ インターネット接続を確認
+→ 一部モデルはブラウザのCORS制限で使えないことがあります
+
+────────────────────
+アプリ・データ系トラブル
+────────────────────
+【画面が開かない / 真っ白】
+→ GitHub Pagesの一時障害の可能性
+→ ブラウザのキャッシュをクリアして再読み込み
+→ 別のブラウザで試す
+
+【リロードするとパスワード画面に戻る】
+→ 仕様です。Safariはリロードでセッションがリセットされます
+→ パスワードを入力すれば通常通り使えます
 
 【データが消えた】
-→ ブラウザのデータ削除や
-  Safariの自動クリーンアップの可能性
-→ 定期的なバックアップを強くおすすめします
-→ ⚙ → バックアップ・復元 から復元可能`},
+→ ブラウザのキャッシュ削除・Safariの自動クリーンアップが原因のことが多いです
+→ バックアップファイルがあれば ⚙ → バックアップ・復元 から復元可能
+→ 定期的なバックアップを強くおすすめします（⚙ → 💾 .txtでダウンロード）
+
+【バックアップファイルが読み込めない】
+→ ファイルが壊れているか、別アプリで編集した可能性
+→ 別のバックアップファイルを試してください
+→ 文字コードはUTF-8で保存されています
+
+【IndexedDB / ストレージエラー】
+→ ブラウザのストレージ容量が不足しています
+→ 古い会話を削除するか、バックアップ後に別端末で使用
+→ SafariはiCloudのバックアップ設定によって削除されることがあります
+
+【キャラが増えない / 設定が保存されない】
+→ プライベートブラウズモードでは保存されません
+→ 通常のブラウザタブで使用してください
+
+────────────────────
+その他
+────────────────────
+上記で解決しない場合はWaveboxからご連絡ください。
+エラーメッセージのスクリーンショットがあると対応しやすいです。`},
 
   {q:'📝 AI自発メモ機能について', a:
 `────────────────────
@@ -5063,6 +5112,7 @@ function applyTheme(name){
   updateSendBtn();
   buildThemeGrids();
   syncWidgetState();
+  updateBackupStatusBadge();
 }
 
 // ══════════════════════════════════════════════
@@ -5281,24 +5331,8 @@ function importPersonaJSON(event){
         if(status) status.textContent='⚠ キャラJSONファイルではありません';
         return;
       }
-      // 同名キャラを検索
-      const existing=personas.find(p=>p.aiName===data.aiName);
-      if(!existing){
-        // 新規追加
-        const np=createPersona(data.aiName, data.userName||'あなた', data.model||'');
-        if(data.emoji) np.emoji=data.emoji;
-        np.systemPrompt=data.systemPrompt||'';
-        np.memories=[...(data.memories||[])];
-        np.sessions=[...(data.sessions||[])];
-        personas.push(np);
-        await saveAll();
-        switchPersona(np.id);
-        if(status) status.textContent='✅ '+data.aiName+' を追加しました';
-        showToast('✦ キャラ「'+data.aiName+'」を読み込みました');
-      } else {
-        // 同名キャラあり → マージ確認UI
-        showPersonaMergeUI(existing, data, status);
-      }
+      // まずプレビューUIを表示
+      showPersonaImportPreview(data, status);
     } catch(err){
       if(status) status.textContent='⚠ 読み込みエラー: '+err.message;
     }
@@ -5306,6 +5340,70 @@ function importPersonaJSON(event){
     event.target.value='';
   };
   reader.readAsText(file);
+}
+
+// ── キャラJSONプレビューUI ──
+function showPersonaImportPreview(data, statusEl){
+  const t=THEMES[currentTheme];
+  let overlay=document.getElementById('persona-preview-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='persona-preview-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+  const sessCount=(data.sessions||[]).length;
+  const memoCount=(data.memories||[]).length;
+  const lastDate=sessCount
+    ? new Date(Math.max(...(data.sessions||[]).map(s=>s.updatedAt||0))).toLocaleDateString('ja-JP')
+    : 'なし';
+  const existing=personas.find(p=>p.aiName===data.aiName);
+  const modelShort=(data.model||'未設定').split(':').pop();
+  const promptPreview=(data.systemPrompt||'').slice(0,60)+(data.systemPrompt?.length>60?'…':'');
+
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:22px 20px;max-width:320px;width:100%;color:${t.text};`;
+  box.innerHTML=`
+    <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:14px">📥 キャラを読み込みます</div>
+    <div style="border:1px solid ${t.border};border-radius:10px;padding:12px 14px;margin-bottom:12px;font-family:monospace;font-size:12px;line-height:2.2;">
+      <div style="font-size:18px;text-align:center;margin-bottom:6px">${data.emoji||'💬'} <span style="font-size:14px;font-weight:bold">${data.aiName||'名前なし'}</span></div>
+      <div style="font-size:11px;opacity:.6;border-top:1px solid ${t.border};padding-top:8px;margin-top:4px">
+        <div>👤 ユーザー呼称：${data.userName||'あなた'}</div>
+        <div>🤖 モデル：${modelShort}</div>
+        <div>💬 会話：${sessCount}件　最終：${lastDate}</div>
+        <div>📌 思い出メモ：${memoCount}件</div>
+        ${promptPreview?`<div style="margin-top:4px;opacity:.7;font-size:10px;line-height:1.6;word-break:break-all">📝 ${promptPreview}</div>`:''}
+      </div>
+    </div>
+    ${existing?`<div style="font-size:11px;background:${t.surface2};border-radius:8px;padding:8px 12px;margin-bottom:12px;color:${t.accent};text-align:center">⚠ 同名キャラ「${data.aiName}」が存在します<br><span style="font-size:10px;opacity:.7">次の画面でマージ方法を選べます</span></div>`:''}
+    <div style="display:flex;gap:8px;">
+      <button id="preview-cancel" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:1px solid ${t.border};background:transparent;color:${t.text}">キャンセル</button>
+      <button id="preview-exec" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff;font-weight:bold">${existing?'マージへ →':'✦ 追加する'}</button>
+    </div>
+  `;
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay) overlay.remove();};
+  document.body.appendChild(overlay);
+
+  document.getElementById('preview-cancel').onclick=()=>overlay.remove();
+  document.getElementById('preview-exec').onclick=async ()=>{
+    overlay.remove();
+    if(!existing){
+      // 新規追加
+      const np=createPersona(data.aiName, data.userName||'あなた', data.model||'');
+      if(data.emoji) np.emoji=data.emoji;
+      np.systemPrompt=data.systemPrompt||'';
+      np.memories=[...(data.memories||[])];
+      np.sessions=[...(data.sessions||[])];
+      personas.push(np);
+      await saveAll();
+      switchPersona(np.id);
+      if(statusEl) statusEl.textContent='✅ '+data.aiName+' を追加しました';
+      showToast('✦ キャラ「'+data.aiName+'」を読み込みました');
+    } else {
+      // 同名キャラあり → マージ確認UI
+      showPersonaMergeUI(existing, data, statusEl);
+    }
+  };
 }
 
 // ── マージ確認UI ──
@@ -5439,6 +5537,33 @@ function showFirstLaunchBackupGuide(){
   };
 }
 
+// ── バックアップ状態バッジ更新 ──
+function updateBackupStatusBadge(){
+  const badge=document.getElementById('backup-status-badge');
+  if(!badge) return;
+  const lastISO=localStorage.getItem('last_backup_date');
+  const lastCount=parseInt(localStorage.getItem('last_backup_count')||'0');
+  const currentCount=personas.reduce((n,p)=>n+p.sessions.length,0);
+  const t=THEMES[currentTheme];
+
+  if(!lastISO){
+    badge.textContent='⚠ 未バックアップ';
+    badge.style.color='#e05555';
+    return;
+  }
+  const last=new Date(lastISO);
+  const dateStr=(last.getMonth()+1)+'/'+ last.getDate();
+  const diff=currentCount-lastCount;
+
+  if(diff<=0){
+    badge.textContent='✅ '+dateStr;
+    badge.style.color=t.textMuted;
+  } else {
+    badge.textContent='💾 '+dateStr+' (+'+diff+'件)';
+    badge.style.color='#d09020';
+  }
+}
+
 // ── バックアップ促進ポップアップ ──
 function showBackupNudge(reason){
   // 1日1回まで
@@ -5565,6 +5690,9 @@ function exportData(){
   const date = new Date().toISOString().slice(0,10);
   a.href     = url;
   a.download = '365dAIary_backup_' + date + '.txt';
+  localStorage.setItem('last_backup_date', new Date().toISOString());
+  localStorage.setItem('last_backup_count', personas.reduce((n,p)=>n+p.sessions.length,0));
+  updateBackupStatusBadge();
   a.click();
   URL.revokeObjectURL(url);
   showToast('📥 バックアップを保存しました');
@@ -5592,6 +5720,23 @@ function importData(event){
 
       if(!data.personas||!Array.isArray(data.personas)) throw new Error('データが壊れています');
 
+      // 各キャラのデータ検証（壊れたキャラを除外して救出）
+      const validPersonas = [];
+      const brokenPersonas = [];
+      data.personas.forEach((p, i) => {
+        try {
+          if(!p.aiName) throw new Error('名前がありません');
+          if(!Array.isArray(p.sessions)) p.sessions = [];
+          if(!Array.isArray(p.memories)) p.memories = [];
+          if(!Array.isArray(p.diary)) p.diary = [];
+          validPersonas.push(p);
+        } catch(pe) {
+          brokenPersonas.push({index: i+1, reason: pe.message});
+        }
+      });
+      if(validPersonas.length === 0) throw new Error('読み取れるキャラデータがありませんでした');
+      data.personas = validPersonas;
+
       // 現在のキャラ名とファイルの人格名を比較
       const currentNames = personas.map(p=>p.aiName).sort().join('、');
       const fileNames = data.personas.map(p=>p.aiName).sort().join('、');
@@ -5607,6 +5752,9 @@ function importData(event){
         confirmMsg += '必要ならば先にバックアップを取ってください。\n';
       }
       confirmMsg += '（' + data.personas.length + '件のキャラを検出）';
+      if(brokenPersonas.length > 0){
+        confirmMsg += '\n\n⚠ ' + brokenPersonas.length + '件のキャラデータが読み取れませんでした（スキップされます）';
+      }
 
       // インポートの確認
       openConfirm(
@@ -5633,16 +5781,8 @@ function importData(event){
         }
       );
     } catch(err){
-      // エラーの種類に応じてわかりやすいメッセージを表示
-      let msg = '✕ ';
-      if(err instanceof SyntaxError){
-        msg += 'データの読み取りに失敗しました。\nファイルが壊れているか、別のアプリのファイルかもしれません。';
-      } else {
-        msg += err.message || '不明なエラーが発生しました';
-      }
-      status.textContent = msg;
-      status.style.color = '#e05555';
-      status.style.whiteSpace = 'pre-line';
+      // 救出モードを試みる
+      tryRescueBackup(text, status);
     }
     // ファイル選択をリセット（同じファイルを再選択できるように）
     event.target.value = '';
@@ -5653,6 +5793,163 @@ function importData(event){
     status.style.whiteSpace = 'pre-line';
   };
   reader.readAsText(file, 'utf-8');
+}
+
+// ── 壊れたバックアップ救出モード ──
+function tryRescueBackup(text, statusEl){
+  const t=THEMES[currentTheme];
+  const report = [];
+  let rescued = { personas:[], theme:'dark', unlockedThemes:[], totalCost:0 };
+
+  // ① BEGINタグがあるか確認
+  const start = text.indexOf('---BEGIN_365DAIRY_DATA---');
+  const end   = text.indexOf('---END_365DAIRY_DATA---');
+
+  if(start === -1 || end === -1){
+    // JSONタグ自体がない → 人間が読める部分から情報を抽出
+    report.push('⚠ 機械読み取り用データが見つかりませんでした');
+    report.push('（ファイルが切り取られているか、別のファイルかもしれません）');
+    showRescueReport(report, null, statusEl);
+    return;
+  }
+
+  // ② JSON部分を取り出す
+  const jsonStr = text.slice(start + '---BEGIN_365DAIRY_DATA---'.length, end).trim();
+
+  // ③ JSON全体が壊れている場合：行ごとに問題箇所を特定
+  let data = null;
+  try {
+    data = JSON.parse(jsonStr);
+  } catch(e) {
+    // どこで壊れているか特定
+    const lines = jsonStr.split('\n');
+    let problemLine = null;
+    for(let i = lines.length-1; i >= 0; i--){
+      try { JSON.parse(lines.slice(0, i+1).join('\n') + '\n]}}'); break; }
+      catch(_){ problemLine = i+1; }
+    }
+    report.push('⚠ データの読み取りに失敗しました（JSON解析エラー）');
+    if(problemLine) report.push('問題箇所：約' + problemLine + '行目付近');
+    report.push('');
+
+    // ④ キャラ単位で部分的に救出を試みる
+    const personaMatches = jsonStr.match(/"aiName"\s*:\s*"([^"]+)"/g);
+    if(personaMatches && personaMatches.length > 0){
+      report.push('読み取れたキャラ名：');
+      personaMatches.forEach(m => {
+        const name = m.match(/"aiName"\s*:\s*"([^"]+)"/)[1];
+        report.push('  ・' + name);
+      });
+      report.push('');
+      report.push('会話内容はファイルの「人間が読める部分」から確認できます。');
+    }
+    showRescueReport(report, null, statusEl);
+    return;
+  }
+
+  // ⑤ JSON自体は読めたがpersonasが壊れている
+  if(!data.personas || !Array.isArray(data.personas)){
+    report.push('⚠ キャラデータが見つかりませんでした');
+    showRescueReport(report, null, statusEl);
+    return;
+  }
+
+  // ⑥ キャラ単位で検証・救出
+  const valid = [], broken = [];
+  data.personas.forEach((p, i) => {
+    try {
+      if(!p.aiName) throw new Error('名前がありません');
+      if(!Array.isArray(p.sessions)) p.sessions = [];
+      if(!Array.isArray(p.memories)) p.memories = [];
+      if(!Array.isArray(p.diary)) p.diary = [];
+      valid.push(p);
+    } catch(pe){
+      broken.push({name: p.aiName||'キャラ'+(i+1), reason: pe.message});
+    }
+  });
+
+  if(valid.length === 0){
+    report.push('⚠ 読み取れるキャラがいませんでした');
+    showRescueReport(report, null, statusEl);
+    return;
+  }
+
+  // ⑦ 一部救出成功
+  rescued.personas = valid;
+  rescued.theme = data.theme || 'dark';
+  rescued.unlockedThemes = data.unlockedThemes || [];
+  rescued.totalCost = data.totalCost || 0;
+
+  if(broken.length > 0){
+    report.push('⚠ 一部のキャラデータが壊れていました：');
+    broken.forEach(b => report.push('  ・' + b.name + '（' + b.reason + '）'));
+    report.push('');
+  }
+  report.push('✅ ' + valid.length + '件のキャラを救出できました：');
+  valid.forEach(p => report.push('  ・' + (p.emoji||'') + ' ' + p.aiName + '（会話' + p.sessions.length + '件）'));
+
+  showRescueReport(report, rescued, statusEl);
+}
+
+function showRescueReport(report, rescued, statusEl){
+  const t=THEMES[currentTheme];
+  let overlay=document.getElementById('rescue-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='rescue-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:22px 20px;max-width:340px;width:100%;color:${t.text};max-height:85vh;overflow-y:auto;`;
+
+  const reportHtml = report.map(line =>
+    `<div style="font-size:11px;font-family:monospace;line-height:1.8;${line.startsWith('✅')?'color:'+t.accent+';':line.startsWith('⚠')?'color:#e08020;':''}">${line.replace(/</g,'&lt;')||'&nbsp;'}</div>`
+  ).join('');
+
+  box.innerHTML=`
+    <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:14px">🔧 ファイル救出レポート</div>
+    <div style="border:1px solid ${t.border};border-radius:8px;padding:10px 12px;margin-bottom:14px;background:${t.surface2}">
+      ${reportHtml}
+    </div>
+    ${rescued ? `<button id="rescue-exec" style="width:100%;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff;font-weight:bold;margin-bottom:8px">🔧 救出データを復元する</button>` : ''}
+    <button id="rescue-close" style="width:100%;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:1px solid ${t.border};background:transparent;color:${t.text}">閉じる</button>
+  `;
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay) overlay.remove();};
+  document.body.appendChild(overlay);
+
+  document.getElementById('rescue-close').onclick=()=>overlay.remove();
+
+  if(rescued){
+    document.getElementById('rescue-exec').onclick=()=>{
+      overlay.remove();
+      openConfirm(
+        '救出した' + rescued.personas.length + '件のキャラを復元しますか？\n現在のデータは上書きされます。',
+        '🔧 復元する',
+        ()=>{
+          personas = rescued.personas;
+          personas.forEach(p=>{
+            if(!p.diary) p.diary=[];
+            if(!p.diaryMode) p.diaryMode='off';
+            if(!p.memories) p.memories=[];
+            if(!p.sessions) p.sessions=[];
+          });
+          currentTheme = rescued.theme;
+          unlockedThemes = rescued.unlockedThemes;
+          totalCost = rescued.totalCost;
+          currentPid = personas.length>0 ? personas[0].id : null;
+          currentSid = null;
+          saveAllNow();
+          applyTheme(currentTheme);
+          if(currentPid) switchPersona(currentPid);
+          if(statusEl){ statusEl.textContent='🔧 救出復元しました（'+personas.length+'件）'; statusEl.style.color='#50c850'; }
+          showToast('🔧 救出データを復元しました');
+        }
+      );
+    };
+  } else {
+    if(statusEl){ statusEl.textContent='⚠ 復元できませんでした'; statusEl.style.color='#e05555'; }
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -5666,18 +5963,90 @@ function showToast(msg){
   toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
 }
 
+function getErrorTranslation(errMsg){
+  // エラーコード別のやさしい日本語翻訳
+  if(/401/.test(errMsg)){
+    return {
+      title:'🔑 APIキーが認証されませんでした',
+      body:'APIキーが間違っているか、期限切れの可能性があります。\n⚙ → APIキー欄を確認して、正しいキーを再入力してください。',
+      hint:'キーはOpenAI / Anthropic / Google等のサイトで発行できます'
+    };
+  }
+  if(/403/.test(errMsg)){
+    return {
+      title:'🚫 アクセスが拒否されました',
+      body:'APIキーに権限がないか、お住まいの地域で利用できないモデルの可能性があります。\n別のモデルや別のプロバイダに切り替えてみてください。',
+      hint:'DeepSeek・Alibabaはデータ保護設定の確認もおすすめです'
+    };
+  }
+  if(/404/.test(errMsg)){
+    return {
+      title:'🗑 モデルが見つかりません',
+      body:'選択中のモデルが廃止されたか、モデルIDが変わった可能性があります。\n⚙ → モデル選択で別のモデルに切り替えてください。',
+      hint:'⚠️マークのモデルは廃止済みです。wizard推奨モデルをお試しください'
+    };
+  }
+  if(/429/.test(errMsg)){
+    return {
+      title:'⏱ 利用上限に達しました',
+      body:'無料枠またはレート制限（短時間での送信しすぎ）に達しました。\n\n・少し時間を置いてから再試行する\n・より軽いモデル（Flash-Lite・mini系）に切り替える\n・自分のAPIキーに切り替える（共有キーの場合）',
+      hint:'Gemini無料枠はリセットに1日かかることがあります'
+    };
+  }
+  if(/500|503/.test(errMsg)){
+    return {
+      title:'🔧 AIサービス側で障害が発生中',
+      body:'AI各社のサーバーに一時的な問題が起きています。しばらく時間を置いてから再試行してください。\n\n別の会社のモデルに切り替えると続けて話せます。',
+      hint:'状態確認: status.openai.com / status.anthropic.com / status.cloud.google.com'
+    };
+  }
+  if(/502|504/.test(errMsg)){
+    return {
+      title:'🌐 接続がタイムアウトしました',
+      body:'ネットワークまたはサーバーの応答が遅すぎます。\n時間を置いて再試行するか、別のモデルをお試しください。',
+      hint:''
+    };
+  }
+  if(/通信エラー|fetch|network|Failed to fetch/i.test(errMsg)){
+    return {
+      title:'📡 通信エラーが発生しました',
+      body:'インターネット接続を確認してください。\nオフライン状態か、APIへの接続がブロックされている可能性があります。',
+      hint:'一部のモデルはCORSの制限でブラウザから直接使えないことがあります'
+    };
+  }
+  return null; // 翻訳なし→従来表示
+}
+
 function showErrorPopup(errMsg){
   const t=THEMES[currentTheme];
+  const trans=getErrorTranslation(errMsg);
   const overlay=document.createElement('div');
-  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
   const box=document.createElement('div');
-  box.style.cssText=`background:${t.surface};border:1px solid ${t.border};border-radius:14px;padding:20px;max-width:320px;width:90%;`;
-  box.innerHTML=`
-    <div style="font-size:14px;text-align:center;margin-bottom:10px;color:${t.text}">⚠ エラー</div>
-    <div style="font-size:11px;color:${t.textMuted};line-height:1.7;word-break:break-all;max-height:200px;overflow-y:auto;padding:10px;background:${t.surface2||t.bg};border-radius:8px;border:1px solid ${t.border};font-family:monospace;">${errMsg.replace(/</g,'&lt;')}</div>
-    <div style="font-size:10px;color:${t.textMuted};margin-top:10px;text-align:center;opacity:.7">❓ APIキーやモデルの設定を確認してください</div>
-    <button style="width:100%;padding:10px;border-radius:8px;border:1px solid ${t.border};background:${t.surface2||t.bg};color:${t.text};font-size:12px;cursor:pointer;margin-top:12px;font-family:monospace;" onclick="this.closest('div[style*=fixed]').remove()">✕ 閉じる</button>
-  `;
+  box.style.cssText=`background:${t.surface};border:1px solid ${t.border};border-radius:14px;padding:20px;max-width:320px;width:100%;max-height:85vh;overflow-y:auto;`;
+
+  if(trans){
+    // やさしい翻訳あり
+    const detailId='err-detail-'+Date.now();
+    box.innerHTML=`
+      <div style="font-size:14px;text-align:center;margin-bottom:10px;color:${t.text}">${trans.title}</div>
+      <div style="font-size:12px;color:${t.text};line-height:1.8;margin-bottom:10px;white-space:pre-wrap;">${trans.body}</div>
+      ${trans.hint?`<div style="font-size:10px;color:${t.textMuted};background:${t.surface2};border-radius:6px;padding:7px 10px;margin-bottom:10px;line-height:1.6">💡 ${trans.hint}</div>`:''}
+      <details style="margin-bottom:10px;">
+        <summary style="font-size:10px;color:${t.textMuted};cursor:pointer;opacity:.6;font-family:monospace;">▶ 詳細エラーを表示</summary>
+        <div style="font-size:10px;color:${t.textMuted};line-height:1.6;word-break:break-all;padding:8px;background:${t.surface2};border-radius:6px;margin-top:6px;font-family:monospace;">${errMsg.replace(/</g,'&lt;')}</div>
+      </details>
+      <button style="width:100%;padding:10px;border-radius:8px;border:1px solid ${t.border};background:${t.surface2};color:${t.text};font-size:12px;cursor:pointer;font-family:monospace;" onclick="this.closest('div[style*=fixed]').remove()">✕ 閉じる</button>
+    `;
+  } else {
+    // 翻訳なし→従来表示
+    box.innerHTML=`
+      <div style="font-size:14px;text-align:center;margin-bottom:10px;color:${t.text}">⚠ エラー</div>
+      <div style="font-size:11px;color:${t.textMuted};line-height:1.7;word-break:break-all;max-height:200px;overflow-y:auto;padding:10px;background:${t.surface2||t.bg};border-radius:8px;border:1px solid ${t.border};font-family:monospace;">${errMsg.replace(/</g,'&lt;')}</div>
+      <div style="font-size:10px;color:${t.textMuted};margin-top:10px;text-align:center;opacity:.7">❓ APIキーやモデルの設定を確認してください</div>
+      <button style="width:100%;padding:10px;border-radius:8px;border:1px solid ${t.border};background:${t.surface2||t.bg};color:${t.text};font-size:12px;cursor:pointer;margin-top:12px;font-family:monospace;" onclick="this.closest('div[style*=fixed]').remove()">✕ 閉じる</button>
+    `;
+  }
   overlay.appendChild(box);
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
   document.body.appendChild(overlay);
