@@ -5047,6 +5047,15 @@ function buildThemeGrids(){
         btn.onclick=()=>{setTheme(key);buildThemeGrids();};
         grid.appendChild(btn);
       });
+      // カスタムテーマボタン（常に末尾に表示）
+      const customBtn=document.createElement('button');
+      customBtn.className='theme-btn'+('custom'===currentTheme?' active':'');
+      customBtn.textContent='🧩 カスタム';
+      customBtn.style.background='custom'===currentTheme?t.surface2:t.surface;
+      customBtn.style.borderColor='custom'===currentTheme?t.accent:t.border;
+      customBtn.style.color='custom'===currentTheme?t.accent:t.text;
+      customBtn.onclick=()=>showCustomThemeEditor();
+      grid.appendChild(customBtn);
     }
   });
 }
@@ -5056,19 +5065,7 @@ function switchThemeTab(tab){
   document.getElementById('ttab-custom').classList.toggle('active',tab==='custom');
   document.getElementById('theme-grid-default').style.display=tab==='default'?'grid':'none';
   document.getElementById('theme-grid-custom').style.display=tab==='custom'?'grid':'none';
-  // カスタムタブにカスタムテーマ作成ボタンを追加
-  if(tab==='custom'){
-    const customGrid=document.getElementById('theme-grid-custom');
-    const customBtn=document.createElement('button');
-    const ct=THEMES[currentTheme];
-    customBtn.className='theme-btn'+('custom'===currentTheme?' active':'');
-    customBtn.textContent='🧩 カスタム';
-    customBtn.style.background='custom'===currentTheme?ct.surface2:ct.surface;
-    customBtn.style.borderColor='custom'===currentTheme?ct.accent:ct.border;
-    customBtn.style.color='custom'===currentTheme?ct.accent:ct.text;
-    customBtn.onclick=()=>showCustomThemeEditor();
-    customGrid.appendChild(customBtn);
-  }
+  // カスタムボタンはbuildThemeGrids内で追加済み
   const t=THEMES[currentTheme];
   ['default','custom'].forEach(tt=>{
     const el=document.getElementById('ttab-'+tt);
