@@ -788,7 +788,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
     <button class="sb-btn" onclick="addMemory()">＋ 追加</button>
     <button class="sb-btn" onclick="clearMemory()" style="margin-top:3px">🗑 思い出メモを全削除</button>
-    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる (build:0527d)</div>
+    <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる (build:0612d)</div>
   </div>
 
   <!-- my dAIary（AI日記） -->
@@ -1076,24 +1076,27 @@ const THEMES = {
   // カスタム
   ichigo:   {name:'🍓 いちご',   bg:'#fff5f7',surface:'#fff0f3',surface2:'#ffe4ec',border:'#ffc0d0',text:'#5a2030',textMuted:'#c08090',accent:'#e05070',userBubble:'#ffe0ea',userBorder:'#f0a0b8',userText:'#8a1030',aiBubble:'#fff8fa',aiBorder:'#ffd0dc',sendBtn:'linear-gradient(135deg,#f06080,#f4a0b4)',newBtn:'linear-gradient(135deg,#f06080,#f4a0b4)'},
   tenshi:   {name:'👼 天使',     bg:'#f0f8ff',surface:'#e8f4ff',surface2:'#d8ecff',border:'#a8d4ff',text:'#1a3050',textMuted:'#6090b0',accent:'#4080c0',userBubble:'#d8ecff',userBorder:'#90c0e8',userText:'#0a2040',aiBubble:'#f8fbff',aiBorder:'#c0dcf8',sendBtn:'linear-gradient(135deg,#60a0e0,#90c8f8)',newBtn:'linear-gradient(135deg,#60a0e0,#90c8f8)'},
-  obake:    {name:'👻 おばけ',   bg:'#1a0a2e',surface:'#240e3a',surface2:'#2e1248',border:'#4a2060',text:'#d8c0f0',textMuted:'#7050a0',accent:'#c080f0',userBubble:'#2e1248',userBorder:'#6030a0',userText:'#f0d8ff',aiBubble:'#1e0e34',aiBorder:'#3a1860',sendBtn:'linear-gradient(135deg,#8040c0,#c060e8)',newBtn:'linear-gradient(135deg,#8040c0,#c060e8)'},
-  vampire:  {name:'🧛 ヴァンパイア', bg:'#0e0808',surface:'#1a0c0c',surface2:'#221010',border:'#401818',text:'#e8d0d0',textMuted:'#806060',accent:'#c03030',userBubble:'#2a0e0e',userBorder:'#602020',userText:'#f0d8d8',aiBubble:'#160a0a',aiBorder:'#341414',sendBtn:'linear-gradient(135deg,#a02020,#c04040)',newBtn:'linear-gradient(135deg,#a02020,#c04040)'},
-  yumekawa: {name:'🌸 ゆめかわ', bg:'#fdf4ff',surface:'#f8e8ff',surface2:'#f0d8ff',border:'#cc88ee',text:'#3a1050',textMuted:'#9960bb',accent:'#b040d0',userBubble:'#ffe0f8',userBorder:'#f0a0e0',userText:'#60006a',aiBubble:'#fdf8ff',aiBorder:'#ddb0f0',sendBtn:'linear-gradient(135deg,#c060e0,#f090d0)',newBtn:'linear-gradient(135deg,#c060e0,#f090d0)'},
-  vitamin:  {name:'🍊 ビタミン', bg:'#fff6ec',surface:'#ffedd8',surface2:'#ffe0c0',border:'#f0b060',text:'#402810',textMuted:'#b08040',accent:'#40b0d0',userBubble:'#d8f4ff',userBorder:'#80c8e0',userText:'#0a3050',aiBubble:'#fff8f0',aiBorder:'#f0c888',sendBtn:'linear-gradient(135deg,#40b0d0,#f09030)',newBtn:'linear-gradient(135deg,#40b0d0,#f09030)'},
-  rival:    {name:'⚔ ライバル',  bg:'#fff0f0',surface:'#ffe8e8',surface2:'#ffd8d8',border:'#f0a0a0',text:'#200000',textMuted:'#a05050',accent:'#e01010',userBubble:'#ffd0d0',userBorder:'#f08080',userText:'#400000',aiBubble:'#d0e8ff',aiBorder:'#4090e0',sendBtn:'linear-gradient(135deg,#e01010,#1060e0)',newBtn:'linear-gradient(135deg,#e01010,#1060e0)'},
-  forest:   {name:'🌿 フォレスト', bg:'#f0f8ec',surface:'#e4f0d8',surface2:'#d8ecd0',border:'#90c078',text:'#1a3010',textMuted:'#608040',accent:'#e080a8',userBubble:'#ffd8ea',userBorder:'#e090b8',userText:'#401030',aiBubble:'#f0f8e8',aiBorder:'#a8d080',sendBtn:'linear-gradient(135deg,#50a030,#e878a0)',newBtn:'linear-gradient(135deg,#50a030,#e878a0)'},
-  awa:      {name:'🫧 泡色',     bg:'#fefeff',surface:'#f8f0ff',surface2:'#f0e4ff',border:'#d8c0f8',text:'#302050',textMuted:'#9080b8',accent:'#8060d0',userBubble:'#ffe0f8',userBorder:'#f0a0e0',userText:'#401060',aiBubble:'#f4f0ff',aiBorder:'#e0c8f8',sendBtn:'linear-gradient(135deg,#b080f0,#f0a0d8,#80c8f8)',newBtn:'linear-gradient(135deg,#b080f0,#f0a0d8)'},
-  yoru:     {name:'🌙 夜色',     bg:'#04080f',surface:'#080e1c',surface2:'#0c1428',border:'#1c2840',text:'#c8d8f0',textMuted:'#506080',accent:'#d0a820',userBubble:'#101828',userBorder:'#203048',userText:'#e0ecff',aiBubble:'#060c18',aiBorder:'#162030',sendBtn:'linear-gradient(135deg,#304880,#d0a820)',newBtn:'linear-gradient(135deg,#304880,#d0a820)'},
-  honey:    {name:'🍯 はちみつ', bg:'#fdf8ec',surface:'#f8f0d8',surface2:'#f0e4c0',border:'#d8c080',text:'#3a2800',textMuted:'#a08840',accent:'#c89820',userBubble:'#f8ecc0',userBorder:'#d8b860',userText:'#302000',aiBubble:'#fefaf0',aiBorder:'#e8d8a0',sendBtn:'linear-gradient(135deg,#c89820,#e8b830)',newBtn:'linear-gradient(135deg,#c89820,#e8b830)'},
-  choco:    {name:'🍫 チョコレート', bg:'#2c1c16',surface:'#3a2820',surface2:'#4a3428',border:'#6a4838',text:'#f8e0d4',textMuted:'#b89080',accent:'#f07898',userBubble:'#4a2030',userBorder:'#a04868',userText:'#ffe0ea',aiBubble:'#342018',aiBorder:'#5a3828',sendBtn:'linear-gradient(135deg,#e06080,#f8a0b8)',newBtn:'linear-gradient(135deg,#e06080,#f8a0b8)'},
+  yumekawa: {name:'🌸 ゆめかわ', bg:'#fff6ff',surface:'#f8e8ff',surface2:'#f0d8ff',border:'#d080ff',text:'#280840',textMuted:'#a050a0',accent:'#ff60a8',userBubble:'#ffe0f6',userBorder:'#ff90c8',userText:'#500060',aiBubble:'#f0e8ff',aiBorder:'#c880f0',sendBtn:'linear-gradient(135deg,#d060e8,#ff80b8)',newBtn:'linear-gradient(135deg,#d060e8,#ff80b8)'},
+  vitamin:  {name:'🍊 ビタミン', bg:'#fff8ee',surface:'#ffeccc',surface2:'#ffe0a0',border:'#ffb050',text:'#382000',textMuted:'#a86820',accent:'#18a8c0',userBubble:'#c8f4ec',userBorder:'#50c0b0',userText:'#003830',aiBubble:'#fff9f0',aiBorder:'#ffc868',sendBtn:'linear-gradient(135deg,#18a8c0,#ffb050)',newBtn:'linear-gradient(135deg,#18a8c0,#ffb050)'},
+  rival:    {name:'⚔ ライバル',  bg:'#fdf0f2',surface:'#fae4e8',surface2:'#f5d0d8',border:'#e090a0',text:'#1a0818',textMuted:'#906070',accent:'#c01030',userBubble:'#f8c0c8',userBorder:'#e05070',userText:'#600010',aiBubble:'#c0d0f8',aiBorder:'#6080e0',sendBtn:'linear-gradient(135deg,#c01030,#2030d0)',newBtn:'linear-gradient(135deg,#c01030,#2030d0)'},
+  forest:   {name:'🌿 フォレスト', bg:'#f0f8f0',surface:'#e0f0e0',surface2:'#d0e8d0',border:'#80c080',text:'#101e10',textMuted:'#608060',accent:'#408040',userBubble:'#f8d8e8',userBorder:'#e090b0',userText:'#500030',aiBubble:'#d8f0d8',aiBorder:'#90c890',sendBtn:'linear-gradient(135deg,#408040,#e070a0)',newBtn:'linear-gradient(135deg,#408040,#e070a0)'},
+  lavender: {name:'🪻 ラベンダー', bg:'#fbf7ff',surface:'#f1e8fb',surface2:'#e8d8f8',border:'#bfa0dc',text:'#2a1850',textMuted:'#9070c0',accent:'#8060b0',userBubble:'#eadcf8',userBorder:'#c0a0e0',userText:'#1a0840',aiBubble:'#fdfaff',aiBorder:'#d0b8f0',sendBtn:'linear-gradient(135deg,#8060b0,#c090e0)',newBtn:'linear-gradient(135deg,#8060b0,#c090e0)'},
+  honey:    {name:'🍯 はちみつ', bg:'#fdf4e0',surface:'#f8e4c0',surface2:'#f0d098',border:'#d89840',text:'#3a1e00',textMuted:'#a87030',accent:'#c07010',userBubble:'#f8d890',userBorder:'#d09030',userText:'#301400',aiBubble:'#fffbf0',aiBorder:'#e8c870',sendBtn:'linear-gradient(135deg,#c07010,#e8a820)',newBtn:'linear-gradient(135deg,#c07010,#e8a820)'},
   koneko:   {name:'🐈 こねこ',  bg:'#faf4f2',surface:'#f4ece6',surface2:'#ecdcd6',border:'#d8b8b0',text:'#382420',textMuted:'#a08078',accent:'#c08878',userBubble:'#f0dcd4',userBorder:'#d0a8a0',userText:'#301818',aiBubble:'#fcf6f4',aiBorder:'#e4ccc4',sendBtn:'linear-gradient(135deg,#c08878,#d8a898)',newBtn:'linear-gradient(135deg,#c08878,#d8a898)'},
+  ame:      {name:'🌧 雨音',    bg:'#f1f5f8',surface:'#e4ebf0',surface2:'#d8e4ec',border:'#9fb3c0',text:'#1a2830',textMuted:'#6080a0',accent:'#5f7f92',userBubble:'#d8e5ee',userBorder:'#90b0c8',userText:'#0a1820',aiBubble:'#f8fbfd',aiBorder:'#c0d4e0',sendBtn:'linear-gradient(135deg,#5f7f92,#90b8d0)',newBtn:'linear-gradient(135deg,#5f7f92,#90b8d0)'},
+  bouquet:  {name:'🌺 ブーケ',  bg:'#fff7f8',surface:'#fff0f2',surface2:'#ffe4e8',border:'#f0a0b8',text:'#201828',textMuted:'#a06080',accent:'#60a878',userBubble:'#ffe0e8',userBorder:'#f09090',userText:'#300010',aiBubble:'#f4fff0',aiBorder:'#a8d8b8',sendBtn:'linear-gradient(135deg,#60a878,#f090b0)',newBtn:'linear-gradient(135deg,#60a878,#f090b0)'},
+  obake:    {name:'👻 おばけ',  bg:'#130c1a',surface:'#1e1228',surface2:'#281835',border:'#e8e0f0',text:'#f0e8ff',textMuted:'#9070b0',accent:'#ff8020',userBubble:'#3a1e50',userBorder:'#e8e0f0',userText:'#f0d8ff',aiBubble:'#0e0a14',aiBorder:'#e8e0f0',sendBtn:'linear-gradient(135deg,#8030c0,#ff8020)',newBtn:'linear-gradient(135deg,#8030c0,#ff8020)'},
+  vampire:  {name:'🧛 ヴァンパイア', bg:'#0e0808',surface:'#1a0c0c',surface2:'#221010',border:'#401818',text:'#e8d0d0',textMuted:'#806060',accent:'#c03030',userBubble:'#2a0e0e',userBorder:'#602020',userText:'#f0d8d8',aiBubble:'#160a0a',aiBorder:'#341414',sendBtn:'linear-gradient(135deg,#a02020,#c04040)',newBtn:'linear-gradient(135deg,#a02020,#c04040)'},
+  yoru:     {name:'🌙 夜色',    bg:'#04080f',surface:'#080e1c',surface2:'#0c1428',border:'#1c2840',text:'#c8d8f0',textMuted:'#506080',accent:'#d0a820',userBubble:'#101828',userBorder:'#203048',userText:'#e0ecff',aiBubble:'#060c18',aiBorder:'#162030',sendBtn:'linear-gradient(135deg,#304880,#d0a820)',newBtn:'linear-gradient(135deg,#304880,#d0a820)'},
+  choco:    {name:'🍫 チョコレート', bg:'#2c1c16',surface:'#3a2820',surface2:'#4a3428',border:'#6a4838',text:'#f8e0d4',textMuted:'#b89080',accent:'#f07898',userBubble:'#7a3050',userBorder:'#c07090',userText:'#ffe0ec',aiBubble:'#342018',aiBorder:'#5a3828',sendBtn:'linear-gradient(135deg,#e06080,#f8a0b8)',newBtn:'linear-gradient(135deg,#e06080,#f8a0b8)'},
   neon:     {name:'🌐 ネオン',  bg:'#080c08',surface:'#0c120c',surface2:'#101810',border:'#aaee00',text:'#eeffcc',textMuted:'#88bb44',accent:'#ddff00',userBubble:'#0a160a',userBorder:'#aaee00',userText:'#ddff00',aiBubble:'#080e08',aiBorder:'#447700',sendBtn:'linear-gradient(135deg,#aaee00,#ddff00)',newBtn:'linear-gradient(135deg,#aaee00,#ddff00)'},
+  aurora:   {name:'🌌 オーロラ', bg:'#071018',surface:'#0d1c28',surface2:'#102030',border:'#286078',text:'#c0f0e8',textMuted:'#408070',accent:'#80ffd8',userBubble:'#102840',userBorder:'#306880',userText:'#d0fff0',aiBubble:'#0a1820',aiBorder:'#1a4060',sendBtn:'linear-gradient(135deg,#286078,#80ffd8)',newBtn:'linear-gradient(135deg,#286078,#80ffd8)'},
   jonu:     {name:'✨ じょぬ',   bg:'#e8f8f8',surface:'#d0f0f0',surface2:'#b8e8e8',border:'#70c8d8',text:'#0a2030',textMuted:'#408090',accent:'#2090b0',userBubble:'#b8e8f8',userBorder:'#60b8d0',userText:'#002030',aiBubble:'#f0fcfc',aiBorder:'#90d8e8',sendBtn:'linear-gradient(135deg,#2090b0,#40c8d8)',newBtn:'linear-gradient(135deg,#2090b0,#40c8d8)'},
   legend:   {name:'💎 レジェンド', bg:'#ffffff',surface:'#f0f4ff',surface2:'#e4ecff',border:'#1a3fa0',text:'#c8a000',textMuted:'#1a3fa0',accent:'#c8a000',userBubble:'#e4ecff',userBorder:'#1a3fa0',userText:'#b09000',aiBubble:'#f8faff',aiBorder:'#1a3fa0',sendBtn:'linear-gradient(135deg,#1a3fa0,#1a3fa0)',newBtn:'linear-gradient(135deg,#1a3fa0,#1a3fa0)'},
 };
 
 const DEFAULT_THEMES = ['light','dark'];
-const CUSTOM_THEMES  = ['ichigo','tenshi','obake','vampire','yumekawa','vitamin','rival','forest','awa','yoru','honey','choco','koneko','neon'];
+const CUSTOM_THEMES  = ['ichigo','tenshi','yumekawa','vitamin','rival','forest','lavender','honey','koneko','ame','bouquet','obake','vampire','yoru','choco','neon','aurora'];
 const HIDDEN_THEMES  = ['jonu','legend'];
 
 // ══════════════════════════════════════════════
@@ -1289,6 +1292,23 @@ function getProviderModelValue(wrapperId){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.0.7',
+    date: '2026-06-12',
+    label: '🎨 テーマ大幅刷新・バグ修正・モデル更新',
+    items: [
+      '🔧 OpenAI APIのmax_tokens→max_completion_tokensに修正（GPT-5.5系が動かないバグを解消）',
+      '🤖 モデルリスト更新 — GPT-4o系・GPT-4.1 nano・GPT-5.1・GPT-5.2 Codexの不要な⚠️マークを削除（APIで利用可能なため）',
+      '🤖 Gemini 3.1 Flash-LiteをpreviewからGA版に更新。Gemini 2.0 Flash・Flash-Lite（6/1廃止）を廃止済み表示に',
+      '🎨 テーマを全面刷新（全22色）— ゆめかわ→魔法少女色に、ライバル→赤×青のバキバキ配色に、フォレスト→桜ピンク×若草の菱餅配色に、はちみつ→琥珀×ダークブラウンに、おばけ→黒紫×オレンジのハロウィン配色に、チョコレート→userBubbleをいちごチョコピンクに、ビタミン→オレンジ×ターコイズの中間色に変更',
+      '🎨 泡色→🪻ラベンダーに刷新。🌧雨音・🌺ブーケ・🌌オーロラを新規追加',
+      '🧩 カスタムテーマ機能追加 — 背景・自分の吹き出し・AIの吹き出しの3色を選んでオリジナルテーマを作成可能。文字色はコントラスト比から自動計算',
+      '🎨 キャラ固有テーマが設定されていない場合のテーマ残留バグを修正（手動切替時のみデフォルトテーマに戻す方式に変更）',
+      '🐛 複製キャラへのAI自発メモ誤保存バグを修正（同名キャラが複数いる場合に複製元に蓄積する問題）',
+      '📤 キャラ単体JSONエクスポートに日記データを追加（エクスポート・インポート・マージ全対応）',
+      '🔧 タスキル後にテーマがダーク/ネオンに戻るバグを修正（idbから読み込んだテーマを起動時に上書きしないよう修正）',
+    ]
+  },
   {
     version: '2.0.6',
     date: '2026-05-27',
@@ -2437,7 +2457,7 @@ function createPersona(aiName, userName, model){
   };
 }
 
-function switchPersona(pid){
+function switchPersona(pid, isManual=false){
   currentPid = pid;
   const p = currentPersona();
   if(!p) return;
@@ -2445,14 +2465,19 @@ function switchPersona(pid){
   currentSid = p.sessions.length>0 ? p.sessions[p.sessions.length-1].id : null;
   idbSet('ai_current_pid', pid).catch(()=>store('ai_current_pid', pid));
   store('ai_current_pid', pid); // localStorageにも保険として書く
-  // キャラ固有テーマが設定されていれば切り替え、なければユーザーのデフォルトテーマに戻す
-  const _defaultTheme = store('ai_user_default_theme') || 'dark';
+  // キャラ固有テーマが設定されていれば切り替え
+  // なければ：手動で選んだデフォルトテーマを使う（ただしidbに保存済みのテーマがある場合はそちらを優先）
   if(p.personaTheme && THEMES[p.personaTheme]){
+    // キャラ固有テーマがある → そのテーマに切り替え
     currentTheme = p.personaTheme;
-  } else {
+    idbSet('ai_theme', currentTheme).catch(()=>store('ai_theme', currentTheme));
+  } else if(isManual){
+    // 手動切替 かつ キャラ固有テーマなし → ユーザーのデフォルトテーマに戻す
+    const _defaultTheme = store('ai_user_default_theme') || 'dark';
     currentTheme = _defaultTheme;
+    idbSet('ai_theme', currentTheme).catch(()=>store('ai_theme', currentTheme));
   }
-  idbSet('ai_theme', currentTheme).catch(()=>store('ai_theme', currentTheme));
+  // 起動時（isManual=false）かつ personaThemeなし → currentThemeをそのまま維持
   // テーマを全体に適用（バブル・セレクト等の色残留を防ぐ）
   applyTheme(currentTheme);
 }
@@ -2500,7 +2525,7 @@ function updatePersonaTabs(){
     btn.style.background = p.id===currentPid ? t.surface2 : t.surface;
     btn.style.color = p.id===currentPid ? t.accent : t.textMuted;
     btn.style.borderColor = t.border;
-    btn.onclick = ()=>switchPersona(p.id);
+    btn.onclick = ()=>switchPersona(p.id, true);
     bar.appendChild(btn);
   });
   // ＋ボタンのスタイル
@@ -2601,7 +2626,7 @@ function confirmAddPersona(){
   personas.push(p);
   saveAllNow();
   closeAddPersonaModal();
-  switchPersona(p.id);
+  switchPersona(p.id, true);
   showToast('✦ キャラ「'+aiName+'」を追加しました');
   // 新キャラ初回会話後にバックアップを促すフラグ
   pendingNewPersonaBackup=true;
@@ -2691,7 +2716,7 @@ function confirmClone(){
   personas.push(np);
   saveAllNow();
   closeCloneModal();
-  switchPersona(np.id);
+  switchPersona(np.id, true);
   showToast('🔁 「'+newName+'」を複製しました！');
   checkSecretOCUnlock();
 }
@@ -2760,7 +2785,7 @@ function deleteCurrentPersona(){
   openConfirm('キャラ「'+p.aiName+'」を削除しますか？\n会話履歴・思い出メモも削除されます。', '削除する', ()=>{
     personas=personas.filter(x=>x.id!==currentPid);
     saveAllNow();
-    switchPersona(personas[0].id);
+    switchPersona(personas[0].id, true);
     showToast('🗑 削除しました');
   });
 }
@@ -3721,7 +3746,7 @@ function renderSessions(){
     pinBtn.onclick=e=>{e.stopPropagation();togglePin(s.id,per.id);};
     item.appendChild(info);item.appendChild(pinBtn);item.appendChild(folderBtn);item.appendChild(exp);item.appendChild(del);
     item.onclick=()=>{
-      if(per.id!==p.id) switchPersona(per.id);
+      if(per.id!==p.id) switchPersona(per.id, true);
       selectSession(s.id);toggleRight();
     };
     return item;
@@ -4998,7 +5023,12 @@ function buildThemeGrids(){
       btn.style.background=th.surface2;
       btn.style.borderColor=th.border;
       btn.style.color=th.text;
-      btn.onclick=()=>{setTheme(key);buildThemeGrids();};
+      // カスタムテーマはクリックでカラー設定UIを開く
+      if(key==='custom'){
+        btn.onclick=()=>{setTheme('custom');buildThemeGrids();openCustomThemeEditor();};
+      } else {
+        btn.onclick=()=>{setTheme(key);buildThemeGrids();};
+      }
       grid.appendChild(btn);
     });
     // 隠しテーマ
@@ -5024,6 +5054,19 @@ function switchThemeTab(tab){
   document.getElementById('ttab-custom').classList.toggle('active',tab==='custom');
   document.getElementById('theme-grid-default').style.display=tab==='default'?'grid':'none';
   document.getElementById('theme-grid-custom').style.display=tab==='custom'?'grid':'none';
+  // カスタムタブにカスタムテーマ作成ボタンを追加
+  if(tab==='custom'){
+    const customGrid=document.getElementById('theme-grid-custom');
+    const customBtn=document.createElement('button');
+    const ct=THEMES[currentTheme];
+    customBtn.className='theme-btn'+('custom'===currentTheme?' active':'');
+    customBtn.textContent='🧩 カスタム';
+    customBtn.style.background='custom'===currentTheme?ct.surface2:ct.surface;
+    customBtn.style.borderColor='custom'===currentTheme?ct.accent:ct.border;
+    customBtn.style.color='custom'===currentTheme?ct.accent:ct.text;
+    customBtn.onclick=()=>showCustomThemeEditor();
+    customGrid.appendChild(customBtn);
+  }
   const t=THEMES[currentTheme];
   ['default','custom'].forEach(tt=>{
     const el=document.getElementById('ttab-'+tt);
@@ -5446,7 +5489,7 @@ function showPersonaImportPreview(data, statusEl){
       np.diary=[...(data.diary||[])];
       personas.push(np);
       await saveAll();
-      switchPersona(np.id);
+      switchPersona(np.id, true);
       if(statusEl) statusEl.textContent='✅ '+data.aiName+' を追加しました';
       showToast('✦ キャラ「'+data.aiName+'」を読み込みました');
     } else {
@@ -5547,7 +5590,7 @@ function showPersonaMergeUI(existing, incoming, statusEl){
     existing.diary=mergedDiary;
 
     await saveAll();
-    switchPersona(existing.id);
+    switchPersona(existing.id, true);
     overlay.remove();
     if(statusEl) statusEl.textContent='✅ マージ完了（会話+'+newSessions.length+'件, メモ+'+newMemos.length+'件）';
     showToast('🔀 「'+existing.aiName+'」にマージしました');
@@ -5623,6 +5666,330 @@ function resetAllPersonaThemes(){
       showToast('🎨 カラーをリセットしました');
     }
   );
+}
+
+// ══════════════════════════════════════════════
+//  カスタムカラーテーマ
+// ══════════════════════════════════════════════
+function loadCustomTheme(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('custom_theme_colors')||'null');
+    if(saved&&saved.bg&&saved.user&&saved.ai){
+      applyCustomThemeColors(saved.bg,saved.user,saved.ai);
+    }
+  }catch(e){}
+}
+
+function applyCustomThemeColors(bg,user,ai){
+  // コントラスト比計算
+  function lum(hex){
+    const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+    const f=c=>c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);
+    return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);
+  }
+  function cr(h1,h2){const l1=lum(h1),l2=lum(h2);return(Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);}
+  function autoText(c){return cr(c,'#ffffff')>cr(c,'#111111')?'#ffffff':'#111111';}
+  function hexToHsl(hex){
+    const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+    const max=Math.max(r,g,b),min=Math.min(r,g,b);let h,s,l=(max+min)/2;
+    if(max===min){h=s=0;}else{
+      const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);
+      switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;}
+    }
+    return[h*360,s*100,l*100];
+  }
+  function hslToHex(h,s,l){
+    h/=360;s/=100;l/=100;
+    const q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;
+    const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+    const r=s===0?l:hue2rgb(p,q,h+1/3),g=s===0?l:hue2rgb(p,q,h),b=s===0?l:hue2rgb(p,q,h-1/3);
+    return '#'+[r,g,b].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+  }
+  function shiftL(hex,amt){const[h,s,l]=hexToHsl(hex);return hslToHex(h,s,Math.max(0,Math.min(100,l+amt)));}
+  function darken(hex,r){const[h,s,l]=hexToHsl(hex);return hslToHex(h,Math.min(100,s*1.05),Math.max(0,l*(1-r)));}
+
+  const[,,bgL]=hexToHsl(bg);
+  const isDark=bgL<40;
+  const surface=shiftL(bg,isDark?+4:-4);
+  const surface2=shiftL(bg,isDark?+8:-8);
+
+  THEMES['custom']={
+    name:'🧩 カスタム',
+    bg,surface,surface2,
+    border:darken(user,0.25),
+    text:autoText(bg),
+    textMuted:isDark?shiftL(bg,30):darken(bg,0.35),
+    accent:user,
+    userBubble:user,
+    userBorder:darken(user,0.15),
+    userText:autoText(user),
+    aiBubble:ai,
+    aiBorder:darken(ai,0.15),
+    sendBtn:user,
+    newBtn:user,
+  };
+}
+
+function openCustomThemeEditor(){
+  const t=THEMES[currentTheme];
+  let overlay=document.getElementById('custom-theme-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='custom-theme-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+  // 保存済みの色を読み込む
+  let saved={bg:'#fafafa',user:'#6060c0',ai:'#f0f0ff'};
+  try{const s=JSON.parse(localStorage.getItem('custom_theme_colors')||'null');if(s)saved=s;}catch(e){}
+
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:22px 20px;max-width:320px;width:100%;color:${t.text};`;
+  box.innerHTML=`
+    <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:14px">🧩 カスタムカラー</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:monospace;font-size:11px;flex:1">🖼 背景</span>
+        <div style="width:36px;height:36px;border-radius:8px;border:2px solid ${t.border};position:relative;flex-shrink:0" id="cte-sw-bg">
+          <input type="color" id="cte-bg" value="${saved.bg}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" oninput="updateCTEPreview()">
+        </div>
+        <span id="cte-hex-bg" style="font-family:monospace;font-size:10px;color:${t.textMuted};width:58px">${saved.bg}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:monospace;font-size:11px;flex:1">💬 自分の吹き出し</span>
+        <div style="width:36px;height:36px;border-radius:8px;border:2px solid ${t.border};position:relative;flex-shrink:0" id="cte-sw-user">
+          <input type="color" id="cte-user" value="${saved.user}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" oninput="updateCTEPreview()">
+        </div>
+        <span id="cte-hex-user" style="font-family:monospace;font-size:10px;color:${t.textMuted};width:58px">${saved.user}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:monospace;font-size:11px;flex:1">🤖 AIの吹き出し</span>
+        <div style="width:36px;height:36px;border-radius:8px;border:2px solid ${t.border};position:relative;flex-shrink:0" id="cte-sw-ai">
+          <input type="color" id="cte-ai" value="${saved.ai}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" oninput="updateCTEPreview()">
+        </div>
+        <span id="cte-hex-ai" style="font-family:monospace;font-size:10px;color:${t.textMuted};width:58px">${saved.ai}</span>
+      </div>
+    </div>
+    <div id="cte-badges" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px"></div>
+    <div style="font-size:10px;opacity:.5;margin-bottom:12px;line-height:1.6;font-family:monospace">文字色はコントラスト比で自動決定<br>ボーダー・背景色は選んだ色から自動生成</div>
+    <div style="display:flex;gap:8px;">
+      <button id="cte-cancel" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:1px solid ${t.border};background:transparent;color:${t.text}">キャンセル</button>
+      <button id="cte-apply" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff;font-weight:bold">✓ 適用</button>
+    </div>
+  `;
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
+
+  // スウォッチ初期色
+  document.getElementById('cte-sw-bg').style.background=saved.bg;
+  document.getElementById('cte-sw-user').style.background=saved.user;
+  document.getElementById('cte-sw-ai').style.background=saved.ai;
+  updateCTEPreview();
+
+  document.getElementById('cte-cancel').onclick=()=>overlay.remove();
+  document.getElementById('cte-apply').onclick=()=>{
+    const bg=document.getElementById('cte-bg').value;
+    const user=document.getElementById('cte-user').value;
+    const ai=document.getElementById('cte-ai').value;
+    localStorage.setItem('custom_theme_colors',JSON.stringify({bg,user,ai}));
+    applyCustomThemeColors(bg,user,ai);
+    overlay.remove();
+    applyTheme('custom');
+    buildThemeGrids();
+    showToast('🧩 カスタムカラーを適用しました');
+  };
+}
+
+function updateCTEPreview(){
+  const bg=document.getElementById('cte-bg')?.value;
+  const user=document.getElementById('cte-user')?.value;
+  const ai=document.getElementById('cte-ai')?.value;
+  if(!bg||!user||!ai) return;
+
+  document.getElementById('cte-sw-bg').style.background=bg;
+  document.getElementById('cte-sw-user').style.background=user;
+  document.getElementById('cte-sw-ai').style.background=ai;
+  document.getElementById('cte-hex-bg').textContent=bg;
+  document.getElementById('cte-hex-user').textContent=user;
+  document.getElementById('cte-hex-ai').textContent=ai;
+
+  // バッジ更新
+  function lum(hex){
+    const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+    const f=c=>c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);
+    return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);
+  }
+  function cr(h1,h2){const l1=lum(h1),l2=lum(h2);return(Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);}
+  function autoText(c){return cr(c,'#ffffff')>cr(c,'#111111')?'#ffffff':'#111111';}
+
+  const container=document.getElementById('cte-badges');
+  if(!container) return;
+  container.innerHTML='';
+  [{label:'背景×文字',c1:bg,c2:autoText(bg)},{label:'自分×文字',c1:user,c2:autoText(user)},{label:'AI×文字',c1:ai,c2:autoText(ai)}].forEach(({label,c1,c2})=>{
+    const ratio=cr(c1,c2);
+    const ok=ratio>=4.5,warn=ratio>=3;
+    const div=document.createElement('div');
+    div.style.cssText=`font-size:9px;font-family:monospace;padding:2px 6px;border-radius:4px;display:flex;gap:4px;${ok?'background:rgba(80,200,100,.1);color:#50c870;border:1px solid rgba(80,200,100,.2)':warn?'background:rgba(220,160,40,.1);color:#e0a820;border:1px solid rgba(220,160,40,.2)':'background:rgba(220,60,60,.1);color:#e05555;border:1px solid rgba(220,60,60,.2)'}`;
+    div.textContent=`${ok?'✓':warn?'△':'✕'} ${label} ${ratio.toFixed(1)}:1`;
+    container.appendChild(div);
+  });
+}
+
+// ── カスタムテーマエディター ──
+function showCustomThemeEditor(){
+  const t=THEMES[currentTheme];
+  const saved=JSON.parse(localStorage.getItem('custom_theme')||'{}');
+  const initBg   = saved.bg||'#f0e8ff';
+  const initUser = saved.userBubble||'#8040d0';
+  const initAi   = saved.aiBubble||'#2a1848';
+
+  let overlay=document.getElementById('custom-theme-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='custom-theme-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+
+  const box=document.createElement('div');
+  box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:22px 20px;max-width:320px;width:100%;color:${t.text};max-height:85vh;overflow-y:auto;`;
+  box.innerHTML=`
+    <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:14px">🧩 カスタムテーマ</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:10px;font-family:monospace;font-size:11px">
+        <span style="width:90px;flex-shrink:0">🖼 背景</span>
+        <input type="color" id="ct-bg" value="${initBg}" style="width:36px;height:36px;border-radius:6px;border:1px solid ${t.border};cursor:pointer;padding:2px">
+        <span id="ct-bg-hex" style="font-size:10px;opacity:.6">${initBg}</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;font-family:monospace;font-size:11px">
+        <span style="width:90px;flex-shrink:0">💬 自分の吹き出し</span>
+        <input type="color" id="ct-user" value="${initUser}" style="width:36px;height:36px;border-radius:6px;border:1px solid ${t.border};cursor:pointer;padding:2px">
+        <span id="ct-user-hex" style="font-size:10px;opacity:.6">${initUser}</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;font-family:monospace;font-size:11px">
+        <span style="width:90px;flex-shrink:0">🤖 AIの吹き出し</span>
+        <input type="color" id="ct-ai" value="${initAi}" style="width:36px;height:36px;border-radius:6px;border:1px solid ${t.border};cursor:pointer;padding:2px">
+        <span id="ct-ai-hex" style="font-size:10px;opacity:.6">${initAi}</span>
+      </label>
+    </div>
+    <div id="ct-preview" style="border-radius:8px;overflow:hidden;margin-bottom:12px;border:1px solid ${t.border}"></div>
+    <div id="ct-badges" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px">
+      <button id="ct-cancel" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:1px solid ${t.border};background:transparent;color:${t.text}">キャンセル</button>
+      <button id="ct-apply" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff;font-weight:bold">✓ 適用</button>
+    </div>
+    <div style="font-size:9px;font-family:monospace;opacity:.4;text-align:center;margin-top:8px;line-height:1.6">文字色は背景とのコントラスト比を自動計算<br>ボーダー・アクセントは選んだ色から自動生成</div>
+  `;
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay) overlay.remove();};
+  document.body.appendChild(overlay);
+
+  function hexToHslCT(hex){
+    const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+    const max=Math.max(r,g,b),min=Math.min(r,g,b);let h,s,l=(max+min)/2;
+    if(max===min){h=s=0;}else{const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;}}
+    return [h*360,s*100,l*100];
+  }
+  function hslToHexCT(h,s,l){
+    h/=360;s/=100;l/=100;const q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;
+    const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+    const r=s===0?l:hue2rgb(p,q,h+1/3),g=s===0?l:hue2rgb(p,q,h),b=s===0?l:hue2rgb(p,q,h-1/3);
+    return '#'+[r,g,b].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+  }
+  function shiftLCT(hex,amt){const[h,s,l]=hexToHslCT(hex);return hslToHexCT(h,s,Math.max(0,Math.min(100,l+amt)));}
+  function darkenCT(hex,r){const[h,s,l]=hexToHslCT(hex);return hslToHexCT(h,Math.min(100,s*1.05),Math.max(0,l*(1-r)));}
+  function crCT(h1,h2){
+    function lum(hex){const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;const f=c=>c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);}
+    const l1=lum(h1),l2=lum(h2);return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+  }
+  function autoTextCT(bg){return crCT(bg,'#ffffff')>crCT(bg,'#111111')?'#ffffff':'#111111';}
+
+  function buildCustomTheme(bg,user,ai){
+    const[,,bgL]=hexToHslCT(bg);
+    const isDark=bgL<40;
+    return {
+      name:'🧩 カスタム',
+      bg,
+      surface:    shiftLCT(bg,isDark?+4:-4),
+      surface2:   shiftLCT(bg,isDark?+8:-8),
+      border:     darkenCT(user,0.25),
+      text:       autoTextCT(bg),
+      textMuted:  isDark?shiftLCT(bg,30):darkenCT(bg,0.35),
+      accent:     user,
+      userBubble: user,
+      userBorder: darkenCT(user,0.15),
+      userText:   autoTextCT(user),
+      aiBubble:   ai,
+      aiBorder:   darkenCT(ai,0.15),
+      sendBtn:    `linear-gradient(135deg,${user},${shiftLCT(user,15)})`,
+      newBtn:     `linear-gradient(135deg,${user},${shiftLCT(user,15)})`,
+    };
+  }
+
+  function updatePreview(){
+    const bg   = document.getElementById('ct-bg').value;
+    const user = document.getElementById('ct-user').value;
+    const ai   = document.getElementById('ct-ai').value;
+    document.getElementById('ct-bg-hex').textContent=bg;
+    document.getElementById('ct-user-hex').textContent=user;
+    document.getElementById('ct-ai-hex').textContent=ai;
+    const ct=buildCustomTheme(bg,user,ai);
+    // プレビュー
+    const prev=document.getElementById('ct-preview');
+    prev.style.background=ct.bg;
+    prev.innerHTML=`
+      <div style="padding:6px 10px;background:${ct.surface};border-bottom:1px solid ${ct.border};font-family:monospace;font-size:9px;color:${ct.text}">🧩 カスタム</div>
+      <div style="padding:8px;display:flex;flex-direction:column;gap:5px">
+        <div style="align-self:flex-start;padding:5px 8px;border-radius:6px 6px 6px 1px;border:1px solid ${ct.border};background:${ct.aiBubble};color:${autoTextCT(ct.aiBubble)};font-size:10px">待ってたよ。今日は？</div>
+        <div style="align-self:flex-end;padding:5px 8px;border-radius:6px 6px 1px 6px;border:1px solid ${ct.border};background:${ct.userBubble};color:${ct.userText};font-size:10px">少し疲れてて…</div>
+      </div>
+    `;
+    // バッジ
+    const badges=document.getElementById('ct-badges');
+    badges.innerHTML='';
+    [{label:'背景×文字',ratio:crCT(bg,autoTextCT(bg))},{label:'自分×文字',ratio:crCT(user,autoTextCT(user))},{label:'AI×文字',ratio:crCT(ai,autoTextCT(ai))}].forEach(c=>{
+      const ok=c.ratio>=4.5,warn=c.ratio>=3;
+      const div=document.createElement('div');
+      div.style.cssText=`font-size:9px;font-family:monospace;padding:2px 7px;border-radius:4px;display:flex;gap:4px;background:${ok?'rgba(80,200,100,.1)':warn?'rgba(220,160,40,.1)':'rgba(220,60,60,.1)'};color:${ok?'#50c870':warn?'#e0a820':'#e05555'};border:1px solid ${ok?'rgba(80,200,100,.2)':warn?'rgba(220,160,40,.2)':'rgba(220,60,60,.2)'}`;
+      div.innerHTML=`<span>${ok?'✓':warn?'△':'✕'}</span><span>${c.label}</span><span style="margin-left:2px;opacity:.6">${c.ratio.toFixed(1)}:1</span>`;
+      badges.appendChild(div);
+    });
+    return ct;
+  }
+
+  let latestCt = updatePreview();
+  ['ct-bg','ct-user','ct-ai'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{latestCt=updatePreview();});
+  });
+
+  document.getElementById('ct-cancel').onclick=()=>overlay.remove();
+  document.getElementById('ct-apply').onclick=()=>{
+    const bg   = document.getElementById('ct-bg').value;
+    const user = document.getElementById('ct-user').value;
+    const ai   = document.getElementById('ct-ai').value;
+    const ct   = buildCustomTheme(bg,user,ai);
+    // localStorageに保存
+    localStorage.setItem('custom_theme', JSON.stringify({bg,userBubble:user,aiBubble:ai}));
+    // THEMESに動的に追加
+    THEMES['custom'] = ct;
+    setTheme('custom');
+    overlay.remove();
+    showToast('🧩 カスタムテーマを適用しました');
+  };
+}
+
+// 起動時にカスタムテーマを復元
+function restoreCustomTheme(){
+  const saved=JSON.parse(localStorage.getItem('custom_theme')||'{}');
+  if(!saved.bg) return;
+  // 簡易復元（エディターを開かずにTHEMESに追加）
+  function hexToHslR(hex){const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;const max=Math.max(r,g,b),min=Math.min(r,g,b);let h,s,l=(max+min)/2;if(max===min){h=s=0;}else{const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;}}return [h*360,s*100,l*100];}
+  function hslToHexR(h,s,l){h/=360;s/=100;l/=100;const q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};const r=s===0?l:hue2rgb(p,q,h+1/3),g=s===0?l:hue2rgb(p,q,h),b=s===0?l:hue2rgb(p,q,h-1/3);return '#'+[r,g,b].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');}
+  function slR(hex,a){const[h,s,l]=hexToHslR(hex);return hslToHexR(h,s,Math.max(0,Math.min(100,l+a)));}
+  function dkR(hex,r){const[h,s,l]=hexToHslR(hex);return hslToHexR(h,Math.min(100,s*1.05),Math.max(0,l*(1-r)));}
+  function crR(h1,h2){function lum(hex){const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;const f=c=>c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);}const l1=lum(h1),l2=lum(h2);return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);}
+  function atR(bg){return crR(bg,'#ffffff')>crR(bg,'#111111')?'#ffffff':'#111111';}
+  const{bg,userBubble:user,aiBubble:ai}=saved;
+  const[,,bgL]=hexToHslR(bg);const isDark=bgL<40;
+  THEMES['custom']={name:'🧩 カスタム',bg,surface:slR(bg,isDark?+4:-4),surface2:slR(bg,isDark?+8:-8),border:dkR(user,0.25),text:atR(bg),textMuted:isDark?slR(bg,30):dkR(bg,0.35),accent:user,userBubble:user,userBorder:dkR(user,0.15),userText:atR(user),aiBubble:ai,aiBorder:dkR(ai,0.15),sendBtn:`linear-gradient(135deg,${user},${slR(user,15)})`,newBtn:`linear-gradient(135deg,${user},${slR(user,15)})`};
 }
 
 // ── バックアップ状態バッジ更新 ──
@@ -6957,6 +7324,7 @@ async function startApp(){
   currentPid     = await idbGet('ai_current_pid', null);
   totalCost      = await idbGet('ai_cost',        0);
   currentTheme   = await idbGet('ai_theme',       'dark');
+  restoreCustomTheme(); // カスタムテーマをTHEMESに復元
   unlockedThemes = await idbGet('ai_unlocked',    []);
 
   // APIキー・設定値（小物）はlocalStorageから
