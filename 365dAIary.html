@@ -908,6 +908,13 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       </div>
       <button class="sb-btn" style="background:#e05555;color:#fff;border:none" onclick="executeDelete()">🗑 選択したデータを削除</button>
       <div id="delete-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
+
+      <!-- カラーリセット -->
+      <div style="border-top:1px solid;margin:14px 0 10px;opacity:.2"></div>
+      <div style="font-family:monospace;font-size:10px;letter-spacing:1px;margin-bottom:6px;opacity:.6">🎨 カラーリセット</div>
+      <div style="font-size:10px;line-height:1.7;opacity:.6;margin-bottom:8px">キャラ固有テーマや色の残留をすべてリセットし、デフォルトのテーマに戻します。</div>
+      <button class="sb-btn" onclick="resetAllPersonaThemes()">🎨 カスタムカラーをすべてリセット</button>
+      <div id="color-reset-status" style="font-family:monospace;font-size:10px;text-align:center;margin-top:4px;min-height:16px"></div>
     </div>
   </div>
 
@@ -1132,16 +1139,16 @@ const MODEL_DEF = [
   {value:'openai:gpt-5.3-chat-latest',          provider:'openai',     label:'GPT-5.3 Instant（ChatGPT版）',     shortLabel:'GPT-5.3 Instant',              price:{in:0.00175,out:0.014}},
   {value:'openai:gpt-5.3-codex',                provider:'openai',     label:'GPT-5.3 Codex（コーディング）',    shortLabel:'GPT-5.3 Codex',                price:{in:0.00175,out:0.014}},
   {value:'openai:gpt-5.2',                      provider:'openai',     label:'GPT-5.2',                          shortLabel:'GPT-5.2',                      price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.2-codex',                provider:'openai',     label:'⚠️ GPT-5.2 Codex（非推奨・コーディング）', shortLabel:'⚠️ GPT-5.2 Codex',            price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.1',                      provider:'openai',     label:'⚠️ GPT-5.1（ChatGPTから削除済み）', shortLabel:'⚠️ GPT-5.1',                   price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.2-codex',                provider:'openai',     label:'GPT-5.2 Codex（コーディング）',     shortLabel:'GPT-5.2 Codex',            price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.1',                      provider:'openai',     label:'GPT-5.1（旧世代）',                 shortLabel:'GPT-5.1',                   price:{in:0.00175,out:0.014}},
   {value:'openai:gpt-5',                        provider:'openai',     label:'GPT-5',                            shortLabel:'GPT-5',                        price:{in:0.00125,out:0.01}},
   {value:'openai:gpt-4.1-mini',                 provider:'openai',     label:'GPT-4.1 mini',                     shortLabel:'GPT-4.1 mini',                 price:{in:0.0004,out:0.0016},   wizard:true},
   {value:'openai:gpt-4.1',                      provider:'openai',     label:'GPT-4.1',                          shortLabel:'GPT-4.1',                      price:{in:0.002, out:0.008},    wizard:true},
-  {value:'openai:gpt-4.1-nano',                 provider:'openai',     label:'⚠️ GPT-4.1 nano（非推奨）',        shortLabel:'⚠️ GPT-4.1 nano',              price:{in:0.0001,out:0.0004}},
-  {value:'openai:gpt-4o',                       provider:'openai',     label:'⚠️ GPT-4o（ChatGPTから削除済み）',  shortLabel:'⚠️ GPT-4o',                    price:{in:0.0025,out:0.01}},
-  {value:'openai:gpt-4o-2024-11-20',            provider:'openai',     label:'⚠️ GPT-4o 2024-11-20',             shortLabel:'⚠️ GPT-4o 2024-11-20',         price:{in:0.0025,out:0.01}},
-  {value:'openai:gpt-4o-2024-08-06',            provider:'openai',     label:'⚠️ GPT-4o 2024-08-06',             shortLabel:'⚠️ GPT-4o 2024-08-06',         price:{in:0.0025,out:0.01}},
-  {value:'openai:gpt-4o-2024-05-13',            provider:'openai',     label:'⚠️ GPT-4o 2024-05-13（初代）',     shortLabel:'⚠️ GPT-4o 2024-05-13',         price:{in:0.005, out:0.015}},
+  {value:'openai:gpt-4.1-nano',                 provider:'openai',     label:'GPT-4.1 nano',                      shortLabel:'GPT-4.1 nano',              price:{in:0.0001,out:0.0004}},
+  {value:'openai:gpt-4o',                       provider:'openai',     label:'GPT-4o（API利用可）',               shortLabel:'GPT-4o',                    price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-11-20',            provider:'openai',     label:'GPT-4o 2024-11-20',                shortLabel:'GPT-4o 2024-11-20',         price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-08-06',            provider:'openai',     label:'GPT-4o 2024-08-06',                shortLabel:'GPT-4o 2024-08-06',         price:{in:0.0025,out:0.01}},
+  {value:'openai:gpt-4o-2024-05-13',            provider:'openai',     label:'GPT-4o 2024-05-13（初代）',         shortLabel:'GPT-4o 2024-05-13',         price:{in:0.005, out:0.015}},
   {value:'openai:gpt-4o-mini',                  provider:'openai',     label:'GPT-4o mini',                      shortLabel:'GPT-4o mini',                  price:{in:0.00015,out:0.0006},  wizard:true},
   // ── Anthropic ──
   {value:'anthropic:claude-opus-4-7',           provider:'anthropic',  label:'Claude Opus 4.7（最新）',          shortLabel:'Claude Opus 4.7',              price:{in:0.005, out:0.025},    wizard:true},
@@ -1154,9 +1161,11 @@ const MODEL_DEF = [
   {value:'anthropic:claude-3-haiku-20240307',   provider:'anthropic',  label:'⚠️ Claude 3 Haiku（廃止済み）',    shortLabel:'⚠️ Claude 3 Haiku',            price:{in:0.00025,out:0.00125}},
   // ── Google ──
   {value:'google:gemini-3.1-pro-preview',       provider:'google',     label:'Gemini 3.1 Pro（最新・高性能）',   shortLabel:'Gemini 3.1 Pro',               price:{in:0.002, out:0.012},    wizard:true},
-  {value:'google:gemini-3.1-flash-lite-preview',provider:'google',     label:'Gemini 3.1 Flash-Lite（最新・軽量）',shortLabel:'Gemini 3.1 Flash-Lite',      price:{in:0.00025,out:0.0015},  wizard:true},
+  {value:'google:gemini-3.1-flash-lite',        provider:'google',     label:'Gemini 3.1 Flash-Lite（最新・軽量）',shortLabel:'Gemini 3.1 Flash-Lite',      price:{in:0.00025,out:0.0015},  wizard:true},
   {value:'google:gemini-3.5-flash',             provider:'google',     label:'Gemini 3.5 Flash（最新・エージェント）',shortLabel:'Gemini 3.5 Flash',           price:{in:0.00025,out:0.001},   wizard:true},
   {value:'google:gemini-3-flash-preview',       provider:'google',     label:'⚠️ Gemini 3 Flash（廃止済み）',    shortLabel:'⚠️ Gemini 3 Flash',            price:{in:0.0005, out:0.003}},
+  {value:'google:gemini-2.0-flash',             provider:'google',     label:'⚠️ Gemini 2.0 Flash（廃止済み）',  shortLabel:'⚠️ Gemini 2.0 Flash',          price:{in:0.0001, out:0.0004}},
+  {value:'google:gemini-2.0-flash-lite',         provider:'google',     label:'⚠️ Gemini 2.0 Flash-Lite（廃止済み）',shortLabel:'⚠️ Gemini 2.0 Flash-Lite',    price:{in:0.00004,out:0.00015}},
   {value:'google:gemini-2.5-pro',               provider:'google',     label:'Gemini 2.5 Pro',                   shortLabel:'Gemini 2.5 Pro',               price:{in:0.00125,out:0.01},    wizard:true},
   {value:'google:gemini-2.5-flash',             provider:'google',     label:'Gemini 2.5 Flash',                 shortLabel:'Gemini 2.5 Flash',             price:{in:0.00015,out:0.00035}, wizard:true},
   {value:'google:gemini-2.5-flash-lite',        provider:'google',     label:'⚠️ Gemini 2.5 Flash-Lite（廃止済み）',shortLabel:'⚠️ Gemini 2.5 Flash-Lite', price:{in:0.00004,out:0.00016}},
@@ -2436,11 +2445,14 @@ function switchPersona(pid){
   currentSid = p.sessions.length>0 ? p.sessions[p.sessions.length-1].id : null;
   idbSet('ai_current_pid', pid).catch(()=>store('ai_current_pid', pid));
   store('ai_current_pid', pid); // localStorageにも保険として書く
-  // キャラ固有テーマが設定されていれば切り替え
+  // キャラ固有テーマが設定されていれば切り替え、なければユーザーのデフォルトテーマに戻す
+  const _defaultTheme = store('ai_user_default_theme') || 'dark';
   if(p.personaTheme && THEMES[p.personaTheme]){
     currentTheme = p.personaTheme;
-    idbSet('ai_theme', currentTheme).catch(()=>store('ai_theme', currentTheme));
+  } else {
+    currentTheme = _defaultTheme;
   }
+  idbSet('ai_theme', currentTheme).catch(()=>store('ai_theme', currentTheme));
   updatePersonaTabs();
   updateAiNameBar();
   loadPersonaToSidebar();
@@ -2678,6 +2690,8 @@ function confirmClone(){
   np.diaryMode=src.diaryMode||'off';
   np.autoMemoMode=src.autoMemoMode||'off';
   np.timeAwareMode=src.timeAwareMode||'off';
+  np.personaTheme=''; // テーマはデフォルトに（複製先に誤って適用されないよう）
+  np.fanmarks=[]; // ファンマークも引き継がない
   // isTrial は引き継がない（複製したらオリジナル扱い）
   personas.push(np);
   saveAllNow();
@@ -3979,7 +3993,7 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
   if(provider==='openai'){
     const key=localStorage.getItem('key_openai');
     if(!key) throw new Error('OpenAI APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    const data=await doFetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_completion_tokens:mt})});
     reply=data.choices[0].message.content;
     usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
@@ -5011,6 +5025,8 @@ function switchThemeTab(tab){
 function setTheme(name){
   currentTheme=name;
   idbSet('ai_theme',name).catch(()=>store('ai_theme',name));
+  // ユーザーが手動で選んだテーマをデフォルトとして保存
+  store('ai_user_default_theme', name);
   applyTheme(name);
   syncWidgetState();
 }
@@ -5018,6 +5034,23 @@ function setTheme(name){
 function applyTheme(name){
   const t=THEMES[name]||THEMES['dark'];
   currentTheme=name;
+  // CSS変数でまず一括適用（チェックボックス等の取り残しを防ぐ）
+  const root=document.documentElement;
+  root.style.setProperty('--bg',      t.bg);
+  root.style.setProperty('--surface', t.surface);
+  root.style.setProperty('--surface2',t.surface2);
+  root.style.setProperty('--border',  t.border);
+  root.style.setProperty('--text',    t.text);
+  root.style.setProperty('--textMuted',t.textMuted);
+  root.style.setProperty('--accent',  t.accent);
+  root.style.setProperty('--userBubble', t.userBubble||t.surface2);
+  root.style.setProperty('--userBorder', t.userBorder||t.border);
+  root.style.setProperty('--userText',   t.userText||t.text);
+  root.style.setProperty('--aiBubble',   t.aiBubble||t.bg);
+  root.style.setProperty('--aiBorder',   t.aiBorder||t.border);
+  // accent-colorでチェックボックス・ラジオボタン等を一括適用
+  root.style.setProperty('--color-accent', t.accent);
+  document.body.style.accentColor=t.accent;
   document.body.style.background=t.bg;
   document.body.style.color=t.text;
   const app=document.getElementById('app');
@@ -5535,6 +5568,34 @@ function showFirstLaunchBackupGuide(){
       }
     },300);
   };
+}
+
+// ── カスタムカラー全リセット ──
+function resetAllPersonaThemes(){
+  openConfirm(
+    '全キャラのカスタムテーマ設定をリセットし、デフォルトテーマに戻しますか？\n（キャラの会話・設定は消えません）',
+    '🎨 リセット',
+    async ()=>{
+      // 全キャラのpersonaThemeをクリア
+      personas.forEach(p=>{ p.personaTheme=''; });
+      // ユーザーのデフォルトテーマに戻す
+      const defaultTheme = store('ai_user_default_theme') || 'dark';
+      currentTheme = defaultTheme;
+      // CSS変数・インラインスタイルの残留をクリア
+      const root=document.documentElement;
+      ['--bg','--surface','--surface2','--border','--text','--textMuted','--accent',
+       '--userBubble','--userBorder','--userText','--aiBubble','--aiBorder'].forEach(v=>{
+        root.style.removeProperty(v);
+      });
+      document.body.style.accentColor='';
+      await saveAll();
+      applyTheme(currentTheme);
+      idbSet('ai_theme', currentTheme).catch(()=>store('ai_theme', currentTheme));
+      const status=document.getElementById('color-reset-status');
+      if(status){ status.textContent='✅ リセット完了'; status.style.color=THEMES[currentTheme].accent; }
+      showToast('🎨 カラーをリセットしました');
+    }
+  );
 }
 
 // ── バックアップ状態バッジ更新 ──
