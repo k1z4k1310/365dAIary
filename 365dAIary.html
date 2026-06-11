@@ -2453,13 +2453,8 @@ function switchPersona(pid){
     currentTheme = _defaultTheme;
   }
   idbSet('ai_theme', currentTheme).catch(()=>store('ai_theme', currentTheme));
-  updatePersonaTabs();
-  updateAiNameBar();
-  loadPersonaToSidebar();
-  renderMessages();
-  renderSessions();
-  renderMemories();
-  updateDiaryUI();
+  // テーマを全体に適用（バブル・セレクト等の色残留を防ぐ）
+  applyTheme(currentTheme);
 }
 
 // ── キャラテーマ選択セレクトを構築 ──
@@ -4377,8 +4372,24 @@ function extractAutoMemo(text, aiName){
   const cleanText=text.replace(/\s*<!--AUTOMEMO:[\s\S]*?-->\s*/g,'').trim();
   // メモがあれば思い出メモに追加
   if(memos.length>0){
-    // aiNameで該当キャラを探す（ラリー中でも正しいキャラのメモ帳に保存）
-    const p=personas.find(pp=>pp.aiName===aiName)||currentPersona();
+    // ラリー中はaiNameで探すが、同名キャラが複数いる場合は現在のキャラを優先
+    // （複製キャラがいると同名が複数になるため、aiName検索だけでは複製元に誤保存される）
+    const p=(()=>{
+      const cur=currentPersona();
+      // 現在のキャラのaiNameと一致する場合はそのまま現在のキャラを使う
+      if(cur&&cur.aiName===aiName) return cur;
+      // ラリー中など現在以外のキャラが発言した場合のみaiNameで検索
+      // ただし複数ヒットする場合はcurrentPersonaのセッションに関連するキャラを優先
+      const matches=personas.filter(pp=>pp.aiName===aiName);
+      if(matches.length===1) return matches[0];
+      if(matches.length>1){
+        // 現在のセッションに参加しているキャラを優先
+        const inSession=matches.find(pp=>pp.sessions.some(s=>s.id===currentSid));
+        if(inSession) return inSession;
+        return matches[0];
+      }
+      return cur;
+    })();
     if(p){
       const cat='📝 '+((aiName||p.aiName)||'AI')+'のメモ帳';
       memos.forEach(memo=>{
@@ -5137,9 +5148,11 @@ function applyTheme(name){
   // persona & session
   updatePersonaTabs();
   updateAiNameBar();
+  loadPersonaToSidebar();
   renderMessages();
   renderSessions();
   renderMemories();
+  updateDiaryUI();
   updateCostDisplay();
   updateScrollBtnTheme();
   updateSendBtn();
@@ -5339,6 +5352,7 @@ function exportPersonaJSON(){
     systemPrompt:p.systemPrompt||'',
     memories:[...(p.memories||[])],
     sessions:(p.sessions||[]).map(s=>({...s,msgs:[...s.msgs]})),
+    diary:[...(p.diary||[])],
   };
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
@@ -5386,6 +5400,7 @@ function showPersonaImportPreview(data, statusEl){
 
   const sessCount=(data.sessions||[]).length;
   const memoCount=(data.memories||[]).length;
+  const diaryCount=(data.diary||[]).length;
   const lastDate=sessCount
     ? new Date(Math.max(...(data.sessions||[]).map(s=>s.updatedAt||0))).toLocaleDateString('ja-JP')
     : 'なし';
@@ -5404,6 +5419,7 @@ function showPersonaImportPreview(data, statusEl){
         <div>🤖 モデル：${modelShort}</div>
         <div>💬 会話：${sessCount}件　最終：${lastDate}</div>
         <div>📌 思い出メモ：${memoCount}件</div>
+        <div>📓 日記：${diaryCount}件</div>
         ${promptPreview?`<div style="margin-top:4px;opacity:.7;font-size:10px;line-height:1.6;word-break:break-all">📝 ${promptPreview}</div>`:''}
       </div>
     </div>
@@ -5427,6 +5443,7 @@ function showPersonaImportPreview(data, statusEl){
       np.systemPrompt=data.systemPrompt||'';
       np.memories=[...(data.memories||[])];
       np.sessions=[...(data.sessions||[])];
+      np.diary=[...(data.diary||[])];
       personas.push(np);
       await saveAll();
       switchPersona(np.id);
@@ -5516,8 +5533,18 @@ function showPersonaMergeUI(existing, incoming, statusEl){
     if(promptChoice==='incoming') existing.systemPrompt=incoming.systemPrompt;
 
     // 適用
+    // ③ 日記マージ（セッションIDで重複除外、日付順）
+    const existingDiaryIds=new Set((existing.diary||[]).map(d=>d.id||d.date||JSON.stringify(d)));
+    const newDiary=(incoming.diary||[]).filter(d=>{
+      const key=d.id||d.date||JSON.stringify(d);
+      return !existingDiaryIds.has(key);
+    });
+    const mergedDiary=[...(existing.diary||[]),...newDiary]
+      .sort((a,b)=>(a.date||a.createdAt||0)>(b.date||b.createdAt||0)?1:-1);
+
     existing.sessions=mergedSessions;
     existing.memories=mergedMemories;
+    existing.diary=mergedDiary;
 
     await saveAll();
     switchPersona(existing.id);
