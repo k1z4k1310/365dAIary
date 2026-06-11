@@ -4379,6 +4379,8 @@ async function pseudoStream(sess, fullText, aiName){
   // 確定保存（即時）
   sess.msgs.push({role:'assistant',content:cleanText,personaName:aiName,timestamp:Date.now()});
   saveAllNow();
+  // 仮バブルを削除してからrenderMessages（残留すると重なってタップ不能になる）
+  if(wrap.parentNode) wrap.parentNode.removeChild(wrap);
   renderMessages();
   // 再描画後もスクロール位置を最下部に
   container.scrollTop=container.scrollHeight;
