@@ -806,6 +806,12 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
           <option value="auto">⏰ 自動（毎日・起動時に前日分を作成）</option>
         </select>
       </div>
+      <div id="diary-fullmode-wrap" style="display:none;margin-bottom:6px;font-size:10px;opacity:.8">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer">
+          <input type="checkbox" id="diary-fullmode-check" onchange="saveDiaryFullMode()">
+          ※ コスト度外視で今日した会話全てを参照する
+        </label>
+      </div>
       <button class="sb-btn" id="diary-write-btn" onclick="writeDiary()" style="display:none">📔 日記を書いてもらう</button>
       <div id="diary-latest" style="margin-top:6px"></div>
     </div>
@@ -2708,6 +2714,7 @@ function confirmClone(){
   }
   // その他の設定も引き継ぐ
   np.diaryMode=src.diaryMode||'off';
+  np.diaryFullMode=false; // 複製時は全開放OFFで引き継ぐ
   np.autoMemoMode=src.autoMemoMode||'off';
   np.timeAwareMode=src.timeAwareMode||'off';
   np.personaTheme=''; // テーマはデフォルトに（複製先に誤って適用されないよう）
@@ -3048,6 +3055,13 @@ function loadAutoMemoMode(){
   if(sel) sel.value=mode;
 }
 
+function saveDiaryFullMode(){
+  const p=currentPersona();
+  if(!p) return;
+  p.diaryFullMode=document.getElementById('diary-fullmode-check').checked;
+  saveAllNow();
+}
+
 function saveDiaryMode(){
   const p=currentPersona();
   if(!p) return;
@@ -3079,6 +3093,11 @@ function updateDiaryUI(){
   if(!sec) return;
   const mode=p?.diaryMode||'off';
   const sel=document.getElementById('diary-mode');
+  // コスト度外視チェックボックスの表示制御
+  const fwrap=document.getElementById('diary-fullmode-wrap');
+  const fcb=document.getElementById('diary-fullmode-check');
+  if(fwrap) fwrap.style.display=(mode!=='off')?'block':'none';
+  if(fcb) fcb.checked=!!(p?.diaryFullMode);
   if(sel){
     sel.value=mode;
     sel.style.borderColor=t.border;
@@ -3208,32 +3227,37 @@ async function doWriteDiary(p, dateStr){
     showToast('📔 今日の会話がないため日記は書けません');
     return;
   }
-  // 会話を要約用に抽出（最大20件・各100文字）
-  const chatLog=todayMsgs.slice(-20).map(m=>{
+  // コスト度外視モードの確認
+  const fullMode=!!(p.diaryFullMode);
+  // 会話を要約用に抽出（通常：最大20件・各100文字 / 全開放：全件・全文）
+  const chatLog=(fullMode ? todayMsgs : todayMsgs.slice(-20)).map(m=>{
     const speaker=m.role==='user'?p.userName:(m.personaName||p.aiName);
-    return speaker+'「'+(m.content||'').slice(0,100)+'」';
+    const body=fullMode?(m.content||''):(m.content||'').slice(0,100);
+    return speaker+'「'+body+'」';
   }).join('\n');
 
+  const wordLimit=fullMode?'':'- 200文字以内\n';
   const diaryPrompt=
     'あなたは「'+p.aiName+'」です。\n'+
     (p.systemPrompt?'【あなたの設定】\n'+p.systemPrompt.slice(0,300)+'\n\n':'')+
-    '今日の会話を振り返って、あなた（'+p.aiName+'）視点の短い日記を書いてください。\n\n'+
+    '今日の会話を振り返って、あなた（'+p.aiName+'）視点の日記を書いてください。\n\n'+
     '【今日の会話】\n'+chatLog+'\n\n'+
     '【ルール】\n'+
     '- '+p.aiName+'の口調・性格で書くこと\n'+
-    '- 200文字以内\n'+
+    wordLimit+
     '- 日記の冒頭に日付を書かないこと（自動で付きます）\n'+
     '- 「日記」とは言わず、自然な振り返りとして書くこと';
 
   showToast('📔 '+p.aiName+'が日記を書いています…');
   try{
     const [provider,model]=p.model.split(':');
-    // 日記用：プロンプトをできるだけ短くしてトークン節約
-    const charDesc=p.systemPrompt?(p.systemPrompt.slice(0,150)):'';
+    const charDesc=p.systemPrompt?(fullMode?p.systemPrompt:p.systemPrompt.slice(0,150)):'';
     const diarySystem='あなたは「'+p.aiName+'」です。'+charDesc;
+    const lengthInstruction=fullMode?'日付不要。':'200文字以内。日付不要。';
     const diaryUserMsg=
-      p.aiName+'として今日の会話を短く振り返って。200文字以内。日付不要。\n\n'+chatLog;
-    const reply=await callAPI(provider,model,diarySystem,[{role:'user',content:diaryUserMsg}],null,1024);
+      p.aiName+'として今日の会話を振り返って。'+lengthInstruction+'\n\n'+chatLog;
+    const maxTok=fullMode?4096:1024;
+    const reply=await callAPI(provider,model,diarySystem,[{role:'user',content:diaryUserMsg}],null,maxTok);
     if(!p.diary) p.diary=[];
     // 今日の既存を上書き
     const existing=p.diary.findIndex(d=>d.date===dateStr);
@@ -3245,6 +3269,13 @@ async function doWriteDiary(p, dateStr){
     saveAllNow();
     syncWidgetState();
     updateDiaryUI();
+    // コスト度外視モードを使用後に自動OFF
+    if(p.diaryFullMode){
+      p.diaryFullMode=false;
+      const cb=document.getElementById('diary-fullmode-check');
+      if(cb) cb.checked=false;
+      saveAllNow();
+    }
     showToast('📔 日記を書きました！');
   } catch(e){
     showErrorPopup('日記の生成に失敗しました\n\n'+e.message);
