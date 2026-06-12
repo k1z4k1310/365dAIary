@@ -62,9 +62,9 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
 口調・性格・呼び名はすべて自由に設定できます。
 
 <p align="center">
-  <img src="./assets/screenshots/chat_manaka.jpeg" width="45%" alt="まなかとのチャット画面（紫テーマ）">
+  <img src="./assets/screenshots/chat_manaka.jpg" width="45%" alt="まなかとのチャット画面（紫テーマ）">
   &nbsp;&nbsp;
-  <img src="./assets/screenshots/chat_asahi.jpeg" width="45%" alt="アサヒとのチャット画面（緑テーマ）">
+  <img src="./assets/screenshots/chat_asahi.jpg" width="45%" alt="アサヒとのチャット画面（緑テーマ）">
 </p>
 <p align="center">
   <sub>左：まなか（紫テーマ）　右：アサヒ（緑テーマ）— キャラで色が変わります</sub>
@@ -78,7 +78,7 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
 自動モードで毎日生成されます。
 
 <p align="center">
-  <img src="./assets/screenshots/diary.jpeg" width="60%" alt="AI日記">
+  <img src="./assets/screenshots/diary.jpg" width="60%" alt="AI日記">
 </p>
 
 ---
@@ -88,7 +88,7 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
 同じプロンプトのまま複製して、GPT / Claude / Gemini など別のモデルで話し比べられます。
 
 <p align="center">
-  <img src="./assets/screenshots/duplicate.jpeg" width="60%" alt="キャラ複製・マルチモデル比較">
+  <img src="./assets/screenshots/duplicate.jpg" width="60%" alt="キャラ複製・マルチモデル比較">
 </p>
 
 ---
@@ -99,9 +99,9 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
 コントラスト比を自動計算するので、視認性を保ちながら好きな色に変えられます。
 
 <p align="center">
-  <img src="./assets/screenshots/theme_list.jpeg" width="45%" alt="テーマ一覧">
+  <img src="./assets/screenshots/theme_list.jpg" width="45%" alt="テーマ一覧">
   &nbsp;&nbsp;
-  <img src="./assets/screenshots/theme_custom.jpeg" width="45%" alt="カスタムテーマ">
+  <img src="./assets/screenshots/theme_custom.jpg" width="45%" alt="カスタムテーマ">
 </p>
 <p align="center">
   <sub>左：16種のプリセット　右：カスタムカラー（コントラスト比リアルタイム確認）</sub>
