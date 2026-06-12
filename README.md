@@ -54,6 +54,60 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
 管理人さんが、OC作りやキャラクタープロンプト作成をお手伝いします。
 
 ---
+## 📸 Screenshots
+
+### 💬 AI Chat — キャラクターと話す
+
+キャラクターごとにテーマカラーが変わります。  
+口調・性格・呼び名はすべて自由に設定できます。
+
+<p align="center">
+  <img src="./assets/screenshots/chat_manaka.jpeg" width="45%" alt="まなかとのチャット画面（紫テーマ）">
+  &nbsp;&nbsp;
+  <img src="./assets/screenshots/chat_asahi.jpeg" width="45%" alt="アサヒとのチャット画面（緑テーマ）">
+</p>
+<p align="center">
+  <sub>左：まなか（紫テーマ）　右：アサヒ（緑テーマ）— キャラで色が変わります</sub>
+</p>
+
+---
+
+### 📔 my dAIary — AIキャラが日記を書く
+
+その日の会話を振り返って、AIキャラが自分の言葉で日記を書きます。  
+自動モードで毎日生成されます。
+
+<p align="center">
+  <img src="./assets/screenshots/diary.jpeg" width="60%" alt="AI日記">
+</p>
+
+---
+
+### 🧠 Multi-model Testing — 同じキャラを別モデルで比べる
+
+同じプロンプトのまま複製して、GPT / Claude / Gemini など別のモデルで話し比べられます。
+
+<p align="center">
+  <img src="./assets/screenshots/duplicate.jpeg" width="60%" alt="キャラ複製・マルチモデル比較">
+</p>
+
+---
+
+### 🎨 Themes — テーマカラー
+
+16種のプリセット＋カスタムカラーに対応。  
+コントラスト比を自動計算するので、視認性を保ちながら好きな色に変えられます。
+
+<p align="center">
+  <img src="./assets/screenshots/theme_list.jpeg" width="45%" alt="テーマ一覧">
+  &nbsp;&nbsp;
+  <img src="./assets/screenshots/theme_custom.jpeg" width="45%" alt="カスタムテーマ">
+</p>
+<p align="center">
+  <sub>左：16種のプリセット　右：カスタムカラー（コントラスト比リアルタイム確認）</sub>
+</p>
+
+---
 
 ## ⚠️ Notes
 
