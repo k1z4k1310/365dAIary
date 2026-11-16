@@ -789,6 +789,13 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
     </div>
     <button class="sb-btn" onclick="addMemory()">＋ 追加</button>
     <button class="sb-btn" onclick="clearMemory()" style="margin-top:3px">🗑 思い出メモを全削除</button>
+  </div>
+
+  <!-- 自発メモ（AIが自分で書いたメモ） -->
+  <div class="sb-sec">
+    <span class="sb-lbl">自発メモ（AIが自分で書いたメモ）</span>
+    <div id="automemory-list"></div>
+    <button class="sb-btn" onclick="clearAutoMemory()" style="margin-top:3px">🗑 自発メモを全削除</button>
     <div style="font-family:monospace;font-size:9px;text-align:center;margin-top:6px;opacity:.35;letter-spacing:1px">365dAIary — あなたのAIと思い出を積み重ねる (build:0612d)</div>
   </div>
 
@@ -2285,7 +2292,7 @@ AI自発メモとは？
 ────────────────────
 ONにすると、AIキャラが会話の中で
 「覚えておきたい」と感じたことを
-自動で思い出メモに書いてくれます。
+自動で「自発メモ」欄に書いてくれます。
 
 例えば：
 ・「澪は猫が好き」
@@ -2304,8 +2311,9 @@ ONにすると、AIキャラが会話の中で
 注意事項
 ────────────────────
 ・ONにするとAPI消費が若干増えます
-・メモは「📝 ○○のメモ帳」カテゴリで保存されます
-・書かれたメモは思い出メモ欄でいつでも確認・削除できます
+・メモは「📝 ○○のメモ帳」カテゴリで、思い出メモとは別の「自発メモ」欄に保存されます
+・書かれたメモは自発メモ欄でいつでも確認・削除できます
+・AIには思い出メモ（最新30件）と自発メモ（最新30件）が別々に渡されます
 ・AIが書きすぎないよう、1回の返答で最大1つに制限しています`},
 
   {q:'🕐 日時の認識（ロールプレイモード）', a:
@@ -2529,6 +2537,7 @@ function createPersona(aiName, userName, model){
     model: model||'openai:gpt-6-luna',
     systemPrompt: '',
     memories: [],   // [{cat, text}]
+    autoMemories: [], // [{cat, text}] AIが自発的に書いたメモ（思い出メモとは別枠）
     diary: [],      // [{date, text, cost}]
     diaryMode: 'off', // 'off'|'manual'|'keyword'|'auto'
     autoMemoMode: 'off', // 'off'|'on'
@@ -2777,6 +2786,7 @@ function confirmClone(){
   }
   if(document.getElementById('clone-opt-memory').checked){
     np.memories=JSON.parse(JSON.stringify(src.memories||[]));
+    np.autoMemories=JSON.parse(JSON.stringify(src.autoMemories||[]));
   }
   if(document.getElementById('clone-opt-history').checked){
     np.sessions=JSON.parse(JSON.stringify(src.sessions||[]));
@@ -2929,9 +2939,41 @@ function clearMemory(){
   });
 }
 
-function renderMemories(){
+// 旧形式の自発メモ（思い出メモ内の「📝 〇〇のメモ帳」）を自発メモ欄へ移す。移したら true
+function ensureAutoMemories(p){
+  if(!Array.isArray(p.memories)) p.memories=[];
+  if(!Array.isArray(p.autoMemories)) p.autoMemories=[];
+  const moved=[];
+  p.memories=p.memories.filter((m,i)=>{
+    if(m&&typeof m==='object'&&typeof m.cat==='string'&&/^📝 .*のメモ帳$/.test(m.cat)&&!(p.isTrial&&i===0)){
+      moved.push(m);
+      return false;
+    }
+    return true;
+  });
+  moved.forEach(m=>{
+    if(!p.autoMemories.some(a=>a.cat===m.cat&&a.text===m.text)) p.autoMemories.push({cat:m.cat,text:m.text});
+  });
+  return moved.length>0;
+}
+
+function clearAutoMemory(){
+  openConfirm('自発メモを全削除しますか？', '全削除', ()=>{
+    const p=currentPersona();
+    if(p){
+      p.autoMemories=[];
+      saveAll();
+      showToast('🗑 自発メモを削除しました');
+    }
+    renderMemories();
+  });
+}
+
+// 思い出メモ・自発メモ 共通の描画（key: 'memories' | 'autoMemories'）
+function renderMemList(listId, key, emptyText){
   const p=currentPersona();
-  const list=document.getElementById('memory-list');
+  const list=document.getElementById(listId);
+  if(!list) return;
   const t=THEMES[currentTheme];
   // 開閉状態を保持
   const openCats=new Set();
@@ -2944,13 +2986,14 @@ function renderMemories(){
     }
   });
   list.innerHTML='';
-  if(!p||p.memories.length===0){
-    list.innerHTML='<div style="font-size:11px;text-align:center;padding:4px;opacity:.5">思い出メモなし</div>';
+  const arr=p?(p[key]||[]):[];
+  if(!p||arr.length===0){
+    list.innerHTML='<div style="font-size:11px;text-align:center;padding:4px;opacity:.5">'+emptyText+'</div>';
     return;
   }
   // カテゴリごとにまとめる
   const cats={};
-  p.memories.forEach((m,i)=>{
+  arr.forEach((m,i)=>{
     if(!cats[m.cat]) cats[m.cat]=[];
     cats[m.cat].push({...m,i});
   });
@@ -2977,8 +3020,8 @@ function renderMemories(){
       item.style.color=t.textMuted;
       const span=document.createElement('span');
       span.textContent=text;
-      // お試しOCの最初のメモ（index 0）は削除不可
-      const isLockedMemo = p.isTrial && i===0;
+      // お試しOCの最初のメモ（index 0）は削除不可（思い出メモのみ）
+      const isLockedMemo = key==='memories' && p.isTrial && i===0;
       if(isLockedMemo){
         const lock=document.createElement('span');
         lock.style.cssText='font-size:9px;opacity:.5;margin-left:6px;white-space:nowrap';
@@ -2989,7 +3032,7 @@ function renderMemories(){
         del.className='mem-del';
         del.style.cssText='color:'+t.textMuted+';margin-left:8px;padding:2px 6px;font-size:10px;';
         del.textContent='✕';
-        del.onclick=(e)=>{e.stopPropagation();openConfirm('メモ「'+text.slice(0,20)+'…」を削除しますか？','削除',()=>{p.memories.splice(i,1);saveAll();renderMemories();});};
+        del.onclick=(e)=>{e.stopPropagation();openConfirm('メモ「'+text.slice(0,20)+'…」を削除しますか？','削除',()=>{p[key].splice(i,1);saveAll();renderMemories();});};
         item.appendChild(span);item.appendChild(del);
       }
       itemsDiv.appendChild(item);
@@ -2997,6 +3040,11 @@ function renderMemories(){
     catDiv.appendChild(catHdr);catDiv.appendChild(itemsDiv);
     list.appendChild(catDiv);
   });
+}
+
+function renderMemories(){
+  renderMemList('memory-list','memories','思い出メモなし');
+  renderMemList('automemory-list','autoMemories','自発メモなし');
 }
 
 // ══════════════════════════════════════════════
@@ -4279,6 +4327,8 @@ function buildSystemPrompt(persona){
     const timeStr=now.getHours()+'時'+String(now.getMinutes()).padStart(2,'0')+'分';
     timeLine='\n\n## 現在の日時\n現在は '+dateStr+' '+timeStr+'（日本時間）です。';
   }  const mem=p.memories.length?'\n\n## 思い出メモ\n'+p.memories.slice(-30).map(m=>`[${m.cat}] ${m.text}`).join('\n'):'';
+  // 自発メモ（AIが自分で書いたメモ・思い出メモとは別枠で最新30件）
+  const autoMem=(p.autoMemories&&p.autoMemories.length)?'\n\n## 自発メモ（あなた自身が書いたメモ）\n'+p.autoMemories.slice(-30).map(m=>`[${m.cat}] ${m.text}`).join('\n'):'';
   // 自発メモ指示
   let autoMemoInstruction='';
   if(p.autoMemoMode==='on'){
@@ -4298,9 +4348,9 @@ function buildSystemPrompt(persona){
       '- 1回の返答で最大1つまで。\n'+
       '- 短く端的に書く（50文字以内目安）。\n'+
       '- タグはユーザーには見えません。普通に会話してください。\n'+
-      '- 既に思い出メモにある情報は書かない。';
+      '- 既に思い出メモ・自発メモにある情報は書かない。';
   }
-  return base+userLine+timeLine+mem+autoMemoInstruction;
+  return base+userLine+timeLine+mem+autoMem+autoMemoInstruction;
 }
 
 function trimHistory(msgs){
@@ -4513,13 +4563,15 @@ function extractAutoMemo(text, aiName){
       const cat='📝 '+((aiName||p.aiName)||'AI')+'のメモ帳';
       memos.forEach(memo=>{
         // 重複チェック（同じカテゴリ・同じ内容が既にあればスキップ）
-        const exists=p.memories.some(m=>m.cat===cat&&m.text===memo);
+        if(!Array.isArray(p.autoMemories)) p.autoMemories=[];
+        const exists=p.autoMemories.some(m=>m.cat===cat&&m.text===memo);
         if(!exists){
-          p.memories.push({cat,text:memo});
+          p.autoMemories.push({cat,text:memo});
           showToast('📝 '+(aiName||'AI')+'がメモを書きました');
         }
       });
       saveAllNow();
+      renderMemories();
     }
   }
   return cleanText;
@@ -5485,6 +5537,7 @@ function exportPersonaJSON(){
     model:p.model||'',
     systemPrompt:p.systemPrompt||'',
     memories:[...(p.memories||[])],
+    autoMemories:[...(p.autoMemories||[])],
     sessions:(p.sessions||[]).map(s=>({...s,msgs:[...s.msgs]})),
     diary:[...(p.diary||[])],
   };
@@ -5533,7 +5586,7 @@ function showPersonaImportPreview(data, statusEl){
   overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
 
   const sessCount=(data.sessions||[]).length;
-  const memoCount=(data.memories||[]).length;
+  const memoCount=(data.memories||[]).length+(data.autoMemories||[]).length;
   const diaryCount=(data.diary||[]).length;
   const lastDate=sessCount
     ? new Date(Math.max(...(data.sessions||[]).map(s=>s.updatedAt||0))).toLocaleDateString('ja-JP')
@@ -5576,6 +5629,8 @@ function showPersonaImportPreview(data, statusEl){
       if(data.emoji) np.emoji=data.emoji;
       np.systemPrompt=data.systemPrompt||'';
       np.memories=[...(data.memories||[])];
+      np.autoMemories=[...(data.autoMemories||[])];
+      ensureAutoMemories(np);
       np.sessions=[...(data.sessions||[])];
       np.diary=[...(data.diary||[])];
       personas.push(np);
@@ -5656,12 +5711,17 @@ function showPersonaMergeUI(existing, incoming, statusEl){
       .sort((a,b)=>(a.updatedAt||0)-(b.updatedAt||0));
 
     // ② 思い出メモマージ（完全重複除外）
+    const incMem={memories:[...(incoming.memories||[])],autoMemories:[...(incoming.autoMemories||[])]};
+    ensureAutoMemories(incMem);
+    ensureAutoMemories(existing);
     const existingMemos=new Set(existing.memories.map(m=>typeof m==='string'?m:m.text||m));
-    const newMemos=(incoming.memories||[]).filter(m=>{
+    const newMemos=incMem.memories.filter(m=>{
       const txt=typeof m==='string'?m:m.text||m;
       return !existingMemos.has(txt);
     });
     const mergedMemories=[...existing.memories,...newMemos];
+    const existingAutos=new Set(existing.autoMemories.map(m=>m.cat+'\u0000'+m.text));
+    const mergedAutos=[...existing.autoMemories,...incMem.autoMemories.filter(m=>!existingAutos.has(m.cat+'\u0000'+m.text))];
 
     // ③ システムプロンプト
     if(promptChoice==='incoming') existing.systemPrompt=incoming.systemPrompt;
@@ -5678,6 +5738,7 @@ function showPersonaMergeUI(existing, incoming, statusEl){
 
     existing.sessions=mergedSessions;
     existing.memories=mergedMemories;
+    existing.autoMemories=mergedAutos;
     existing.diary=mergedDiary;
 
     await saveAll();
@@ -6168,6 +6229,7 @@ function exportData(){
       model:       p.model,
       systemPrompt:p.systemPrompt||'',
       memories:    p.memories||[],
+      autoMemories:p.autoMemories||[],
       diary:       p.diary||[],
       diaryMode:   p.diaryMode||'off',
       sessions:    p.sessions.map(s=>({
@@ -6202,6 +6264,10 @@ function exportData(){
     if(p.memories.length>0){
       txt += '  思い出メモ:\n';
       p.memories.forEach(m=>{ txt += '    [' + m.cat + '] ' + m.text + '\n'; });
+    }
+    if(p.autoMemories&&p.autoMemories.length>0){
+      txt += '  自発メモ:\n';
+      p.autoMemories.forEach(m=>{ txt += '    [' + m.cat + '] ' + m.text + '\n'; });
     }
     if(p.diary&&p.diary.length>0){
       txt += '  📔 日記:\n';
@@ -6274,6 +6340,7 @@ function importData(event){
           if(!p.aiName) throw new Error('名前がありません');
           if(!Array.isArray(p.sessions)) p.sessions = [];
           if(!Array.isArray(p.memories)) p.memories = [];
+          ensureAutoMemories(p);
           if(!Array.isArray(p.diary)) p.diary = [];
           validPersonas.push(p);
         } catch(pe) {
@@ -6364,17 +6431,22 @@ function importDataMerge(event){
       const plan=incoming.map(ip=>{
         const ex=personas.find(p=>p.id&&p.id===ip.id)||personas.find(p=>p.aiName===ip.aiName)||null;
         const sessions=(ip.sessions||[]).filter(x=>x&&Array.isArray(x.msgs)&&x.msgs.length>0);
-        const memories=ip.memories||[];
+        const ipMem={memories:[...(ip.memories||[])],autoMemories:[...(ip.autoMemories||[])]};
+        ensureAutoMemories(ipMem);
+        const memories=ipMem.memories;
+        const autos=ipMem.autoMemories;
         const diary=ip.diary||[];
-        if(!ex) return {ip,ex:null,sessions,memories,diary,newSess:sessions,updSess:[],newMemos:memories,newDiary:diary};
+        if(!ex) return {ip,ex:null,sessions,memories,diary,newSess:sessions,updSess:[],newMemos:memories,newAutos:autos,newDiary:diary};
         const exById=new Map((ex.sessions||[]).map(x=>[x.id,x]));
         const newSess=sessions.filter(x=>!exById.has(x.id));
         const updSess=sessions.filter(x=>exById.has(x.id)&&x.msgs.length>(exById.get(x.id).msgs||[]).length);
         const exMemo=new Set((ex.memories||[]).map(m=>typeof m==='string'?m:m.text));
         const newMemos=memories.filter(m=>!exMemo.has(typeof m==='string'?m:m.text));
+        const exAuto=new Set((ex.autoMemories||[]).map(m=>m.cat+'\u0000'+m.text));
+        const newAutos=autos.filter(m=>!exAuto.has(m.cat+'\u0000'+m.text));
         const exDiary=new Set((ex.diary||[]).map(d=>d.id||d.date||JSON.stringify(d)));
         const newDiary=diary.filter(d=>!exDiary.has(d.id||d.date||JSON.stringify(d)));
-        return {ip,ex,sessions,memories,diary,newSess,updSess,newMemos,newDiary};
+        return {ip,ex,sessions,memories,diary,newSess,updSess,newMemos,newAutos,newDiary};
       });
       let msg='バックアップを「追加で取り込み」ます。今のデータは消えません。\n\n';
       plan.forEach(pl=>{
@@ -6397,6 +6469,7 @@ function importDataMerge(event){
           pl.updSess.forEach(x=>{const o=exById.get(x.id);o.msgs=x.msgs;if(x.updatedAt) o.updatedAt=x.updatedAt;});
           target.sessions.sort((a,b)=>(a.updatedAt||0)-(b.updatedAt||0));
           target.memories=[...(target.memories||[]),...pl.newMemos];
+          target.autoMemories=[...(target.autoMemories||[]),...pl.newAutos];
           target.diary=[...(target.diary||[]),...pl.newDiary];
         });
         migrateRemovedModels();
@@ -6484,6 +6557,7 @@ function tryRescueBackup(text, statusEl){
       if(!p.aiName) throw new Error('名前がありません');
       if(!Array.isArray(p.sessions)) p.sessions = [];
       if(!Array.isArray(p.memories)) p.memories = [];
+      ensureAutoMemories(p);
       if(!Array.isArray(p.diary)) p.diary = [];
       valid.push(p);
     } catch(pe){
@@ -6555,6 +6629,7 @@ function showRescueReport(report, rescued, statusEl){
             if(!p.diary) p.diary=[];
             if(!p.diaryMode) p.diaryMode='off';
             if(!p.memories) p.memories=[];
+            ensureAutoMemories(p);
             if(!p.sessions) p.sessions=[];
           });
           currentTheme = rescued.theme;
@@ -7479,8 +7554,10 @@ async function startApp(){
   // IndexedDBから読み込む
   personas       = await idbGet('ai_personas',    []);
   // 既存データ・壊れたデータへの配列補完
+  let autoMemoMigrated=false;
   personas.forEach(p=>{
     if(!p.memories)      p.memories      = [];
+    if(ensureAutoMemories(p)) autoMemoMigrated=true; // 旧形式の自発メモを自発メモ欄へ引っ越し
     if(!p.diary)         p.diary         = [];
     if(!p.sessions)      p.sessions      = [];
     if(!p.diaryMode)     p.diaryMode     = 'off';
@@ -7490,6 +7567,7 @@ async function startApp(){
     if(p.model && !p.model.includes(':')) p.model = 'openai:' + p.model;
   });
   migrateRemovedModels(); // 一覧から消えたモデルを同じ会社の現行モデルへ
+  if(autoMemoMigrated){ try{ await idbSet('ai_personas', personas); }catch(e){ console.warn('自発メモ移行の保存に失敗', e); } }
   currentPid     = await idbGet('ai_current_pid', null);
   totalCost      = await idbGet('ai_cost',        0);
   currentTheme   = await idbGet('ai_theme',       'dark');
