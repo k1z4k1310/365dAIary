@@ -19,7 +19,7 @@ button,select,input,textarea{font-family:inherit}
 ::-webkit-scrollbar-thumb{border-radius:2px}
 
 /* ── Layout ── */
-#app{display:flex;flex-direction:column;height:100vh;height:-webkit-fill-available;position:relative;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh;height:-webkit-fill-available;height:100dvh;position:relative;overflow:hidden}
 #persona-bar{flex-shrink:0;display:flex;align-items:center;border-bottom:1px solid;position:relative}
 #persona-bar::-webkit-scrollbar{display:none}
 #ptab-scroll{display:flex;align-items:center;overflow-x:auto;flex:1;scrollbar-width:none}
@@ -30,7 +30,7 @@ button,select,input,textarea{font-family:inherit}
 #ptab-add:hover{opacity:.7}
 #ai-name-bar{flex-shrink:0;text-align:center;font-family:monospace;font-size:11px;letter-spacing:3px;padding:4px 8px;border-bottom:1px solid}
 #header{display:flex;align-items:center;gap:6px;padding:8px 12px;flex-shrink:0;border-bottom:1px solid}
-#messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;padding-bottom:120px}
+#messages{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:16px;display:flex;flex-direction:column;gap:12px;padding-bottom:120px}
 #input-bar{display:flex;gap:8px;align-items:flex-end;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid;flex-shrink:0;position:absolute;bottom:0;left:0;right:0;z-index:30}
 #input-wrap{flex:1;border-radius:10px;display:flex;flex-direction:column;border:1px solid;overflow:hidden}
 #input{background:none;border:none;outline:none;font-size:14px;padding:10px 14px 4px;resize:none;min-height:44px;max-height:200px;overflow-y:auto;line-height:1.6;width:100%}
@@ -1381,6 +1381,10 @@ const CHANGELOG = [
     date: '2026-11-17',
     label: '🛡 安全性の見直し',
     items: [
+      '📝 自発メモをAIが読み込む件数を30件→100件に増やしました',
+      '📌 自発メモにピン留めを追加。ピン留めしたメモは100件を超えても必ずAIに読み込まれ、一覧の上に表示されます',
+      '📝 AIが特に覚えておきたいメモには、文末に（特に大切）と書き添えるようにしました',
+      '🐛 iPhoneのホーム画面アプリで、新しい会話の最初の送信後に画面がスクロールできなくなることがある不具合の対策を入れました',
       '🛡 キャラJSONの読み込み画面などで、名前や文章を安全に表示するように修正しました（悪意のあるデータへの対策）',
       '💰 コスト上限に達したら、通常の送信・思い出す・日記などの通信を、送る前に止めるようにしました（これまでは超えたあとにお知らせするだけでした）',
       '🐛 「未分類」フォルダの選択が保持されない不具合を修正しました',
@@ -2488,7 +2492,9 @@ ONにすると、AIキャラが会話の中で
 ・ONにするとAPI消費が若干増えます
 ・メモは「📝 ○○のメモ帳」カテゴリで、思い出メモとは別の「自発メモ」欄に保存されます
 ・書かれたメモは自発メモ欄でいつでも確認・削除できます
-・AIには思い出メモ（最新30件）と自発メモ（最新30件）が別々に渡されます
+・AIには思い出メモ（最新30件）と自発メモ（最大100件）が別々に渡されます
+・自発メモの📌を押すとピン留めできます。ピン留めしたメモは100件を超えても必ずAIに読み込まれ、一覧でも上に表示されます
+・AIが特に覚えておきたいと感じたメモには、文末に（特に大切）と書き添えられます
 ・AIが書きすぎないよう、1回の返答で最大1つに制限しています`},
 
   {q:'🕐 日時の認識（ロールプレイモード）', a:
@@ -3146,6 +3152,16 @@ function clearAutoMemory(){
 }
 
 // 思い出メモ・自発メモ 共通の描画（key: 'memories' | 'autoMemories'）
+// AIに渡す自発メモを選ぶ：ピン留めは全件＋残りは新しい順で、合計100件まで
+const AUTO_MEMO_LIMIT=100;
+function pickAutoMemories(p){
+  const all=(p&&p.autoMemories)||[];
+  const pinned=all.filter(m=>m&&m.pin);
+  const rest=all.filter(m=>m&&!m.pin);
+  const room=Math.max(0,AUTO_MEMO_LIMIT-pinned.length);
+  const recent=room>0?rest.slice(-room):[];
+  return {pinned,recent};
+}
 function renderMemList(listId, key, emptyText){
   const p=currentPersona();
   const list=document.getElementById(listId);
@@ -3174,6 +3190,8 @@ function renderMemList(listId, key, emptyText){
     cats[m.cat].push({...m,i});
   });
   Object.entries(cats).forEach(([cat,items])=>{
+    if(key==='autoMemories') items=[...items.filter(x=>x.pin),...items.filter(x=>!x.pin)]; // ピン留めを上に
+    const pinCount=key==='autoMemories'?items.filter(x=>x.pin).length:0;
     const catDiv=document.createElement('div');
     catDiv.className='mem-cat';
     const catHdr=document.createElement('div');
@@ -3182,13 +3200,13 @@ function renderMemList(listId, key, emptyText){
     catHdr.style.borderColor=t.border;
     catHdr.style.color=t.textMuted;
     const wasOpen=openCats.has(cat);
-    catHdr.innerHTML=`<span>${escHtml(cat)}</span><span style="font-size:10px">${items.length}件 ${wasOpen?'▾':'▸'}</span>`;
+    catHdr.innerHTML=`<span>${escHtml(cat)}</span><span style="font-size:10px">${items.length}件${pinCount?'（📌'+pinCount+'）':''} ${wasOpen?'▾':'▸'}</span>`;
     const itemsDiv=document.createElement('div');
     itemsDiv.className='mem-items';
     itemsDiv.style.display=wasOpen?'':'none';
     let collapsed=!wasOpen;
-    catHdr.onclick=()=>{collapsed=!collapsed;itemsDiv.style.display=collapsed?'none':'';catHdr.querySelector('span:last-child').textContent=items.length+'件 '+(collapsed?'▸':'▾');};
-    items.forEach(({text,i})=>{
+    catHdr.onclick=()=>{collapsed=!collapsed;itemsDiv.style.display=collapsed?'none':'';catHdr.querySelector('span:last-child').textContent=items.length+'件'+(pinCount?'（📌'+pinCount+'）':'')+' '+(collapsed?'▸':'▾');};
+    items.forEach(({text,i,pin})=>{
       const item=document.createElement('div');
       item.className='mem-item';
       item.style.background=t.surface2;
@@ -3209,7 +3227,18 @@ function renderMemList(listId, key, emptyText){
         del.style.cssText='color:'+t.textMuted+';margin-left:8px;padding:2px 6px;font-size:10px;';
         del.textContent='✕';
         del.onclick=(e)=>{e.stopPropagation();openConfirm('メモ「'+text.slice(0,20)+'…」を削除しますか？','削除',()=>{p[key].splice(i,1);saveAll();renderMemories();});};
-        item.appendChild(span);item.appendChild(del);
+        if(key==='autoMemories'){
+          const pb=document.createElement('button');
+          pb.className='mem-del';
+          pb.style.cssText='margin-left:6px;padding:2px 6px;font-size:11px;color:'+(pin?t.accent:t.textMuted)+';opacity:'+(pin?'1':'.45');
+          pb.textContent='📌';
+          pb.title=pin?'ピン留めを外す':'ピン留めする（必ずAIに読み込まれます）';
+          pb.onclick=(e)=>{e.stopPropagation();const m=p[key][i];if(!m)return;if(m.pin)delete m.pin;else m.pin=true;saveAll();renderMemories();showToast(m.pin?'📌 ピン留めしました':'ピン留めを外しました');};
+          item.appendChild(span);item.appendChild(pb);item.appendChild(del);
+          if(pin){item.style.borderColor=t.accent;}
+        } else {
+          item.appendChild(span);item.appendChild(del);
+        }
       }
       itemsDiv.appendChild(item);
     });
@@ -3677,6 +3706,27 @@ function updateSearchScopeBtns(){
 function scrollToBottom(){
   const c=document.getElementById('messages');
   if(c) c.scrollTop=c.scrollHeight;
+}
+// iPhoneのホーム画面アプリ対策：最初の送信後にスクロールできなくなる現象を防ぐ
+// （中身が増えた直後にスクロール領域を再計算させ、数回に分けて一番下へ移動する）
+function kickScroll(){
+  const c=document.getElementById('messages');
+  if(!c) return;
+  const run=()=>{
+    try{
+      c.style.overflowY='hidden';
+      void c.offsetHeight;
+      c.style.overflowY='';
+      c.scrollTop=c.scrollHeight;
+      if(window.scrollY||document.documentElement.scrollTop) window.scrollTo(0,0);
+    }catch(e){}
+  };
+  run();
+  requestAnimationFrame(run);
+  [60,200,500,1000].forEach(ms=>setTimeout(()=>{
+    const near=c.scrollHeight-c.scrollTop-c.clientHeight;
+    if(near>0&&near<4000) run();
+  },ms));
 }
 
 // ── サイドバーアコーディオン ──
@@ -4535,7 +4585,7 @@ function buildSystemPrompt(persona){
     timeLine='\n\n## 現在の日時\n現在は '+dateStr+' '+timeStr+'（日本時間）です。';
   }  const mem=p.memories.length?'\n\n## 思い出メモ\n'+p.memories.slice(-30).map(m=>`[${m.cat}] ${m.text}`).join('\n'):'';
   // 自発メモ（AIが自分で書いたメモ・思い出メモとは別枠で最新30件）
-  const autoMem=(p.autoMemories&&p.autoMemories.length)?'\n\n## 自発メモ（あなた自身が書いたメモ）\n'+p.autoMemories.slice(-30).map(m=>`[${m.cat}] ${m.text}`).join('\n'):'';
+  const autoMem=(p.autoMemories&&p.autoMemories.length)?'\n\n## 自発メモ（あなた自身が書いたメモ）\n'+(()=>{const {pinned,recent}=pickAutoMemories(p);return [...pinned.map(m=>`📌[${m.cat}] ${m.text}`),...recent.map(m=>`[${m.cat}] ${m.text}`)].join('\n');})():'';
   // 自発メモ指示
   let autoMemoInstruction='';
   if(p.autoMemoMode==='on'){
@@ -4554,6 +4604,7 @@ function buildSystemPrompt(persona){
       '  それ以外は書かない。\n'+
       '- 1回の返答で最大1つまで。\n'+
       '- 短く端的に書く（50文字以内目安）。\n'+
+      '- 特に覚えておきたい、とても大切なことは、メモの最後に（特に大切）と書き添える。\n'+
       '- タグはユーザーには見えません。普通に会話してください。\n'+
       '- 既に思い出メモ・自発メモにある情報は書かない。';
   }
@@ -4752,6 +4803,7 @@ async function pseudoStream(sess, fullText, aiName){
   renderMessages();
   // 再描画後もスクロール位置を最下部に
   container.scrollTop=container.scrollHeight;
+  kickScroll();
 }
 
 // ── AI自発メモ抽出 ──
@@ -4861,7 +4913,7 @@ function setLoading(v,aiName){
   if(v){
     document.getElementById('typing-label').textContent=aiName||'AI';
     empty.style.display='none';
-    setTimeout(()=>{const c=document.getElementById('messages');c.scrollTop=c.scrollHeight;},0);
+    setTimeout(()=>{const c=document.getElementById('messages');c.scrollTop=c.scrollHeight;},0); kickScroll();
   }
   updateSendBtn();
 }
