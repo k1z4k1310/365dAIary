@@ -124,6 +124,9 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
 
 - API keys are required to use AI chat features.
 - API usage fees are charged by each provider.
+- API keys are stored in your browser's localStorage in plain text, and are sent only to the AI provider you choose (Gemini receives the key in the request URL, as Google's API allows). Please avoid shared devices. / APIキーはブラウザのlocalStorageに平文で保存され、選んだAI会社にだけ送られます（Geminiはキーをリクエストのアドレスに含めます）。共有端末ではお使いにならないでください。
+- The password screen is a simple screen lock, not strong protection. / パスワード画面は「簡易的な画面ロック」であり、強い保護ではありません。
+- Cost limits are estimates. When the limit is reached, new requests are stopped before they are sent. / コスト上限は概算です。上限に達すると、新しい送信は送る前に止まります。
 - Please use your own API keys and manage them carefully.
 - All app data is stored in your browser. Please export backups regularly.
 - Relocation is intended for your own conversation logs and original characters.

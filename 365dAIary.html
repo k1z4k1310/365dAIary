@@ -1377,6 +1377,16 @@ function getProviderModelValue(wrapperId){
 // ══════════════════════════════════════════════
 const CHANGELOG = [
   {
+    version: '2.4.2',
+    date: '2026-11-17',
+    label: '🛡 安全性の見直し',
+    items: [
+      '🛡 キャラJSONの読み込み画面などで、名前や文章を安全に表示するように修正しました（悪意のあるデータへの対策）',
+      '💰 コスト上限に達したら、通常の送信・思い出す・日記などの通信を、送る前に止めるようにしました（これまでは超えたあとにお知らせするだけでした）',
+      '🐛 「未分類」フォルダの選択が保持されない不具合を修正しました',
+    ]
+  },
+  {
     version: '2.4.1',
     date: '2026-11-17',
     label: '💎 解放のお知らせ',
@@ -2684,7 +2694,7 @@ async function _flushToDB(){
 //  PERSONA helpers
 // ══════════════════════════════════════════════
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 function currentPersona(){return personas.find(p=>p.id===currentPid);}
 
@@ -3172,7 +3182,7 @@ function renderMemList(listId, key, emptyText){
     catHdr.style.borderColor=t.border;
     catHdr.style.color=t.textMuted;
     const wasOpen=openCats.has(cat);
-    catHdr.innerHTML=`<span>${cat}</span><span style="font-size:10px">${items.length}件 ${wasOpen?'▾':'▸'}</span>`;
+    catHdr.innerHTML=`<span>${escHtml(cat)}</span><span style="font-size:10px">${items.length}件 ${wasOpen?'▾':'▸'}</span>`;
     const itemsDiv=document.createElement('div');
     itemsDiv.className='mem-items';
     itemsDiv.style.display=wasOpen?'':'none';
@@ -3432,7 +3442,7 @@ function showAllDiary(){
   overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:20px';
   const box=document.createElement('div');
   box.style.cssText='background:'+t.surface+';border:1px solid '+t.border+';border-radius:14px;padding:20px;max-width:400px;width:95%;max-height:80vh;overflow-y:auto';
-  box.innerHTML='<div style="font-size:14px;font-weight:bold;text-align:center;margin-bottom:12px;color:'+t.accent+'">📔 '+p.aiName+'の日記</div>';
+  box.innerHTML='<div style="font-size:14px;font-weight:bold;text-align:center;margin-bottom:12px;color:'+t.accent+'">📔 '+escHtml(p.aiName)+'の日記</div>';
   [...p.diary].reverse().forEach(d=>{
     const el=document.createElement('div');
     el.style.cssText='padding:10px;border-radius:8px;border:1px solid '+t.border+';margin-bottom:8px;background:'+t.surface2;
@@ -3716,7 +3726,7 @@ function renderFolderFilter(){
     opt.value=f.id; opt.textContent='📁 '+f.name;
     sel.appendChild(opt);
   });
-  const validVals=['',' __none__',...(p.folders||[]).map(f=>f.id)];
+  const validVals=['','__none__',...(p.folders||[]).map(f=>f.id)];
   sel.value=validVals.includes(current)?current:'';
 }
 
@@ -4314,6 +4324,8 @@ function renderMessages(){
 //  API CALL
 // ══════════════════════════════════════════════
 async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
+  // コスト上限に達していたら、通信する前に止める（念のための最終防衛線）
+  if(costLimitReached()){ const ce=new Error('コスト上限に達しています。⚙ → コスト管理で上限を変えるか、リセットしてください'); ce.name='CostLimitError'; throw ce; }
   const mt=maxTok||2000;
   async function doFetch(url,opts){
     let res;
@@ -4450,6 +4462,15 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
 // ══════════════════════════════════════════════
 //  COST
 // ══════════════════════════════════════════════
+function costLimitReached(){
+  const limit=parseFloat(localStorage.getItem('cost_limit')||'0');
+  return limit>0 && totalCost>=limit;
+}
+function costBlocked(){
+  if(!costLimitReached()) return false;
+  showToast('⚠ コスト上限に達しています（⚙ → コスト管理で変更・リセットできます）');
+  return true;
+}
 function addCost(c){
   totalCost+=c;
   idbSet('ai_cost',totalCost).catch(()=>store('ai_cost',totalCost));
@@ -4609,6 +4630,7 @@ async function send(){
   if(isLoading||isRallying) return;
   const p=currentPersona();
   if(!p){showToast('⚠ キャラを選択してください');return;}
+  if(costBlocked()) return;
   // セッションがなければ新規
   if(!currentSid){
     const id=genId();
@@ -5056,8 +5078,8 @@ function showRallyStartOverlay(preset=null){
   personas.forEach(p=>{
     const checked=preset ? preset.pids.includes(p.id) : true;
     memberHTML+=`<label style="display:flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;cursor:pointer;padding:4px 0">
-      <input type="checkbox" data-pid="${p.id}" ${checked?'checked':''} style="width:14px;height:14px;cursor:pointer">
-      <span>${p.emoji||''} ${p.aiName}</span>
+      <input type="checkbox" data-pid="${escHtml(p.id)}" ${checked?'checked':''} style="width:14px;height:14px;cursor:pointer">
+      <span>${escHtml(p.emoji||'')} ${escHtml(p.aiName)}</span>
     </label>`;
   });
   const userChecked=preset?preset.userJoin:false;
@@ -5859,17 +5881,17 @@ function showPersonaImportPreview(data, statusEl){
   box.innerHTML=`
     <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:14px">📥 キャラを読み込みます</div>
     <div style="border:1px solid ${t.border};border-radius:10px;padding:12px 14px;margin-bottom:12px;font-family:monospace;font-size:12px;line-height:2.2;">
-      <div style="font-size:18px;text-align:center;margin-bottom:6px">${data.emoji||'💬'} <span style="font-size:14px;font-weight:bold">${data.aiName||'名前なし'}</span></div>
+      <div style="font-size:18px;text-align:center;margin-bottom:6px">${escHtml(data.emoji||'💬')} <span style="font-size:14px;font-weight:bold">${escHtml(data.aiName||'名前なし')}</span></div>
       <div style="font-size:11px;opacity:.6;border-top:1px solid ${t.border};padding-top:8px;margin-top:4px">
-        <div>👤 ユーザー呼称：${data.userName||'あなた'}</div>
-        <div>🤖 モデル：${modelShort}</div>
+        <div>👤 ユーザー呼称：${escHtml(data.userName||'あなた')}</div>
+        <div>🤖 モデル：${escHtml(modelShort)}</div>
         <div>💬 会話：${sessCount}件　最終：${lastDate}</div>
         <div>📌 思い出メモ：${memoCount}件</div>
         <div>📓 日記：${diaryCount}件</div>
-        ${promptPreview?`<div style="margin-top:4px;opacity:.7;font-size:10px;line-height:1.6;word-break:break-all">📝 ${promptPreview}</div>`:''}
+        ${promptPreview?`<div style="margin-top:4px;opacity:.7;font-size:10px;line-height:1.6;word-break:break-all">📝 ${escHtml(promptPreview)}</div>`:''}
       </div>
     </div>
-    ${existing?`<div style="font-size:11px;background:${t.surface2};border-radius:8px;padding:8px 12px;margin-bottom:12px;color:${t.accent};text-align:center">⚠ 同名キャラ「${data.aiName}」が存在します<br><span style="font-size:10px;opacity:.7">次の画面でマージ方法を選べます</span></div>`:''}
+    ${existing?`<div style="font-size:11px;background:${t.surface2};border-radius:8px;padding:8px 12px;margin-bottom:12px;color:${t.accent};text-align:center">⚠ 同名キャラ「${escHtml(data.aiName)}」が存在します<br><span style="font-size:10px;opacity:.7">次の画面でマージ方法を選べます</span></div>`:''}
     <div style="display:flex;gap:8px;">
       <button id="preview-cancel" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:11px;border:1px solid ${t.border};background:transparent;color:${t.text}">キャンセル</button>
       <button id="preview-exec" style="flex:1;padding:10px;border-radius:8px;cursor:pointer;font-family:monospace;font-size:12px;border:none;background:${t.accent};color:#fff;font-weight:bold">${existing?'マージへ →':'✦ 追加する'}</button>
@@ -5928,17 +5950,17 @@ function showPersonaMergeUI(existing, incoming, statusEl){
     <div style="font-family:monospace;font-size:10px;opacity:.6;margin-bottom:6px;letter-spacing:1px">システムプロンプト</div>
     <label style="display:flex;align-items:flex-start;gap:6px;font-size:11px;cursor:pointer;margin-bottom:4px">
       <input type="radio" name="merge-prompt" value="existing" checked style="margin-top:2px;flex-shrink:0">
-      <span>現在のプロンプトを使う<br><span style="opacity:.5;font-size:10px">${existing.systemPrompt.slice(0,40).replace(/</g,'&lt;')}…</span></span>
+      <span>現在のプロンプトを使う<br><span style="opacity:.5;font-size:10px">${escHtml(existing.systemPrompt.slice(0,40))}…</span></span>
     </label>
     <label style="display:flex;align-items:flex-start;gap:6px;font-size:11px;cursor:pointer;margin-bottom:10px">
       <input type="radio" name="merge-prompt" value="incoming" style="margin-top:2px;flex-shrink:0">
-      <span>読み込んだプロンプトを使う<br><span style="opacity:.5;font-size:10px">${incoming.systemPrompt.slice(0,40).replace(/</g,'&lt;')}…</span></span>
+      <span>読み込んだプロンプトを使う<br><span style="opacity:.5;font-size:10px">${escHtml(incoming.systemPrompt.slice(0,40))}…</span></span>
     </label>`
   :`<div style="font-size:10px;opacity:.5;margin-bottom:10px">システムプロンプトは同じです</div>`;
 
   box.innerHTML=`
     <div style="font-family:monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:14px">🔀 キャラをマージ</div>
-    <div style="font-size:11px;opacity:.7;margin-bottom:12px">「${existing.aiName}」が既に存在します。<br>読み込んだデータとマージしますか？</div>
+    <div style="font-size:11px;opacity:.7;margin-bottom:12px">「${escHtml(existing.aiName)}」が既に存在します。<br>読み込んだデータとマージしますか？</div>
     <div style="font-size:11px;border:1px solid ${t.border};border-radius:8px;padding:10px;margin-bottom:12px;font-family:monospace">
       <div style="opacity:.5;font-size:10px;margin-bottom:4px">現在のデータ</div>
       <div>会話 ${exSessions.length}件 · 最終: ${exLastDate}</div>
@@ -6161,23 +6183,23 @@ function openCustomThemeEditor(){
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-family:monospace;font-size:11px;flex:1">🖼 背景</span>
         <div style="width:36px;height:36px;border-radius:8px;border:2px solid ${t.border};position:relative;flex-shrink:0" id="cte-sw-bg">
-          <input type="color" id="cte-bg" value="${saved.bg}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" oninput="updateCTEPreview()">
+          <input type="color" id="cte-bg" value="${escHtml(saved.bg)}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" oninput="updateCTEPreview()">
         </div>
-        <span id="cte-hex-bg" style="font-family:monospace;font-size:10px;color:${t.textMuted};width:58px">${saved.bg}</span>
+        <span id="cte-hex-bg" style="font-family:monospace;font-size:10px;color:${t.textMuted};width:58px">${escHtml(saved.bg)}</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-family:monospace;font-size:11px;flex:1">💬 自分の吹き出し</span>
         <div style="width:36px;height:36px;border-radius:8px;border:2px solid ${t.border};position:relative;flex-shrink:0" id="cte-sw-user">
-          <input type="color" id="cte-user" value="${saved.user}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" oninput="updateCTEPreview()">
+          <input type="color" id="cte-user" value="${escHtml(saved.user)}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" oninput="updateCTEPreview()">
         </div>
-        <span id="cte-hex-user" style="font-family:monospace;font-size:10px;color:${t.textMuted};width:58px">${saved.user}</span>
+        <span id="cte-hex-user" style="font-family:monospace;font-size:10px;color:${t.textMuted};width:58px">${escHtml(saved.user)}</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-family:monospace;font-size:11px;flex:1">🤖 AIの吹き出し</span>
         <div style="width:36px;height:36px;border-radius:8px;border:2px solid ${t.border};position:relative;flex-shrink:0" id="cte-sw-ai">
-          <input type="color" id="cte-ai" value="${saved.ai}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" oninput="updateCTEPreview()">
+          <input type="color" id="cte-ai" value="${escHtml(saved.ai)}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer" oninput="updateCTEPreview()">
         </div>
-        <span id="cte-hex-ai" style="font-family:monospace;font-size:10px;color:${t.textMuted};width:58px">${saved.ai}</span>
+        <span id="cte-hex-ai" style="font-family:monospace;font-size:10px;color:${t.textMuted};width:58px">${escHtml(saved.ai)}</span>
       </div>
     </div>
     <div id="cte-badges" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px"></div>
@@ -6267,18 +6289,18 @@ function showCustomThemeEditor(){
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
       <label style="display:flex;align-items:center;gap:10px;font-family:monospace;font-size:11px">
         <span style="width:90px;flex-shrink:0">🖼 背景</span>
-        <input type="color" id="ct-bg" value="${initBg}" style="width:36px;height:36px;border-radius:6px;border:1px solid ${t.border};cursor:pointer;padding:2px">
-        <span id="ct-bg-hex" style="font-size:10px;opacity:.6">${initBg}</span>
+        <input type="color" id="ct-bg" value="${escHtml(initBg)}" style="width:36px;height:36px;border-radius:6px;border:1px solid ${t.border};cursor:pointer;padding:2px">
+        <span id="ct-bg-hex" style="font-size:10px;opacity:.6">${escHtml(initBg)}</span>
       </label>
       <label style="display:flex;align-items:center;gap:10px;font-family:monospace;font-size:11px">
         <span style="width:90px;flex-shrink:0">💬 自分の吹き出し</span>
-        <input type="color" id="ct-user" value="${initUser}" style="width:36px;height:36px;border-radius:6px;border:1px solid ${t.border};cursor:pointer;padding:2px">
-        <span id="ct-user-hex" style="font-size:10px;opacity:.6">${initUser}</span>
+        <input type="color" id="ct-user" value="${escHtml(initUser)}" style="width:36px;height:36px;border-radius:6px;border:1px solid ${t.border};cursor:pointer;padding:2px">
+        <span id="ct-user-hex" style="font-size:10px;opacity:.6">${escHtml(initUser)}</span>
       </label>
       <label style="display:flex;align-items:center;gap:10px;font-family:monospace;font-size:11px">
         <span style="width:90px;flex-shrink:0">🤖 AIの吹き出し</span>
-        <input type="color" id="ct-ai" value="${initAi}" style="width:36px;height:36px;border-radius:6px;border:1px solid ${t.border};cursor:pointer;padding:2px">
-        <span id="ct-ai-hex" style="font-size:10px;opacity:.6">${initAi}</span>
+        <input type="color" id="ct-ai" value="${escHtml(initAi)}" style="width:36px;height:36px;border-radius:6px;border:1px solid ${t.border};cursor:pointer;padding:2px">
+        <span id="ct-ai-hex" style="font-size:10px;opacity:.6">${escHtml(initAi)}</span>
       </label>
     </div>
     <div id="ct-preview" style="border-radius:8px;overflow:hidden;margin-bottom:12px;border:1px solid ${t.border}"></div>
@@ -6869,7 +6891,7 @@ function showRescueReport(report, rescued, statusEl){
   box.style.cssText=`background:${t.bg};border:1px solid ${t.border};border-radius:14px;padding:22px 20px;max-width:340px;width:100%;color:${t.text};max-height:85vh;overflow-y:auto;`;
 
   const reportHtml = report.map(line =>
-    `<div style="font-size:11px;font-family:monospace;line-height:1.8;${line.startsWith('✅')?'color:'+t.accent+';':line.startsWith('⚠')?'color:#e08020;':''}">${line.replace(/</g,'&lt;')||'&nbsp;'}</div>`
+    `<div style="font-size:11px;font-family:monospace;line-height:1.8;${line.startsWith('✅')?'color:'+t.accent+';':line.startsWith('⚠')?'color:#e08020;':''}">${escHtml(line)||'&nbsp;'}</div>`
   ).join('');
 
   box.innerHTML=`
@@ -7001,7 +7023,7 @@ function showErrorPopup(errMsg){
       ${trans.hint?`<div style="font-size:10px;color:${t.textMuted};background:${t.surface2};border-radius:6px;padding:7px 10px;margin-bottom:10px;line-height:1.6">💡 ${trans.hint}</div>`:''}
       <details style="margin-bottom:10px;">
         <summary style="font-size:10px;color:${t.textMuted};cursor:pointer;opacity:.6;font-family:monospace;">▶ 詳細エラーを表示</summary>
-        <div style="font-size:10px;color:${t.textMuted};line-height:1.6;word-break:break-all;padding:8px;background:${t.surface2};border-radius:6px;margin-top:6px;font-family:monospace;">${errMsg.replace(/</g,'&lt;')}</div>
+        <div style="font-size:10px;color:${t.textMuted};line-height:1.6;word-break:break-all;padding:8px;background:${t.surface2};border-radius:6px;margin-top:6px;font-family:monospace;">${escHtml(errMsg)}</div>
       </details>
       <button style="width:100%;padding:10px;border-radius:8px;border:1px solid ${t.border};background:${t.surface2};color:${t.text};font-size:12px;cursor:pointer;font-family:monospace;" onclick="this.closest('div[style*=fixed]').remove()">✕ 閉じる</button>
     `;
@@ -7009,7 +7031,7 @@ function showErrorPopup(errMsg){
     // 翻訳なし→従来表示
     box.innerHTML=`
       <div style="font-size:14px;text-align:center;margin-bottom:10px;color:${t.text}">⚠ エラー</div>
-      <div style="font-size:11px;color:${t.textMuted};line-height:1.7;word-break:break-all;max-height:200px;overflow-y:auto;padding:10px;background:${t.surface2||t.bg};border-radius:8px;border:1px solid ${t.border};font-family:monospace;">${errMsg.replace(/</g,'&lt;')}</div>
+      <div style="font-size:11px;color:${t.textMuted};line-height:1.7;word-break:break-all;max-height:200px;overflow-y:auto;padding:10px;background:${t.surface2||t.bg};border-radius:8px;border:1px solid ${t.border};font-family:monospace;">${escHtml(errMsg)}</div>
       <div style="font-size:10px;color:${t.textMuted};margin-top:10px;text-align:center;opacity:.7">❓ APIキーやモデルの設定を確認してください</div>
       <button style="width:100%;padding:10px;border-radius:8px;border:1px solid ${t.border};background:${t.surface2||t.bg};color:${t.text};font-size:12px;cursor:pointer;margin-top:12px;font-family:monospace;" onclick="this.closest('div[style*=fixed]').remove()">✕ 閉じる</button>
     `;
@@ -9014,7 +9036,7 @@ async function recallRunStage1(provider, model, query, chunks, signal, onProgres
       for(let attempt=0; attempt<2; attempt++){
         try{ hits = await recallStage1(provider, model, query, chunks[i], signal); break; }
         catch(e){
-          if(e.name==='AbortError' || (signal && signal.aborted)) throw e;
+          if(e.name==='AbortError' || e.name==='CostLimitError' || (signal && signal.aborted)) throw e;
           if(attempt===0 && /429|5\d\d|通信エラー/.test(e.message)){ await sleep(2500); continue; }
           throw e;
         }
@@ -9097,6 +9119,7 @@ function recallStart(initialQuery){
   if(isLoading || isRallying || recallRunning){ showToast('⚠ 返答中・ラリー中は使えません'); return; }
   const provider = String(p.model||'').split(':')[0];
   if(!localStorage.getItem('key_'+provider)){ showToast('⚠ APIキーが未設定です（⚙）'); return; }
+  if(costBlocked()) return;
   if(initialQuery && initialQuery.trim()){ recallConfirm(p, initialQuery.trim()); return; }
   const t = THEMES[currentTheme];
   const body = document.createElement('div');
