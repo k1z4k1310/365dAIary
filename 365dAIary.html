@@ -1360,6 +1360,17 @@ function getProviderModelValue(wrapperId){
 // ══════════════════════════════════════════════
 const CHANGELOG = [
   {
+    version: '2.3.0',
+    date: '2026-11-17',
+    label: '🔍 思い出す',
+    items: [
+      '🔍 「＋」メニューに「思い出す」を追加。「前にこんな話したんだけど……」というあいまいな記憶から、今のキャラの過去の会話・日記・メモを探し、キャラの口調で「こんな話だっけ？」と返します',
+      '💰 実行前に、読み込む量と概算費用を表示します（ログが多いほど費用が大きくなります）',
+      '📖 見つかった会話は、返答の下のボタンから、該当の場所へ移動して開けます',
+      '⌨ 入力欄に「@思い出す ○○」と書いて送信しても起動できます',
+    ]
+  },
+  {
     version: '2.2.0',
     date: '2026-11-17',
     label: '🖼 画像ライブラリ＆＋添付',
@@ -4022,6 +4033,7 @@ function renderMessages(){
     const isUser=msg.role==='user';
     const isSystem=msg.role==='system-info';
     wrap.className='msg-wrap '+(isSystem?'system-msg':isUser?'user':'ai');
+    wrap.dataset.idx=idx;
     const label=document.createElement('div');
     label.className='msg-label';
     label.style.color=t.textMuted;
@@ -4048,6 +4060,19 @@ function renderMessages(){
       _ch.style.cssText='margin-top:6px;font-size:11px;opacity:.75;font-family:monospace;word-break:break-all';
       _ch.textContent=[...(msg.attach||[]).map(a=>'🖼 '+a.name),...(msg.files||[]).map(f=>'📄 '+f.name)].join('  ');
       bubble.appendChild(_ch);
+    }
+    if(!isUser&&msg.recall&&msg.recall.length){
+      const _rb=document.createElement('div');
+      _rb.style.cssText='margin-top:8px;display:flex;flex-direction:column;gap:4px';
+      msg.recall.forEach(r=>{
+        const b=document.createElement('button');
+        b.type='button';
+        b.textContent='📖 '+(r.date||'')+'「'+String(r.title||'無題').slice(0,16)+'」を開く';
+        b.style.cssText='text-align:left;padding:5px 8px;border-radius:8px;border:1px solid '+t.border+';background:'+t.surface+';color:'+t.textMuted+';font-size:11px;cursor:pointer;font-family:inherit';
+        b.onclick=(ev)=>{ev.stopPropagation();recallOpen(r.sid,r.idx);};
+        _rb.appendChild(b);
+      });
+      bubble.appendChild(_rb);
     }
 
     // #57 ユーザー・AI両方のメッセージ: 長押し/右クリックでメニュー
@@ -4428,6 +4453,14 @@ async function send(){
   const input=document.getElementById('input');
   const text=input.value.trim();
   if(!text) return;
+  // 「@思い出す ○○」で過去ログ検索を起動
+  if(/^[@＠]思い出す/.test(text) && !(rallyUserWaiting && rallyUserResolve)){
+    input.value='';
+    input.style.height='';
+    updateSendBtn();
+    recallStart(text.replace(/^[@＠]思い出す[\s　:：]*/,''));
+    return;
+  }
   // ユーザー参加ラリー中は入力をラリーに渡す
   if(rallyUserWaiting && rallyUserResolve){
     input.value='';
@@ -8567,6 +8600,7 @@ function togglePlusMenu(ev){
   };
   m.appendChild(mk('🖼 ライブラリから画像を選ぶ', ()=>openLibrary('pick')));
   m.appendChild(mk('📄 txt / md を読み込む', ()=>document.getElementById('txt-file-input').click()));
+  m.appendChild(mk('🔍 思い出す（過去の会話から探す）', ()=>recallStart('')));
   document.body.appendChild(m);
   setTimeout(()=>document.addEventListener('click', function h(){ const e=document.getElementById('plus-menu'); if(e) e.remove(); document.removeEventListener('click',h); }), 0);
 }
@@ -8652,6 +8686,381 @@ document.addEventListener('DOMContentLoaded', ()=>{
   libApplyTheme();
   renderTray();
 });
+
+</script>
+<script>
+// ══════════════════════════════════════════════
+//  🔍 思い出す（v2.3.0）
+//  「前にこんな話したんだけど……覚えてる？」を、今のキャラの過去ログ（会話・日記・メモ）から探します。
+//  1段階目：ログを区切って「近そうな箇所」を選ばせる / 2段階目：候補の前後を読み直して、キャラの口調で返答
+//  すべて今のキャラのモデルで実行します（費用は実行前に概算を表示）
+// ══════════════════════════════════════════════
+const RECALL_CHUNK_CHARS = 50000;   // 1回の検索で読ませる最大文字数
+const RECALL_MSG_CAP     = 1000;    // 1段階目で1発言から読む最大文字数
+const RECALL_WIN_BEFORE  = 3;       // 候補の何発言前から読み直すか
+const RECALL_WIN_AFTER   = 10;      // 候補の何発言後まで読み直すか
+const RECALL_WIN_CAP     = 8000;    // 候補1つあたりの最大文字数
+const RECALL_PICK_MAX    = 3;       // 2段階目に渡す候補の最大数
+const RECALL_MIN_SCORE   = 25;      // これ未満の候補は捨てる
+let recallRunning = false;
+let recallAbort = null;
+
+function recallFmtDate(ts){
+  const d = new Date(ts||0);
+  return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();
+}
+function recallMsgText(m){
+  return m.alternates ? (m.alternates[m.activeAlt||0] || m.content) : m.content;
+}
+function recallSearchableMsg(m){
+  return m && m.role!=='system-info' && !m.recallMsg && typeof recallMsgText(m)==='string' && recallMsgText(m).trim();
+}
+
+// ── 検索対象のログを組み立てる ──
+function recallBuildCorpus(p){
+  const sessions = (p.sessions||[])
+    .filter(s=>s.msgs && s.msgs.some(recallSearchableMsg))
+    .slice().sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  const userName = p.userName || 'あなた';
+  const chunks = [];
+  let cur = '', header = '';
+  const flush = ()=>{ if(cur){ chunks.push(cur); cur=''; } };
+  // 見出し行：入りきらなければ新しいまとまりから始める
+  const addHeader = (h)=>{
+    header = h;
+    if(cur && cur.length+h.length+1 > RECALL_CHUNK_CHARS) flush();
+    cur += h+'\n';
+  };
+  // 本文行：途中で溢れたら、見出しを「（続き）」にして次のまとまりへ
+  const addLine = (line)=>{
+    if(cur && cur.length+line.length+1 > RECALL_CHUNK_CHARS){
+      flush();
+      if(header) cur = header.replace(/ ===$/, '（続き） ===')+'\n';
+    }
+    cur += line+'\n';
+  };
+
+  // 日記・メモ
+  const noteMap = {};
+  const noteLines = [];
+  (p.diary||[]).forEach((d,i)=>{
+    if(!d || !d.text) return;
+    const id='d'+(i+1); noteMap[id]={label:'日記 '+(d.date||''), text:d.text};
+    noteLines.push('[N#'+id+' 日記 '+(d.date||'')+'] '+String(d.text).replace(/\s+/g,' '));
+  });
+  (p.memories||[]).forEach((m,i)=>{
+    const tx = typeof m==='string' ? m : (m && m.text ? '['+(m.cat||'')+'] '+m.text : '');
+    if(!tx) return;
+    const id='m'+(i+1); noteMap[id]={label:'思い出メモ', text:tx};
+    noteLines.push('[N#'+id+' 思い出メモ] '+tx.replace(/\s+/g,' '));
+  });
+  (p.autoMemories||[]).forEach((m,i)=>{
+    if(!m || !m.text) return;
+    const id='a'+(i+1); const tx='['+(m.cat||'')+'] '+m.text; noteMap[id]={label:'自発メモ', text:tx};
+    noteLines.push('[N#'+id+' 自発メモ] '+tx.replace(/\s+/g,' '));
+  });
+  const noteCount = noteLines.length;
+  if(noteCount){
+    addHeader('=== 日記・メモ ===');
+    noteLines.forEach(addLine);
+  }
+
+  // 会話ログ
+  const sessMeta = [];
+  let msgCount = 0;
+  sessions.forEach((s,si)=>{
+    const n = si+1;
+    sessMeta.push({n, sid:s.id, title:s.title||'', date:recallFmtDate(s.createdAt), ref:s});
+    addHeader('=== S'+n+' '+recallFmtDate(s.createdAt)+'「'+(s.title||'無題').replace(/\s+/g,' ').slice(0,30)+'」 ===');
+    s.msgs.forEach((m,i)=>{
+      if(!recallSearchableMsg(m)) return;
+      msgCount++;
+      const who = m.role==='user' ? userName : (m.personaName||p.aiName);
+      let tx = recallMsgText(m).replace(/\s+/g,' ').trim();
+      if(tx.length > RECALL_MSG_CAP) tx = tx.slice(0,RECALL_MSG_CAP)+'…';
+      addLine('[S'+n+'#'+i+' '+who+'] '+tx);
+    });
+  });
+  flush();
+  const totalChars = chunks.reduce((s,c)=>s+c.length, 0);
+  return {chunks, sessMeta, noteMap, totalChars, sessCount:sessions.length, msgCount, noteCount};
+}
+
+// ── 概算費用 ──
+function recallEstimate(p, corpus){
+  const model = String(p.model||'').split(':')[1] || '';
+  const price = MODEL_PRICE[model] || {in:0.002, out:0.002};
+  const sysLen = buildSystemPrompt(p).length;
+  const inTok  = corpus.totalChars + corpus.chunks.length*500 + (9000 + sysLen);
+  const outTok = corpus.chunks.length*300 + 800;
+  const cost   = inTok/1000*price.in + outTok/1000*price.out;
+  return {cost, inTok, outTok, calls:corpus.chunks.length+1, model};
+}
+
+// ── 1段階目：近そうな箇所を選ばせる ──
+function recallParseHits(text){
+  let arr = [];
+  try{
+    const a = text.indexOf('['), b = text.lastIndexOf(']');
+    if(a>=0 && b>a) arr = JSON.parse(text.slice(a, b+1));
+  }catch(e){
+    arr = [];
+    const re = /(S\d+#\d+|N#[dma]\d+)/g; let m;
+    while((m = re.exec(text))) arr.push({ref:m[1], score:50, why:''});
+  }
+  if(!Array.isArray(arr)) arr = [];
+  return arr.filter(x=>x && typeof x.ref==='string' && /^(S\d+#\d+|N#[dma]\d+)$/.test(x.ref.trim()))
+    .map(x=>({ref:x.ref.trim(), score:Math.max(0, Math.min(100, Number(x.score)||50)), why:String(x.why||'').slice(0,60)}));
+}
+async function recallStage1(provider, model, query, chunk, signal){
+  const sys = 'あなたは会話ログの検索担当です。ユーザーが思い出そうとしている話を、与えられたログの中から探します。出力はJSONのみで、前置きや説明は書きません。';
+  const prompt =
+    '【ユーザーが思い出そうとしていること（あいまいでも可）】\n'+query+'\n\n'+
+    '【ログ】\n'+chunk+'\n'+
+    '上のログから、ユーザーの記憶に当てはまりそうな箇所を最大3つ選び、次の形式のJSON配列だけを出力してください。見当たらなければ [] を出力してください。\n'+
+    '[{"ref":"S3#12","score":85,"why":"20字程度の理由"}]\n'+
+    '・ref は、ログ中の [S3#12 …] や [N#d1 …] の番号を1つ指定します（その話題が始まる箇所）\n'+
+    '・score は、当てはまりそうな度合い（0〜100）\n'+
+    '・言い換え、類義語、記憶違いも考慮して、意味が近いものを選んでください';
+  const reply = await callAPI(provider, model, sys, [{role:'user', content:prompt}], signal, 900);
+  return recallParseHits(reply);
+}
+async function recallRunStage1(provider, model, query, chunks, signal, onProgress){
+  const results = [];
+  let next = 0, done = 0;
+  async function worker(){
+    while(true){
+      const i = next++;
+      if(i >= chunks.length) return;
+      let hits = [];
+      for(let attempt=0; attempt<2; attempt++){
+        try{ hits = await recallStage1(provider, model, query, chunks[i], signal); break; }
+        catch(e){
+          if(e.name==='AbortError' || (signal && signal.aborted)) throw e;
+          if(attempt===0 && /429|5\d\d|通信エラー/.test(e.message)){ await sleep(2500); continue; }
+          throw e;
+        }
+      }
+      results.push(...hits);
+      done++; onProgress(done, chunks.length);
+    }
+  }
+  await Promise.all([worker(), worker()]);
+  return results;
+}
+
+// ── 候補の選び出し ──
+function recallPickTop(hits){
+  const parsed = hits.map(h=>{
+    let m = /^S(\d+)#(\d+)$/.exec(h.ref);
+    if(m) return {kind:'S', n:+m[1], i:+m[2], score:h.score, why:h.why};
+    m = /^N#([dma]\d+)$/.exec(h.ref);
+    if(m) return {kind:'N', id:m[1], score:h.score, why:h.why};
+    return null;
+  }).filter(Boolean).filter(h=>h.score>=RECALL_MIN_SCORE).sort((a,b)=>b.score-a.score);
+  const picked = [];
+  parsed.forEach(h=>{
+    if(picked.length>=RECALL_PICK_MAX) return;
+    const dup = picked.some(q=> q.kind===h.kind && (h.kind==='N' ? q.id===h.id : (q.n===h.n && Math.abs(q.i-h.i)<=RECALL_WIN_AFTER)));
+    if(!dup) picked.push(h);
+  });
+  return picked;
+}
+
+// ── 2段階目：候補の前後を読み直す ──
+function recallWindow(p, hit, corpus){
+  if(hit.kind==='N'){
+    const nt = corpus.noteMap[hit.id];
+    if(!nt) return null;
+    return {title:nt.label, date:'', text:nt.text, sid:null, idx:null, score:hit.score};
+  }
+  const meta = corpus.sessMeta[hit.n-1];
+  if(!meta) return null;
+  const s = meta.ref, msgs = s.msgs;
+  const from = Math.max(0, hit.i-RECALL_WIN_BEFORE), to = Math.min(msgs.length-1, hit.i+RECALL_WIN_AFTER);
+  const userName = p.userName || 'あなた';
+  const lines = [];
+  for(let k=from; k<=to; k++){
+    const m = msgs[k];
+    if(!recallSearchableMsg(m)) continue;
+    const who = m.role==='user' ? userName : (m.personaName||p.aiName);
+    let tx = recallMsgText(m).trim();
+    if(tx.length>1500) tx = tx.slice(0,1500)+'…';
+    lines.push('['+who+'] '+tx);
+  }
+  let text = lines.join('\n');
+  if(text.length>RECALL_WIN_CAP) text = text.slice(0,RECALL_WIN_CAP)+'…';
+  return {title:meta.title||'（無題）', date:meta.date, text, sid:meta.sid, idx:hit.i, score:hit.score};
+}
+function recallComposeStage2(query, wins){
+  let s = '（ユーザーが、過去の会話を思い出そうとしています）\n'+
+          'ユーザーの言葉：「'+query+'」\n\n';
+  if(wins.length){
+    s += '過去ログから見つかった候補（近そうな順）：\n';
+    wins.forEach((w,i)=>{
+      s += '\n■候補'+(i+1)+(w.date?'［'+w.date+'「'+w.title+'」］':'［'+w.title+'］')+'（近さの目安 '+w.score+'/100）\n'+w.text+'\n';
+    });
+  } else {
+    s += '過去ログを探しましたが、近そうな話は見つかりませんでした。\n';
+  }
+  s += '\nお願い：\n'+
+       '・いちばん近そうな話を、あなたのいつもの口調で「こんな話だっけ？」と伝えてください。日付と、そのとき何を話したかを短くまとめます。\n'+
+       '・候補が複数あるときは、「こっちかも」と1〜2つ添えてください。\n'+
+       '・ログに書かれていないことは作らないでください。確信が持てないときは、近いと思う理由と一緒に正直に伝えてください。\n'+
+       '・当てはまる話が見つからなかったときは、見つからなかったと正直に伝え、思い出す手がかり（言葉・時期・誰が言ったか）を1つだけ尋ねてください。\n'+
+       '・長くしすぎないでください。';
+  return s;
+}
+
+// ── 画面：入口 ──
+function recallStart(initialQuery){
+  const p = currentPersona();
+  if(!p){ showToast('⚠ キャラを選択してください'); return; }
+  if(isLoading || isRallying || recallRunning){ showToast('⚠ 返答中・ラリー中は使えません'); return; }
+  const provider = String(p.model||'').split(':')[0];
+  if(!localStorage.getItem('key_'+provider)){ showToast('⚠ APIキーが未設定です（⚙）'); return; }
+  if(initialQuery && initialQuery.trim()){ recallConfirm(p, initialQuery.trim()); return; }
+  const t = THEMES[currentTheme];
+  const body = document.createElement('div');
+  body.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+  const note = document.createElement('div');
+  note.style.cssText = 'font-size:11px;color:'+t.textMuted+';white-space:pre-wrap';
+  note.textContent = '「'+p.aiName+'」との過去の会話・日記・メモから、あいまいな記憶を手がかりに探します。\n思い出せる範囲で、どんな話だったか書いてください。';
+  const ta = document.createElement('textarea');
+  ta.rows = 5;
+  ta.placeholder = '例：前に、ぬいぐるみの呼び方の話をしたよね。誰がどう呼ぶ、みたいな……覚えてる？';
+  ta.style.cssText = 'width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid '+t.border+';background:'+t.surface2+';color:'+t.text+';font-size:13px;font-family:inherit;resize:vertical';
+  body.appendChild(note); body.appendChild(ta);
+  uiModal({
+    title:'🔍 思い出す',
+    body,
+    okLabel:'次へ（費用を確認）',
+    onOk:()=>{
+      const q = ta.value.trim();
+      if(!q){ showToast('⚠ 思い出したい内容を書いてください'); setTimeout(()=>recallStart(''),50); return; }
+      recallConfirm(p, q);
+    }
+  });
+  setTimeout(()=>ta.focus(), 50);
+}
+
+// ── 画面：費用の確認 ──
+function recallConfirm(p, query){
+  const corpus = recallBuildCorpus(p);
+  if(corpus.chunks.length===0){ showToast('ℹ 探せる過去の会話がまだありません'); return; }
+  const est = recallEstimate(p, corpus);
+  const lines = [
+    '思い出したいこと：「'+(query.length>80 ? query.slice(0,80)+'…' : query)+'」',
+    '',
+    '対象: 会話'+corpus.sessCount+'件（'+corpus.msgCount+'発言）'+(corpus.noteCount?' ＋ 日記・メモ'+corpus.noteCount+'件':''),
+    '読み込む量: 約'+corpus.totalChars.toLocaleString()+'文字（'+corpus.chunks.length+'回に分けて検索）',
+    '概算費用: 約 '+fmtUSD(est.cost)+'（'+est.model+'・API呼び出し約'+est.calls+'回）',
+    '※ ログが多いほど大きくなります。考え込み型のモデルでは、これより増えることがあります',
+    '※ 過去の会話がAPI会社に送られます（通常の会話と同じ扱いです）'
+  ];
+  if(est.cost >= 1) lines.push('⚠ 費用がかなり大きくなります。軽いモデルのキャラへ切り替えると抑えられます');
+  uiModal({
+    title:'🔍 思い出す：費用の確認',
+    body:textBlock(lines),
+    okLabel:'探す',
+    onOk:()=>recallRun(p, query, corpus)
+  });
+}
+
+// ── 実行 ──
+function recallBusyOpen(onCancel){
+  hideBusy();
+  const t = THEMES[currentTheme];
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:160;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:12px';
+  const b = document.createElement('div');
+  b.style.cssText = 'padding:16px 20px;border-radius:12px;border:1px solid '+t.border+';background:'+t.surface+';color:'+t.text+';font-size:13px;display:flex;flex-direction:column;gap:12px;align-items:center;max-width:90vw';
+  const msg = document.createElement('div'); msg.style.textAlign = 'center';
+  const cancel = document.createElement('button');
+  cancel.type='button'; cancel.textContent='やめる';
+  cancel.style.cssText = 'padding:7px 16px;border-radius:8px;border:1px solid '+t.border+';background:'+t.surface2+';color:'+t.textMuted+';cursor:pointer;font-size:12px';
+  cancel.onclick = onCancel;
+  b.appendChild(msg); b.appendChild(cancel); ov.appendChild(b);
+  document.body.appendChild(ov);
+  _busyEl = ov;
+  return (text)=>{ msg.textContent = text; };
+}
+
+async function recallRun(p, query, corpus){
+  if(recallRunning) return;
+  recallRunning = true;
+  recallAbort = new AbortController();
+  const signal = recallAbort.signal;
+  const setMsg = recallBusyOpen(()=>{ if(recallAbort) recallAbort.abort(); });
+  const [provider, model] = String(p.model).split(':');
+  let reply = '', wins = [];
+  try{
+    setMsg('🔍 過去のログを探しています…（0/'+corpus.chunks.length+'）');
+    const hits = await recallRunStage1(provider, model, query, corpus.chunks, signal,
+      (d,n)=>setMsg('🔍 過去のログを探しています…（'+d+'/'+n+'）'));
+    const picks = recallPickTop(hits);
+    setMsg('📖 見つかった話を読み返しています…');
+    wins = picks.map(h=>recallWindow(p, h, corpus)).filter(Boolean);
+    reply = await callAPI(provider, model, buildSystemPrompt(p), [{role:'user', content:recallComposeStage2(query, wins)}], signal, 1800);
+  }catch(e){
+    hideBusy(); recallRunning = false; recallAbort = null;
+    if(e.name==='AbortError' || signal.aborted){ showToast('■ 思い出す をやめました'); }
+    else { showErrorPopup('思い出すの実行でエラー: '+e.message); }
+    return;
+  }
+  hideBusy(); recallRunning = false; recallAbort = null;
+
+  // 会話に残す（検索対象には含めない印 recallMsg をつける）
+  if(currentPid!==p.id){
+    showToast('⚠ 実行中にキャラが切り替わったため、結果を表示できませんでした');
+    return;
+  }
+  let sess = currentSession();
+  if(!sess){
+    const nid = genId();
+    p.sessions.push({id:nid, title:('🔍 '+query).slice(0,24), msgs:[], createdAt:Date.now(), updatedAt:Date.now()});
+    currentSid = nid;
+    sess = currentSession();
+    document.getElementById('title').textContent = sess.title;
+  }
+  sess.msgs.push({role:'user', content:'🔍 思い出す：'+query, timestamp:Date.now(), recallMsg:true});
+  sess.updatedAt = Date.now();
+  saveAllNow();
+  renderMessages();
+  setLoading(true, p.aiName);
+  try{
+    await pseudoStream(sess, reply, p.aiName);
+    const am = sess.msgs[sess.msgs.length-1];
+    if(am && am.role==='assistant'){
+      am.recallMsg = true;
+      const chips = wins.filter(w=>w.sid).map(w=>({sid:w.sid, idx:w.idx, title:w.title, date:w.date}));
+      if(chips.length) am.recall = chips;
+    }
+  }catch(e){
+    showErrorPopup(e.message);
+  }
+  setLoading(false);
+  sess.updatedAt = Date.now();
+  saveAllNow();
+  renderMessages();
+  renderSessions();
+}
+
+// ── 見つかった会話を開く ──
+function recallOpen(sid, idx){
+  const p = currentPersona();
+  if(!p || !p.sessions.find(s=>s.id===sid)){ showToast('⚠ その会話は見つかりませんでした（削除された可能性があります）'); return; }
+  selectSession(sid);
+  setTimeout(()=>{
+    const el = document.querySelector('#messages .msg-wrap[data-idx="'+idx+'"]');
+    if(!el) return;
+    el.scrollIntoView({block:'center'});
+    const old = el.style.background;
+    el.style.transition = 'background .4s';
+    el.style.background = 'rgba(255,200,0,.25)';
+    setTimeout(()=>{ el.style.background = old; }, 2000);
+  }, 80);
+}
 
 </script>
 </body>
