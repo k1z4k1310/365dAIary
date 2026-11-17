@@ -37,6 +37,9 @@ button,select,input,textarea{font-family:inherit}
 #input-actions{display:flex;justify-content:flex-end;padding:4px 8px 6px;gap:4px}
 #send-btn{padding:6px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-family:monospace;color:#fff;transition:opacity .15s;letter-spacing:1px}
 #send-btn:disabled{opacity:.4;cursor:default}
+#input-actions{justify-content:space-between;align-items:center}
+#plus-btn{width:34px;height:30px;border-radius:8px;cursor:pointer;font-size:18px;line-height:1;font-family:monospace;padding:0}
+#attach-tray{flex-wrap:wrap;gap:6px;padding:8px 10px 6px}
 
 /* ── Header items ── */
 .hbtn{background:none;border:1px solid;border-radius:4px;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -743,6 +746,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
       <div style="font-family:monospace;font-size:9px;opacity:.45;line-height:1.4">ONにするとトークン・コストが増えます</div>
     </div>
     <button class="sb-btn" onclick="savePersonaSettings()">💾 このキャラの設定を保存</button>
+    <button class="sb-btn" onclick="openLibrary('manage')" style="margin-top:4px">🖼 画像ライブラリ（追加・削除）</button>
     <button class="sb-btn" onclick="exportPersonaJSON()" style="margin-top:4px">📤 このキャラをJSONで書き出す</button>
     <button class="sb-btn" onclick="deleteCurrentPersona()" style="margin-top:4px;color:#e05555">🗑 このキャラを削除</button>
   </div>
@@ -854,6 +858,7 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
         <span style="font-family:monospace;font-size:9px;opacity:.6">※ APIキーはセキュリティのため含まれません</span><br>
         <span style="font-family:monospace;font-size:9px;opacity:.6">※ 365dAIary独自のテキスト形式で保存されます</span>
       </div>
+      <label style="display:flex;gap:6px;align-items:flex-start;font-size:10px;margin:6px 0;opacity:.85;cursor:pointer;line-height:1.6"><input type="checkbox" id="backup-include-lib" style="margin-top:3px"><span>🖼 画像ライブラリも含める（自己責任）<br><span style="opacity:.7">ファイルがかなり大きくなります。画像データが入るため、保管・共有にご注意ください。</span></span></label>
       <button class="sb-btn" onclick="exportData()" style="font-weight:bold">📥 .txt でダウンロード</button>
       <div style="margin-top:8px;margin-bottom:4px;font-family:monospace;font-size:10px;opacity:.6;text-align:center">─ 復元 ─</div>
       <label id="import-label" style="display:block;text-align:center;padding:8px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;border:1px dashed">
@@ -1070,8 +1075,10 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
   <div id="input-bar">
 
     <div id="input-wrap">
+      <div id="attach-tray" style="display:none"></div>
       <textarea id="input" rows="2" placeholder="メッセージを入力&#10;（送信ボタンまたはCtrl+Enterで送信）"></textarea>
       <div id="input-actions">
+        <button id="plus-btn" type="button" onclick="togglePlusMenu(event)" title="画像・ファイルを添付">＋</button>
         <button id="send-btn" onclick="send()" disabled>送信 ↑</button>
       </div>
     </div>
@@ -1352,6 +1359,18 @@ function getProviderModelValue(wrapperId){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.2.0',
+    date: '2026-11-17',
+    label: '🖼 画像ライブラリ＆＋添付',
+    items: [
+      '🖼 キャラごとの「画像ライブラリ」を追加（最大30枚・追加/削除/入れ替え可）。キャラ設定の「🖼 画像ライブラリ」から管理します',
+      '➕ メッセージ入力欄の「＋」から、ライブラリの画像（1通に最大3枚）や txt / md を次の1通にだけ添付できます',
+      '💰 追加時に、検出した容量と送信時の概算費用を表示します。画像は端末内で縮小して保存されます',
+      '🛡 人の顔を避けるため、端末内の顔検出＋確認チェックを併用しています（検出された画像は追加できません）',
+      '📥 バックアップに画像ライブラリを含めるかどうかを選べます（自己責任）',
+    ]
+  },
   {
     version: '2.1.0',
     date: '2026-11-01',
@@ -2874,6 +2893,7 @@ function deleteCurrentPersona(){
   if(personas.length<=1){showToast('⚠ 最後のキャラは削除できません');return;}
   const p=currentPersona();
   openConfirm('キャラ「'+p.aiName+'」を削除しますか？\n会話履歴・思い出メモも削除されます。', '削除する', ()=>{
+    libSet(currentPid,[]).catch(()=>{});
     personas=personas.filter(x=>x.id!==currentPid);
     saveAllNow();
     switchPersona(personas[0].id, true);
@@ -4023,6 +4043,12 @@ function renderMessages(){
     bubble.style.borderColor=isSystem?t.border:isUser?t.userBorder:t.aiBorder;
     bubble.style.color=displayContent.startsWith('⚠')?'#e05555':isUser?t.userText:t.text;
     bubble.textContent=displayContent;
+    if(isUser&&(msg.attach||msg.files)){
+      const _ch=document.createElement('div');
+      _ch.style.cssText='margin-top:6px;font-size:11px;opacity:.75;font-family:monospace;word-break:break-all';
+      _ch.textContent=[...(msg.attach||[]).map(a=>'🖼 '+a.name),...(msg.files||[]).map(f=>'📄 '+f.name)].join('  ');
+      bubble.appendChild(_ch);
+    }
 
     // #57 ユーザー・AI両方のメッセージ: 長押し/右クリックでメニュー
     if(!isSystem){
@@ -4145,7 +4171,7 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
   if(provider==='openai'){
     const key=localStorage.getItem('key_openai');
     if(!key) throw new Error('OpenAI APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_completion_tokens:(/^(gpt-[56]|o\d)/.test(model)?Math.max(mt*3,6000):mt)})});
+    const data=await doFetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history.map(toOAIMsg)],max_completion_tokens:(/^(gpt-[56]|o\d)/.test(model)?Math.max(mt*3,6000):mt)})});
     reply=data.choices[0].message.content;
     if(!reply&&data.choices[0].finish_reason==='length') throw new Error('考え込みすぎて返答が空になりました。もう一度送るか、軽いモデルをお試しください。');
     usageIn=data.usage?.prompt_tokens||0;
@@ -4153,14 +4179,14 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
   } else if(provider==='anthropic'){
     const key=localStorage.getItem('key_anthropic');
     if(!key) throw new Error('Anthropic APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,system:systemPrompt,messages:history,max_tokens:mt})});
+    const data=await doFetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,system:systemPrompt,messages:history.map(toAnthropicMsg),max_tokens:mt})});
     reply=data.content[0].text;
     usageIn=data.usage?.input_tokens||0;
     usageOut=data.usage?.output_tokens||0;
   } else if(provider==='google'){
     const key=localStorage.getItem('key_google');
     if(!key) throw new Error('Google APIキーを設定してください（⚙）');
-    const contents=history.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
+    const contents=history.map(m=>({role:m.role==='assistant'?'model':'user',parts:toGeminiParts(m)}));
     if(contents.length===0) contents.push({role:'user',parts:[{text:'返答してください'}]});
     // Gemini: 連続する同じロールをマージ
     const mergedContents=[];
@@ -4197,28 +4223,28 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
   } else if(provider==='deepseek'){
     const key=localStorage.getItem('key_deepseek');
     if(!key) throw new Error('DeepSeek APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:Math.max(mt*2,4000)})});
+    const data=await doFetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history.map(toOAIMsg)],max_tokens:Math.max(mt*2,4000)})});
     reply=data.choices[0].message.content;
     usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
   } else if(provider==='mistral'){
     const key=localStorage.getItem('key_mistral');
     if(!key) throw new Error('Mistral APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.mistral.ai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    const data=await doFetch('https://api.mistral.ai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history.map(toOAIMsg)],max_tokens:mt})});
     reply=data.choices[0].message.content;
     usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
   } else if(provider==='meta'){
     const key=localStorage.getItem('key_meta');
     if(!key) throw new Error('Meta APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.meta.ai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_completion_tokens:Math.max(mt*2,4000)})});
+    const data=await doFetch('https://api.meta.ai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history.map(toOAIMsg)],max_completion_tokens:Math.max(mt*2,4000)})});
     reply=data.choices[0].message.content;
     usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
   } else if(provider==='cohere'){
     const key=localStorage.getItem('key_cohere');
     if(!key) throw new Error('Cohere APIキーを設定してください（⚙）');
-    const cohereMsgs=[{role:'system',content:systemPrompt},...history.map(m=>({role:m.role==='assistant'?'assistant':'user',content:m.content}))];
+    const cohereMsgs=[{role:'system',content:systemPrompt},...history.map(m=>{const o=toOAIMsg(m);return {role:m.role==='assistant'?'assistant':'user',content:o.content};})];
     const data=await doFetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:cohereMsgs,max_tokens:mt})});
     reply=(data.message?.content||[]).filter(c=>c.type==='text'||c.text).map(c=>c.text).join('');
     usageIn=data.usage?.tokens?.input_tokens||0;
@@ -4226,28 +4252,28 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
   } else if(provider==='groq'){
     const key=localStorage.getItem('key_groq');
     if(!key) throw new Error('Groq APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    const data=await doFetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history.map(toOAIMsg)],max_tokens:mt})});
     reply=data.choices[0].message.content;
     usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
   } else if(provider==='perplexity'){
     const key=localStorage.getItem('key_perplexity');
     if(!key) throw new Error('Perplexity APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.perplexity.ai/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    const data=await doFetch('https://api.perplexity.ai/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history.map(toOAIMsg)],max_tokens:mt})});
     reply=data.choices[0].message.content;
     usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
   } else if(provider==='alibaba'){
     const key=localStorage.getItem('key_alibaba');
     if(!key) throw new Error('Alibaba APIキーを設定してください（⚙）');
-    const data=await doFetch('https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_tokens:mt})});
+    const data=await doFetch('https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history.map(toOAIMsg)],max_tokens:mt})});
     reply=data.choices[0].message.content;
     usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
   } else if(provider==='xai'){
     const key=localStorage.getItem('key_xai');
     if(!key) throw new Error('xAI APIキーを設定してください（⚙）');
-    const data=await doFetch('https://api.x.ai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history],max_completion_tokens:Math.max(mt*2,4000)})});
+    const data=await doFetch('https://api.x.ai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:systemPrompt},...history.map(toOAIMsg)],max_completion_tokens:Math.max(mt*2,4000)})});
     reply=data.choices[0].message.content;
     usageIn=data.usage?.prompt_tokens||0;
     usageOut=data.usage?.completion_tokens||0;
@@ -4384,7 +4410,7 @@ async function regenerateMsg(msgIdx){
   setLoading(true,p.aiName);
   renderMessages();
   try{
-    const reply=await callAPI(provider,model,buildSystemPrompt(p),trimHistory(historyUpTo));
+    const reply=await callAPI(provider,model,buildSystemPrompt(p),await attachToHistory(trimHistory(historyUpTo),historyUpTo[historyUpTo.length-1],p));
     msg.alternates.push(reply);
     msg.activeAlt=msg.alternates.length-1;
     msg.content=reply;
@@ -4423,7 +4449,17 @@ async function send(){
   }
   const [provider,model]=p.model.split(':');
   const sess=currentSession();
-  sess.msgs.push({role:'user',content:text,timestamp:Date.now()});
+  // ＋添付（画像・txt/md）
+  const _pend=pendingForPersona(p);
+  if(_pend.imgs.length && visionSupport(p.model)==='no'){
+    showToast('⚠ このモデルは画像に対応していません。画像の添付を外すか、モデルを変えてください');
+    return;
+  }
+  const _umsg={role:'user',content:text,timestamp:Date.now()};
+  if(_pend.imgs.length) _umsg.attach=_pend.imgs.map(i=>({libId:i.libId,name:i.name}));
+  if(_pend.files.length) _umsg.files=_pend.files.map(f=>({name:f.name,chars:f.chars,text:f.text}));
+  sess.msgs.push(_umsg);
+  pendingClear();
   if(!sess.title) sess.title=text.slice(0,24);
   sess.updatedAt=Date.now();
   saveAllNow();
@@ -4436,7 +4472,7 @@ async function send(){
   renderSessions();
   sendAbortController=new AbortController();
   try{
-    const reply=await callAPI(provider,model,buildSystemPrompt(p),trimHistory(sess.msgs),sendAbortController.signal);
+    const reply=await callAPI(provider,model,buildSystemPrompt(p),await attachToHistory(trimHistory(sess.msgs),_umsg,p),sendAbortController.signal);
     await pseudoStream(sess,reply,p.aiName);
   } catch(e){
     if(e.name==='AbortError'){
@@ -5271,6 +5307,7 @@ function applyTheme(name){
   iw.style.background=t.surface2;iw.style.borderColor=t.border;
   document.getElementById('input').style.color=t.text;
   document.getElementById('input-actions').style.background='none';
+  if(typeof libApplyTheme==='function') libApplyTheme();
   // rally bar
   const rb=document.getElementById('rally-bar');
   rb.style.background=t.surface;rb.style.borderColor=t.border;
@@ -6217,6 +6254,12 @@ function checkBackupNudge(reason){
 }
 
 function exportData(){
+  const _incl=document.getElementById('backup-include-lib');
+  if(!window._libExportMap && _incl && _incl.checked){
+    libCollectForExport().then(m=>{ window._libExportMap=m; try{ exportData(); } finally { window._libExportMap=null; } })
+      .catch(()=>showToast('⚠ 画像の読み出しに失敗しました'));
+    return;
+  }
   // APIキーは含めない
   const data = {
     version: '1.0',
@@ -6232,6 +6275,7 @@ function exportData(){
       autoMemories:p.autoMemories||[],
       diary:       p.diary||[],
       diaryMode:   p.diaryMode||'off',
+      library:     (window._libExportMap&&window._libExportMap[p.id])||undefined,
       sessions:    p.sessions.map(s=>({
         id:        s.id,
         title:     s.title||'',
@@ -6252,6 +6296,7 @@ function exportData(){
   txt    += '========================================\n\n';
   txt    += '※ このファイルはアプリに読み込んで復元できます\n';
   txt    += '※ APIキーは含まれていません（再入力が必要です）\n\n';
+  if(window._libExportMap) txt += '※ 画像ライブラリ（画像データ）を含んでいます。保管・共有にご注意ください\n\n';
 
   data.personas.forEach((p,pi)=>{
     txt += '----------------------------------------\n';
@@ -6375,6 +6420,7 @@ function importData(event){
         isSame ? '復元する' : '⚠ それでも復元する',
         () => {
           personas       = data.personas;
+          libRestoreFromBackup(personas);
           // 日記フィールドの補完（古いバックアップ対応）
           personas.forEach(p=>{
             if(!p.diary) p.diary=[];
@@ -6471,6 +6517,7 @@ function importDataMerge(event){
           target.memories=[...(target.memories||[]),...pl.newMemos];
           target.autoMemories=[...(target.autoMemories||[]),...pl.newAutos];
           target.diary=[...(target.diary||[]),...pl.newDiary];
+          libMergeFromBackup(target.id,pl.ip.library);
         });
         migrateRemovedModels();
         saveAllNow();
@@ -8036,5 +8083,576 @@ function focusEmojiInput(inputId){
     </div>
   </div><!-- /hp-body -->
 </div><!-- /help-panel -->
+<script>
+// ══════════════════════════════════════════════
+//  画像ライブラリ ＆ ＋添付（v2.2.0）
+//  ・ライブラリはキャラごとに最大30枚。画像は端末内（IndexedDB）に縮小して保存
+//  ・メッセージ入力欄の「＋」から、ライブラリの画像（最大3枚）や txt/md を、次の1通にだけ添付
+//  ・追加時に容量と概算費用を表示し、端末内の顔検出＋確認チェックで人の顔を避ける
+// ══════════════════════════════════════════════
+const LIB_MAX = 30;            // 1キャラあたりのライブラリ上限
+const ATTACH_IMG_MAX = 3;      // 1通に添付できる画像の最大枚数
+const LIB_IMG_SIDE = 1024;     // 保存時の長辺（px）
+const TXT_HARD_MAX = 1000000;  // txt/mdの最大文字数（ほぼ上限なし）
+const TXT_BIG_WARN = 100000;   // この文字数を超えたら強めの警告
+const FACE_JS    = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js';
+const FACE_MODEL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';
+
+const _libCache = {};
+async function libGet(pid){
+  if(_libCache[pid]) return _libCache[pid];
+  const v = await idbGet('lib_'+pid, []);
+  _libCache[pid] = Array.isArray(v) ? v : [];
+  return _libCache[pid];
+}
+async function libSet(pid, arr){
+  _libCache[pid] = arr;
+  await idbSet('lib_'+pid, arr);
+}
+
+// ── 画像に対応しているモデルか（'yes' / 'maybe' / 'no'） ──
+function visionSupport(modelValue){
+  const [provider, model] = String(modelValue||'').split(':');
+  if(['openai','anthropic','google','xai'].includes(provider)) return 'yes';
+  if(provider==='groq')   return /llama-4|scout|maverick/i.test(model) ? 'yes' : 'no';
+  if(provider==='cohere') return /vision/i.test(model) ? 'yes' : 'no';
+  return 'maybe'; // mistral / meta / perplexity / deepseek / alibaba など（未確認）
+}
+
+// ── 概算費用 ──
+function estImgTokens(w,h){ return Math.min(1600, Math.max(85, Math.round(w*h/750))); }
+function priceInOf(persona){
+  const model = String((persona&&persona.model)||'').split(':')[1];
+  return (MODEL_PRICE[model] && MODEL_PRICE[model].in) || 0.002;
+}
+function fmtUSD(x){ return x < 0.0001 ? '$0.0001未満' : '$'+x.toFixed(4); }
+function fmtMB(b){ return (b/1048576).toFixed(2)+'MB'; }
+
+// ══════════ 添付の待機状態 ══════════
+let pendingImgs  = [];   // {pid, libId, name}
+let pendingFiles = [];   // {name, chars, text}
+
+function pendingForPersona(p){
+  return { imgs: pendingImgs.filter(x=>p&&x.pid===p.id), files: pendingFiles.slice() };
+}
+function pendingClear(){ pendingImgs=[]; pendingFiles=[]; renderTray(); }
+
+function renderTray(){
+  const tray = document.getElementById('attach-tray');
+  if(!tray) return;
+  const p = currentPersona();
+  const t = THEMES[currentTheme];
+  const imgs = pendingImgs.filter(x=>p&&x.pid===p.id);
+  tray.innerHTML = '';
+  if(imgs.length===0 && pendingFiles.length===0){ tray.style.display='none'; return; }
+  tray.style.display = 'flex';
+  const mk = (label, onRemove)=>{
+    const chip = document.createElement('span');
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;font-family:monospace;font-size:11px;padding:3px 8px;border:1px solid '+t.border+';border-radius:12px;background:'+t.surface+';color:'+t.text+';max-width:100%';
+    const tx = document.createElement('span');
+    tx.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46vw';
+    tx.textContent = label;
+    const x = document.createElement('button');
+    x.type='button'; x.textContent='✕';
+    x.style.cssText = 'border:none;background:none;cursor:pointer;color:'+t.textMuted+';font-size:11px;padding:0';
+    x.onclick = onRemove;
+    chip.appendChild(tx); chip.appendChild(x);
+    tray.appendChild(chip);
+  };
+  imgs.forEach(i=>mk('🖼 '+i.name, ()=>{ pendingImgs=pendingImgs.filter(y=>y!==i); renderTray(); }));
+  pendingFiles.forEach(f=>mk('📄 '+f.name+'（'+f.chars.toLocaleString()+'文字）', ()=>{ pendingFiles=pendingFiles.filter(y=>y!==f); renderTray(); }));
+}
+
+function libApplyTheme(){
+  const t = THEMES[currentTheme]; if(!t) return;
+  const b = document.getElementById('plus-btn');
+  if(b){ b.style.background=t.surface; b.style.border='1px solid '+t.border; b.style.color=t.textMuted; }
+  const tray = document.getElementById('attach-tray');
+  if(tray){ tray.style.borderBottom='1px solid '+t.border; }
+}
+
+// ══════════ 送信時の組み立て ══════════
+// 送信直前の履歴の「最後のユーザー発言」にだけ、画像・ファイル本文を足す
+async function attachToHistory(hist, userMsg, persona){
+  if(!userMsg || userMsg.role!=='user' || !hist.length) return hist;
+  const last = hist[hist.length-1];
+  if(last.role!=='user') return hist;
+  let text = last.content;
+  (userMsg.files||[]).forEach(f=>{ text += '\n\n【添付ファイル: '+f.name+'】\n'+f.text; });
+  last.content = text;
+  if(userMsg.attach && userMsg.attach.length && persona){
+    const lib = await libGet(persona.id);
+    const imgs = [];
+    userMsg.attach.forEach(a=>{
+      const it = lib.find(x=>x.id===a.libId);
+      if(it) imgs.push({mime:it.mime, b64:it.b64});
+    });
+    if(imgs.length) last.images = imgs;
+  }
+  return hist;
+}
+
+// 各社のAPI形式へ変換
+function toOAIMsg(m){
+  if(m.images && m.images.length){
+    return {role:m.role, content:[{type:'text',text:m.content}, ...m.images.map(im=>({type:'image_url',image_url:{url:'data:'+im.mime+';base64,'+im.b64}}))]};
+  }
+  return {role:m.role, content:m.content};
+}
+function toAnthropicMsg(m){
+  if(m.images && m.images.length){
+    return {role:m.role, content:[...m.images.map(im=>({type:'image',source:{type:'base64',media_type:im.mime,data:im.b64}})), {type:'text',text:m.content}]};
+  }
+  return {role:m.role, content:m.content};
+}
+function toGeminiParts(m){
+  return [{text:m.content}, ...((m.images||[]).map(im=>({inline_data:{mime_type:im.mime,data:im.b64}})))];
+}
+
+// ══════════ 共通モーダル ══════════
+function uiModal(opts){
+  const t = THEMES[currentTheme];
+  const ov = document.createElement('div');
+  ov.className = 'lib-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:12px';
+  const box = document.createElement('div');
+  box.style.cssText = 'width:min(440px,94vw);max-height:88vh;overflow-y:auto;border-radius:12px;padding:18px 16px;border:1px solid '+t.border+';background:'+t.surface+';color:'+t.text+';font-size:13px;line-height:1.7;display:flex;flex-direction:column;gap:12px';
+  if(opts.title){
+    const h = document.createElement('div');
+    h.style.cssText = 'font-weight:bold;font-size:14px;color:'+t.accent;
+    h.textContent = opts.title;
+    box.appendChild(h);
+  }
+  if(opts.body) box.appendChild(opts.body);
+  let okBtn = null, chk = null;
+  if(opts.checkLabel){
+    const lab = document.createElement('label');
+    lab.style.cssText = 'display:flex;gap:8px;align-items:flex-start;cursor:pointer;font-size:12px';
+    chk = document.createElement('input'); chk.type='checkbox'; chk.style.marginTop='4px';
+    const sp = document.createElement('span'); sp.textContent = opts.checkLabel;
+    lab.appendChild(chk); lab.appendChild(sp);
+    box.appendChild(lab);
+  }
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap';
+  const close = ()=>ov.remove();
+  const mkBtn = (label, bg, color)=>{
+    const b = document.createElement('button');
+    b.type='button'; b.textContent=label;
+    b.style.cssText = 'padding:8px 14px;border-radius:8px;border:1px solid '+t.border+';cursor:pointer;font-size:12px;font-family:inherit;background:'+bg+';color:'+color;
+    return b;
+  };
+  const cancelBtn = mkBtn(opts.cancelLabel||'やめる', t.surface2, t.textMuted);
+  cancelBtn.onclick = ()=>{ close(); if(opts.onCancel) opts.onCancel(); };
+  row.appendChild(cancelBtn);
+  if(opts.okLabel){
+    okBtn = mkBtn(opts.okLabel, t.sendBtn, '#fff');
+    okBtn.onclick = ()=>{ if(chk && !chk.checked) return; close(); if(opts.onOk) opts.onOk(); };
+    if(chk){
+      okBtn.disabled = true; okBtn.style.opacity = '.4';
+      chk.onchange = ()=>{ okBtn.disabled=!chk.checked; okBtn.style.opacity=chk.checked?'1':'.4'; };
+    }
+    row.appendChild(okBtn);
+  }
+  box.appendChild(row);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  return {ov, box, close};
+}
+function textBlock(lines){
+  const d = document.createElement('div');
+  d.style.cssText = 'white-space:pre-wrap;word-break:break-word';
+  d.textContent = lines.join('\n');
+  return d;
+}
+
+let _busyEl = null;
+function showBusy(msg){
+  hideBusy();
+  const t = THEMES[currentTheme];
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:160;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
+  const b = document.createElement('div');
+  b.style.cssText = 'padding:14px 20px;border-radius:10px;border:1px solid '+t.border+';background:'+t.surface+';color:'+t.text+';font-size:13px';
+  b.textContent = msg;
+  ov.appendChild(b);
+  document.body.appendChild(ov);
+  _busyEl = ov;
+}
+function hideBusy(){ if(_busyEl){ _busyEl.remove(); _busyEl=null; } }
+
+// ══════════ 顔検出（端末内） ══════════
+let _fd = null, _forceFaceApi = false;
+function loadScriptOnce(src){
+  return new Promise((resolve, reject)=>{
+    if(window.faceapi){ resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = ()=>resolve();
+    s.onerror = ()=>reject(new Error('script load failed'));
+    document.head.appendChild(s);
+  });
+}
+async function faceDetectorReady(){
+  if(_fd) return _fd;
+  if(!_forceFaceApi){
+    try{
+      if('FaceDetector' in window){
+        _fd = {ok:true, kind:'native', d:new FaceDetector({fastMode:false, maxDetectedFaces:10})};
+        return _fd;
+      }
+    }catch(e){}
+  }
+  try{
+    await loadScriptOnce(FACE_JS);
+    await faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL);
+    _fd = {ok:true, kind:'faceapi'};
+    return _fd;
+  }catch(e){
+    return {ok:false, kind:'none'}; // 失敗は保存しない（次回また試す）
+  }
+}
+// 顔らしきものの数を返す。検出器が使えない場合は例外
+async function faceCount(canvas){
+  const fd = await faceDetectorReady();
+  if(!fd.ok) throw new Error('no detector');
+  if(fd.kind==='native'){
+    try{ const r = await fd.d.detect(canvas); return r.length; }
+    catch(e){ _fd=null; _forceFaceApi=true; return faceCount(canvas); }
+  }
+  const r = await faceapi.detectAllFaces(canvas, new faceapi.TinyFaceDetectorOptions({inputSize:512, scoreThreshold:0.5}));
+  return r.length;
+}
+
+// ══════════ 画像の縮小 ══════════
+async function libProcessImage(file){
+  const url = URL.createObjectURL(file);
+  try{
+    const img = await new Promise((res, rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error('load')); im.src=url; });
+    const w = img.naturalWidth, h = img.naturalHeight;
+    if(!w || !h) throw new Error('size');
+    const sc = Math.min(1, LIB_IMG_SIDE/Math.max(w,h));
+    const cw = Math.max(1, Math.round(w*sc)), ch = Math.max(1, Math.round(h*sc));
+    const c = document.createElement('canvas'); c.width=cw; c.height=ch;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,cw,ch);
+    ctx.drawImage(img, 0, 0, cw, ch);
+    const b64 = c.toDataURL('image/jpeg', 0.85).split(',')[1];
+    return {
+      id: genId(),
+      name: (file.name.replace(/\.[^.]+$/,'').slice(0,40)) || 'image',
+      mime: 'image/jpeg', b64, w:cw, h:ch,
+      bytes: Math.round(b64.length*3/4),
+      origBytes: file.size,
+      addedAt: Date.now(),
+      canvas: c
+    };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+// ══════════ ライブラリへの追加フロー ══════════
+async function libAddFlow(fileList, replaceId){
+  const p = currentPersona(); if(!p) return;
+  let files = Array.from(fileList||[]).filter(f=>/^image\//.test(f.type) || /\.(jpe?g|png|webp|gif|bmp|heic|heif)$/i.test(f.name));
+  if(!files.length){ showToast('⚠ 画像ファイルを選んでください'); return; }
+  const lib = await libGet(p.id);
+  const room = replaceId ? 1 : (LIB_MAX - lib.length);
+  if(room <= 0){ showToast('⚠ ライブラリは上限（'+LIB_MAX+'枚）です。削除か入れ替えをお願いします'); return; }
+  if(replaceId) files = files.slice(0,1);
+  let skippedOver = 0;
+  if(files.length > room){ skippedOver = files.length-room; files = files.slice(0, room); }
+
+  showBusy('画像を処理しています…（顔チェックを含みます）');
+  const items = [], failed = [];
+  for(const f of files){
+    try{ items.push(await libProcessImage(f)); }
+    catch(e){ failed.push(f.name); }
+  }
+  const det = await faceDetectorReady();
+  let detOk = det.ok;
+  const accepted = [], rejected = [];
+  for(const it of items){
+    let faces = 0;
+    if(detOk){
+      try{ faces = await faceCount(it.canvas); }
+      catch(e){ detOk = false; }
+    }
+    if(faces > 0) rejected.push(it); else accepted.push(it);
+  }
+  hideBusy();
+
+  const origTotal = items.reduce((s,i)=>s+i.origBytes, 0);
+  const newTotal  = accepted.reduce((s,i)=>s+i.bytes, 0);
+  const priceIn = priceInOf(p);
+  const modelName = String(p.model||'').split(':')[1] || '';
+  const oneImgTokens = accepted.length ? Math.round(accepted.reduce((s,i)=>s+estImgTokens(i.w,i.h),0)/accepted.length) : 0;
+  const lines = [];
+  lines.push('検出: '+items.length+'枚 / 合計 '+fmtMB(origTotal)+'（縮小後 '+fmtMB(newTotal)+'）');
+  if(accepted.length){
+    lines.push('概算: 1枚を送るたびに約 '+fmtUSD(oneImgTokens/1000*priceIn)+'（入力分のみ・'+modelName+'）。3枚同時なら約 '+fmtUSD(oneImgTokens*3/1000*priceIn));
+    lines.push('※ 追加するだけでは費用はかかりません。AIに見せた時にだけ送られます');
+  }
+  if(!detOk) lines.push('⚠ 顔検出を読み込めなかったため、今回は下の確認チェックのみで追加します（ネットワークや広告ブロッカーの影響の可能性）');
+  if(rejected.length) lines.push('🚫 人の顔らしきものが検出されたため、追加できません: '+rejected.map(i=>i.name).join('、')+'\n（ぬいぐるみやイラストが誤検出されることもあります。別の角度・写り方でお試しください）');
+  if(failed.length) lines.push('⚠ 読み込めなかったファイル: '+failed.join('、')+'（HEICなど、ブラウザが対応していない形式の可能性があります）');
+  if(skippedOver) lines.push('ℹ 上限の都合で、'+skippedOver+'枚は追加の対象外です');
+
+  if(!accepted.length){
+    uiModal({title:'🖼 ライブラリへ追加', body:textBlock(lines), cancelLabel:'閉じる', onCancel:()=>{ if(libMode) openLibrary(libMode); }});
+    return;
+  }
+  uiModal({
+    title:'🖼 ライブラリへ追加（'+accepted.length+'枚）',
+    body:textBlock(lines),
+    checkLabel:'この画像に、人物の顔が写っていないことを確認しました',
+    okLabel:'追加する（'+accepted.length+'枚）',
+    onOk: async ()=>{
+      const cur = await libGet(p.id);
+      let next;
+      accepted.forEach(i=>{ delete i.canvas; });
+      if(replaceId){
+        next = cur.map(x=> x.id===replaceId ? Object.assign({}, accepted[0], {id:replaceId}) : x);
+      } else {
+        next = cur.concat(accepted).slice(0, LIB_MAX);
+      }
+      try{ await libSet(p.id, next); showToast('✦ ライブラリに追加しました（'+next.length+'/'+LIB_MAX+'）'); }
+      catch(e){ showToast('⚠ 保存に失敗しました: '+e.message); }
+      openLibrary(libMode||'manage');
+    },
+    onCancel:()=>{ if(libMode) openLibrary(libMode); }
+  });
+}
+
+// ══════════ ライブラリ画面（管理 / 選択） ══════════
+let libMode = null;      // 'manage' | 'pick'
+let libSel = new Set();
+function closeLibrary(){ document.querySelectorAll('.lib-ov').forEach(e=>e.remove()); }
+
+async function openLibrary(mode){
+  const p = currentPersona();
+  if(!p){ showToast('⚠ キャラを選択してください'); return; }
+  if(mode==='pick'){
+    if(visionSupport(p.model)==='no'){
+      showToast('⚠ このモデルは画像の読み取りに対応していないようです。別のモデルでお試しください');
+      return;
+    }
+  }
+  closeLibrary();
+  libMode = mode;
+  const lib = await libGet(p.id);
+  libSel = new Set(pendingImgs.filter(x=>x.pid===p.id).map(x=>x.libId));
+  const t = THEMES[currentTheme];
+
+  const body = document.createElement('div');
+  body.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+  const note = document.createElement('div');
+  note.style.cssText = 'font-size:11px;color:'+t.textMuted+';white-space:pre-wrap';
+  const totalBytes = lib.reduce((s,i)=>s+(i.bytes||0),0);
+  let noteText = (mode==='pick')
+    ? 'AIに見せたい画像を選んでください（最大'+ATTACH_IMG_MAX+'枚・次の1通にだけ添付されます）\n画像の追加・削除は、キャラ設定の「🖼 画像ライブラリ」から行えます'
+    : '「'+p.aiName+'」の画像ライブラリ（'+lib.length+'/'+LIB_MAX+'枚・約'+fmtMB(totalBytes)+'）\nこの端末の中にだけ保存されます。AIへは、＋から選んで送った時だけ送られます';
+  if(mode==='pick' && visionSupport(p.model)==='maybe') noteText += '\n⚠ このモデルが画像に対応しているかは未確認です（非対応だとエラーになる場合があります）';
+  note.textContent = noteText;
+  body.appendChild(note);
+
+  if(lib.length===0){
+    const empty = document.createElement('div');
+    empty.style.cssText = 'text-align:center;padding:22px 0;color:'+t.textMuted;
+    empty.textContent = (mode==='pick') ? 'ライブラリはまだ空です。キャラ設定の「🖼 画像ライブラリ」から追加してください' : 'まだ画像がありません';
+    body.appendChild(empty);
+  }
+
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px';
+  lib.forEach(it=>{
+    const cell = document.createElement('div');
+    cell.style.cssText = 'border:2px solid '+(libSel.has(it.id)?t.accent:t.border)+';border-radius:8px;overflow:hidden;background:'+t.surface2+';display:flex;flex-direction:column';
+    const im = document.createElement('img');
+    im.src = 'data:'+it.mime+';base64,'+it.b64;
+    im.style.cssText = 'width:100%;aspect-ratio:1/1;object-fit:cover;display:block;cursor:'+(mode==='pick'?'pointer':'default');
+    const nm = document.createElement('div');
+    nm.style.cssText = 'font-size:10px;padding:3px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:'+t.textMuted;
+    nm.textContent = it.name;
+    cell.appendChild(im); cell.appendChild(nm);
+    if(mode==='pick'){
+      cell.onclick = ()=>{
+        if(libSel.has(it.id)) libSel.delete(it.id);
+        else {
+          if(libSel.size >= ATTACH_IMG_MAX){ showToast('⚠ 1通に添付できるのは'+ATTACH_IMG_MAX+'枚までです'); return; }
+          libSel.add(it.id);
+        }
+        cell.style.borderColor = libSel.has(it.id) ? t.accent : t.border;
+        const c = document.getElementById('lib-sel-count'); if(c) c.textContent = libSel.size;
+      };
+    } else {
+      const bar = document.createElement('div');
+      bar.style.cssText = 'display:flex;border-top:1px solid '+t.border;
+      const mkB = (label, fn)=>{
+        const b = document.createElement('button');
+        b.type='button'; b.textContent=label;
+        b.style.cssText = 'flex:1;padding:5px 0;border:none;background:none;cursor:pointer;font-size:12px;color:'+t.textMuted;
+        b.onclick = fn; return b;
+      };
+      bar.appendChild(mkB('↻', ()=>{
+        const inp = document.createElement('input'); inp.type='file'; inp.accept='image/*';
+        inp.onchange = ()=>{ if(inp.files.length){ libAddFlow(inp.files, it.id); } };
+        inp.click();
+      }));
+      bar.appendChild(mkB('🗑', ()=>{
+        openConfirm('「'+it.name+'」をライブラリから削除しますか？', '削除する', async ()=>{
+          const cur = await libGet(p.id);
+          await libSet(p.id, cur.filter(x=>x.id!==it.id));
+          pendingImgs = pendingImgs.filter(x=>!(x.pid===p.id && x.libId===it.id));
+          renderTray();
+          openLibrary('manage');
+        });
+      }));
+      cell.appendChild(bar);
+    }
+    grid.appendChild(cell);
+  });
+  body.appendChild(grid);
+
+  if(mode==='manage'){
+    const add = document.createElement('button');
+    add.type='button';
+    add.textContent = '＋ 画像を追加' + (lib.length>=LIB_MAX ? '（上限です）' : '');
+    add.style.cssText = 'padding:9px;border-radius:8px;border:1px dashed '+t.border+';background:none;cursor:pointer;color:'+t.text+';font-size:12px';
+    add.onclick = ()=>{
+      if(lib.length>=LIB_MAX){ showToast('⚠ 上限（'+LIB_MAX+'枚）です。削除か入れ替え（↻）をお願いします'); return; }
+      const inp = document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+      inp.onchange = ()=>{ if(inp.files.length) libAddFlow(inp.files, null); };
+      inp.click();
+    };
+    body.appendChild(add);
+  }
+
+  const m = uiModal({
+    title: mode==='pick' ? '🖼 ライブラリから画像を選ぶ' : '🖼 画像ライブラリ',
+    body,
+    cancelLabel: '閉じる',
+    okLabel: mode==='pick' ? '選んだ画像を添付' : null,
+    onOk: ()=>{
+      pendingImgs = pendingImgs.filter(x=>x.pid!==p.id);
+      lib.filter(i=>libSel.has(i.id)).forEach(i=>pendingImgs.push({pid:p.id, libId:i.id, name:i.name}));
+      renderTray();
+      if(libSel.size) showToast('🖼 '+libSel.size+'枚を添付しました');
+    }
+  });
+  if(mode==='pick'){
+    const cnt = document.createElement('div');
+    cnt.style.cssText = 'font-size:11px;color:'+t.textMuted+';text-align:right';
+    cnt.innerHTML = '選択中: <span id="lib-sel-count">'+libSel.size+'</span> / '+ATTACH_IMG_MAX;
+    m.box.insertBefore(cnt, m.box.lastChild);
+  }
+}
+
+// ══════════ ＋メニュー ══════════
+function togglePlusMenu(ev){
+  if(ev) ev.stopPropagation();
+  const ex = document.getElementById('plus-menu');
+  if(ex){ ex.remove(); return; }
+  const t = THEMES[currentTheme];
+  const btn = document.getElementById('plus-btn');
+  const r = btn.getBoundingClientRect();
+  const m = document.createElement('div');
+  m.id = 'plus-menu';
+  m.style.cssText = 'position:fixed;z-index:300;left:'+Math.max(8,r.left)+'px;bottom:'+(window.innerHeight-r.top+6)+'px;min-width:250px;border:1px solid '+t.border+';border-radius:10px;padding:6px;background:'+t.surface+';box-shadow:0 4px 16px rgba(0,0,0,.25)';
+  const mk = (label, fn)=>{
+    const b = document.createElement('button');
+    b.type='button'; b.textContent=label;
+    b.style.cssText = 'display:block;width:100%;text-align:left;padding:10px 12px;border:none;background:none;cursor:pointer;font-size:13px;color:'+t.text+';border-radius:6px;font-family:inherit';
+    b.onclick = ()=>{ m.remove(); fn(); };
+    return b;
+  };
+  m.appendChild(mk('🖼 ライブラリから画像を選ぶ', ()=>openLibrary('pick')));
+  m.appendChild(mk('📄 txt / md を読み込む', ()=>document.getElementById('txt-file-input').click()));
+  document.body.appendChild(m);
+  setTimeout(()=>document.addEventListener('click', function h(){ const e=document.getElementById('plus-menu'); if(e) e.remove(); document.removeEventListener('click',h); }), 0);
+}
+
+// ══════════ txt / md の読み込み ══════════
+async function txtPickHandler(ev){
+  const f = ev.target.files[0];
+  ev.target.value = '';
+  if(!f) return;
+  const p = currentPersona(); if(!p) return;
+  let text;
+  try{
+    const buf = await f.arrayBuffer();
+    try{ text = new TextDecoder('utf-8',{fatal:true}).decode(buf); }
+    catch(e){ text = new TextDecoder('shift_jis').decode(buf); }
+  }catch(e){ showToast('⚠ ファイルを読み取れませんでした'); return; }
+  text = text.replace(/^﻿/,'');
+  const chars = text.length;
+  if(chars===0){ showToast('⚠ ファイルが空です'); return; }
+  if(chars > TXT_HARD_MAX){
+    uiModal({title:'📄 読み込めません', body:textBlock(['文字数が多すぎます（'+chars.toLocaleString()+'文字）。','上限は約'+TXT_HARD_MAX.toLocaleString()+'文字です。ファイルを分けてお試しください。']), cancelLabel:'閉じる'});
+    return;
+  }
+  const priceIn = priceInOf(p);
+  const modelName = String(p.model||'').split(':')[1] || '';
+  const lines = [
+    'ファイル: '+f.name,
+    '検出: '+(f.size/1024).toFixed(1)+'KB / '+chars.toLocaleString()+'文字',
+    '概算: 送信時に約 '+fmtUSD(chars/1000*priceIn)+'（入力分のみ・'+modelName+'・日本語は1文字≒1トークンで計算）',
+    '※ 次の1通にだけ添付されます。以降の会話には本文は再送されません（AIの返答は履歴に残ります）'
+  ];
+  if(chars > TXT_BIG_WARN) lines.push('⚠ かなり大きいファイルです。費用が大きくなるほか、モデルの入力上限を超えてエラーになる場合があります');
+  uiModal({
+    title:'📄 ファイルを添付',
+    body:textBlock(lines),
+    okLabel:'添付する',
+    onOk:()=>{
+      pendingFiles = [{name:f.name, chars, text}];
+      renderTray();
+      showToast('📄 '+f.name+' を添付しました');
+    }
+  });
+}
+
+// ══════════ バックアップ連携 ══════════
+async function libCollectForExport(){
+  const map = {};
+  for(const p of personas){
+    const lib = await libGet(p.id);
+    if(lib && lib.length) map[p.id] = lib;
+  }
+  return map;
+}
+function libSanitize(arr){
+  return (Array.isArray(arr)?arr:[]).filter(x=>x && x.id && x.b64 && x.mime).slice(0, LIB_MAX)
+    .map(x=>({id:String(x.id), name:String(x.name||'image').slice(0,40), mime:String(x.mime), b64:String(x.b64), w:x.w||0, h:x.h||0, bytes:x.bytes||Math.round(String(x.b64).length*3/4), origBytes:x.origBytes||0, addedAt:x.addedAt||Date.now()}));
+}
+function libRestoreFromBackup(list){
+  list.forEach(p=>{
+    if(Array.isArray(p.library)){
+      const clean = libSanitize(p.library);
+      libSet(p.id, clean).catch(()=>{});
+    }
+    delete p.library;
+  });
+}
+async function libMergeFromBackup(pid, incoming){
+  if(!Array.isArray(incoming) || !incoming.length) return;
+  const cur = await libGet(pid);
+  const have = new Set(cur.map(x=>x.id));
+  const add = libSanitize(incoming).filter(x=>!have.has(x.id));
+  if(add.length) await libSet(pid, cur.concat(add).slice(0, LIB_MAX));
+}
+
+// ══════════ 初期化 ══════════
+document.addEventListener('DOMContentLoaded', ()=>{
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.id = 'txt-file-input';
+  inp.accept = '.txt,.md,.markdown,text/plain,text/markdown';
+  inp.style.display = 'none';
+  inp.addEventListener('change', txtPickHandler);
+  document.body.appendChild(inp);
+  libApplyTheme();
+  renderTray();
+});
+
+</script>
 </body>
 </html>
