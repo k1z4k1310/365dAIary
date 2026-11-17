@@ -46,6 +46,17 @@ No server. No account. Your data stays in your browser.
 ### 📔 my dAIary
 AIキャラクターが、その日の会話を振り返って日記を書きます。
 
+### 🖼 Image Library & ➕ Attachments *(v2.2.0)*
+キャラごとに画像を最大30枚まで置けるライブラリ。  
+入力欄の「＋」から、**自分で選んだ**画像やtxt/mdを、次の1通にだけ添付して読ませられます。  
+たとえば、大事にしているぬいぐるみの写真を見てもらう、といった使い方を想定しています。  
+人の顔は端末内で検出して追加できないようにしており、追加時には容量と概算費用をお知らせします。
+
+### 🔍 Recall *(v2.3.0)*
+「前にこんな話したんだけど……覚えてる？」というあいまいな記憶から、  
+今のキャラの過去の会話・日記・メモを探して「こんな話だっけ？」と見つけます。  
+APIを多く使うため、実行前に概算費用を表示します。
+
 ### 📦 Relocation
 ChatGPT / Claude / Gemini などの会話ログを読み込み、  
 要約して思い出メモとして引き継げます。
@@ -95,7 +106,7 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
 
 ### 🎨 Themes — テーマカラー
 
-16種のプリセット＋カスタムカラーに対応。  
+基本テーマ19種（ライト／ダーク含む）＋隠しテーマ3種、さらにカスタムカラーに対応。  
 コントラスト比を自動計算するので、視認性を保ちながら好きな色に変えられます。
 
 <p align="center">
@@ -104,7 +115,7 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
   <img src="./assets/screenshots/theme_custom.jpg" width="45%" alt="カスタムテーマ">
 </p>
 <p align="center">
-  <sub>左：16種のプリセット　右：カスタムカラー（コントラスト比リアルタイム確認）</sub>
+  <sub>左：テーマ一覧　右：カスタムカラー（コントラスト比リアルタイム確認）</sub>
 </p>
 
 ---
@@ -116,7 +127,12 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
 - Please use your own API keys and manage them carefully.
 - All app data is stored in your browser. Please export backups regularly.
 - Relocation is intended for your own conversation logs and original characters.
-- Image generation, image upload, and web search are intentionally not included.
+- ~~Image generation, image upload, and web search are intentionally not included.~~
+- 🔄 **Updated in v2.2.0 (core philosophy unchanged / 基本理念は変えていません):**
+  - Image generation and web search are still intentionally not included. / 画像生成とWeb検索は、今も実装していません。
+  - You can now attach images you choose yourself (from a per-character library; images with human faces are rejected on-device) or txt/md files to **one next message only**. / あなたが選んだ画像（人の顔は端末内で検出して除外）やtxt/mdを、次の1通にだけ添付できるようになりました。
+  - Nothing is scanned automatically, and nothing is sent to the developer. Attachments go only to the AI provider you selected. / 自動で端末内を読み取ることはなく、作者には何も送られません。添付は選んだAI会社のAPIにだけ送られます。
+- Face detection may load an open-source library (face-api) from jsDelivr. Your images are never uploaded for this. / 顔検出のため、オープンソースのライブラリを jsDelivr から読み込む場合があります（画像自体は送られません）。
 
 ---
 
@@ -134,8 +150,12 @@ ChatGPT / Claude / Gemini などの会話ログを読み込み、
 
 Goal: Fully local AI character — your data, your device, your companion.
 
-> Image upload / image recognition / web search are not core goals for now.  
-> 365dAIary focuses on text conversations, memories, diaries, and model comparison.
+> ~~Image upload / image recognition / web search are not core goals for now.~~  
+> ~~365dAIary focuses on text conversations, memories, diaries, and model comparison.~~
+>
+> 🔄 **Update:** Reading images and files that *you* choose is now supported (v2.2.0), but image generation and web search are still not planned.  
+> The focus is unchanged: text conversations, memories, diaries, and model comparison — with your data kept safe.  
+> 🔄 **アップデート：** v2.2.0で、「自分で選んだ画像・ファイルを読ませる」機能を追加しました。画像生成・Web検索は今も予定していません。基本理念（創作者のデータを守る／会話・記憶・日記・モデル比較を大切にする）は変えていません。
 
 ---
 
@@ -170,6 +190,7 @@ Maybe we can chat!
 | 💌 Feedback | https://wavebox.me/wave/dbe7d1pv6awdmttz/ |
 | 𝕏 Twitter | [@k1z4k1_310LLM](https://x.com/k1z4k1_310LLM) |
 | 🎁 Wishlist | [Amazon JP](https://www.amazon.jp/hz/wishlist/ls/BT3C31AD7HL2?ref_=wl_share) |
+| ☕ Ko-fi | [ko-fi.com/365daiary](https://ko-fi.com/365daiary) |
 
 ---
 
@@ -177,6 +198,9 @@ Maybe we can chat!
 
 完全無料。広告なし。課金なし。  
 Free. No ads. No subscriptions.
+
+任意のご支援（Ko-fi / ほしい物リスト）がありますが、機能の差は一切ありません。  
+Optional support (Ko-fi / wishlist) is welcome but never required — all features are free for everyone.
 
 作者：城崎澪 / Creator: Mio Kizaki
 

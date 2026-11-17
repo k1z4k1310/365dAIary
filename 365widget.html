@@ -594,7 +594,7 @@ html,body{
           <div class="whelp-body">
             <div class="whelp-step"><span class="whelp-num">💬</span><span><strong>普段使い</strong> → GPT-4o-mini / Claude Haiku / Gemini Flash</span></div>
             <div class="whelp-step"><span class="whelp-num">🧠</span><span><strong>高品質</strong> → GPT-4o / Claude Sonnet</span></div>
-            <div class="whelp-note info">迷ったら <code>gemini-1.5-flash</code> から。無料枠あり。</div>
+            <div class="whelp-note info">迷ったら <code>gemini-2.5-flash</code> などの軽いモデルから。Googleは無料枠がある場合があります。</div>
           </div>
         </div>
 
@@ -651,10 +651,11 @@ const W_THEMES = {
   neon:     {name:'🌐 ネオン',      bg:'#080c08',   surface:'#0c120c', border:'#aaee00', text:'#eeffcc', textMuted:'#88bb44', accent:'#ddff00'},
   aurora:   {name:'🌌 オーロラ',    bg:'#071018',   surface:'#0d1c28', border:'#286078', text:'#c0f0e8', textMuted:'#408070', accent:'#80ffd8'},
   jonu:     {name:'✨ じょぬ',      bg:'#e8f8f8',   surface:'#d0f0f0', border:'#70c8d8', text:'#0a2030', textMuted:'#408090', accent:'#2090b0'},
+  awairo:   {name:'🫧 泡色',        bg:'#fffdfe',   surface:'#ffffff', border:'#eadff5', text:'#4b4060', textMuted:'#9585ac', accent:'#8a5cb8'},
   legend:   {name:'💎 レジェンド',  bg:'#ffffff',   surface:'#f0f4ff', border:'#1a3fa0', text:'#c8a000', textMuted:'#1a3fa0', accent:'#c8a000'},
 };
 const THEME_ORDER = ['light','dark','ichigo','tenshi','yumekawa','vitamin','rival','forest','lavender','honey','koneko','ame','bouquet','obake','vampire','yoru','choco','neon','aurora'];
-const HIDDEN_THEMES = ['jonu','legend']; // 解放フラグがある時のみ表示
+const HIDDEN_THEMES = ['jonu','legend','awairo']; // 解放フラグがある時のみ表示
 
 // ═══ STATE ═══
 let clockTimer = null;

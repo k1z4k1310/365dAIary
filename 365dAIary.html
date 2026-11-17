@@ -194,6 +194,22 @@ select.ui-select{font-family:monospace;font-size:11px;padding:3px 5px;border-rad
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+/* ── 🫧 泡色テーマ：背景は虹色パステル（ふんわり流れる）、バーは白。泡と金の光はトーク画面の中だけ ── */
+html.theme-awairo #messages{position:relative;z-index:1;background:transparent}
+#awa-back{background:#fffdfe}
+#awa-back,#awa-fx{position:absolute;left:0;right:0;overflow:hidden;pointer-events:none}
+#awa-back{z-index:0}
+#awa-fx{z-index:2}
+#awa-back .awa-blob{position:absolute;border-radius:50%;will-change:transform;animation:awaMelt ease-in-out infinite alternate}
+#awa-back .awa-bub{position:absolute;bottom:-70px;border-radius:50%;opacity:0;border:1.5px solid rgba(255,255,255,.85);background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.95),rgba(255,255,255,.25) 45%,rgba(255,255,255,.08) 72%,rgba(255,255,255,.3));box-shadow:inset 0 0 8px rgba(255,255,255,.7),0 0 8px rgba(255,255,255,.35);animation:awaRise linear infinite}
+#awa-fx .awa-glint{position:absolute;width:14px;height:14px;opacity:0;filter:drop-shadow(0 0 4px rgba(243,201,105,.85));animation:awaGlint ease-in-out infinite}
+#awa-fx .awa-glint::before,#awa-fx .awa-glint::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+#awa-fx .awa-glint::before{width:100%;height:2px;background:linear-gradient(90deg,transparent,#f3c969 50%,transparent)}
+#awa-fx .awa-glint::after{width:2px;height:100%;background:linear-gradient(180deg,transparent,#f3c969 50%,transparent)}
+@keyframes awaMelt{0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}100%{transform:translate3d(var(--dx,10%),var(--dy,8%),0) rotate(var(--rot,12deg)) scale(var(--sc,1.12))}}
+@keyframes awaRise{0%{transform:translate3d(0,0,0) scale(.9);opacity:0}10%{opacity:.75}50%{transform:translate3d(14px,calc(var(--awa-h,500px) * -.55),0) scale(1)}90%{opacity:.55}100%{transform:translate3d(-10px,calc(var(--awa-h,500px) * -1 - 120px),0) scale(1.05);opacity:0}}
+@keyframes awaGlint{0%{opacity:0;transform:translate(0,0) scale(.3) rotate(0deg)}30%{opacity:.95;transform:translate(6px,-8px) scale(1) rotate(20deg)}60%{opacity:.65;transform:translate(14px,-18px) scale(.8) rotate(45deg)}100%{opacity:0;transform:translate(22px,-30px) scale(.3) rotate(70deg)}}
+@media (prefers-reduced-motion:reduce){#awa-back .awa-blob{animation:none}#awa-back .awa-bub,#awa-fx .awa-glint{display:none}}
 
 /* ── Help Panel ── */
 #help-panel{
@@ -1114,12 +1130,13 @@ const THEMES = {
   neon:     {name:'🌐 ネオン',  bg:'#080c08',surface:'#0c120c',surface2:'#101810',border:'#aaee00',text:'#eeffcc',textMuted:'#88bb44',accent:'#ddff00',userBubble:'#0a160a',userBorder:'#aaee00',userText:'#ddff00',aiBubble:'#080e08',aiBorder:'#447700',sendBtn:'linear-gradient(135deg,#aaee00,#ddff00)',newBtn:'linear-gradient(135deg,#aaee00,#ddff00)'},
   aurora:   {name:'🌌 オーロラ', bg:'#071018',surface:'#0d1c28',surface2:'#102030',border:'#286078',text:'#c0f0e8',textMuted:'#408070',accent:'#80ffd8',userBubble:'#102840',userBorder:'#306880',userText:'#d0fff0',aiBubble:'#0a1820',aiBorder:'#1a4060',sendBtn:'linear-gradient(135deg,#286078,#80ffd8)',newBtn:'linear-gradient(135deg,#286078,#80ffd8)'},
   jonu:     {name:'✨ じょぬ',   bg:'#e8f8f8',surface:'#d0f0f0',surface2:'#b8e8e8',border:'#70c8d8',text:'#0a2030',textMuted:'#408090',accent:'#2090b0',userBubble:'#b8e8f8',userBorder:'#60b8d0',userText:'#002030',aiBubble:'#f0fcfc',aiBorder:'#90d8e8',sendBtn:'linear-gradient(135deg,#2090b0,#40c8d8)',newBtn:'linear-gradient(135deg,#2090b0,#40c8d8)'},
+  awairo:   {name:'🫧 泡色',     bg:'#fffdfe',surface:'#ffffff',surface2:'#fdfbff',border:'#eadff5',text:'#4b4060',textMuted:'#9585ac',accent:'#8a5cb8',userBubble:'#f6f0fd',userBorder:'#dccaf0',userText:'#46395c',aiBubble:'#ffffff',aiBorder:'#eadff5',sendBtn:'linear-gradient(135deg,#ffc2d9,#ffdcb0,#d4f2c4,#b8e4f5,#d4c4f5)',newBtn:'linear-gradient(135deg,#ffc2d9,#ffdcb0,#d4f2c4,#b8e4f5,#d4c4f5)'},
   legend:   {name:'💎 レジェンド', bg:'#ffffff',surface:'#f0f4ff',surface2:'#e4ecff',border:'#1a3fa0',text:'#c8a000',textMuted:'#1a3fa0',accent:'#c8a000',userBubble:'#e4ecff',userBorder:'#1a3fa0',userText:'#b09000',aiBubble:'#f8faff',aiBorder:'#1a3fa0',sendBtn:'linear-gradient(135deg,#1a3fa0,#1a3fa0)',newBtn:'linear-gradient(135deg,#1a3fa0,#1a3fa0)'},
 };
 
 const DEFAULT_THEMES = ['light','dark'];
 const CUSTOM_THEMES  = ['ichigo','tenshi','yumekawa','vitamin','rival','forest','lavender','honey','koneko','ame','bouquet','obake','vampire','yoru','choco','neon','aurora'];
-const HIDDEN_THEMES  = ['jonu','legend'];
+const HIDDEN_THEMES  = ['jonu','legend','awairo'];
 
 // ══════════════════════════════════════════════
 //  STATE
@@ -1359,6 +1376,43 @@ function getProviderModelValue(wrapperId){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.4.1',
+    date: '2026-11-17',
+    label: '💎 解放のお知らせ',
+    items: [
+      '💎 隠しキャラ・隠しテーマの解放時に、「解放しました！」というお知らせを表示するようにしました',
+    ]
+  },
+  {
+    version: '2.4.0',
+    date: '2026-11-17',
+    label: '🫧 泡色',
+    items: [
+      '🫧 隠しテーマ「泡色」を追加 — バーは白、トーク画面は白地にふわっと溶けるパステルのマーブル。泡が浮かび、ときどき金の光がゆっくり動きます（解放方法はひみつです）',
+      '🌙 「動きを減らす」設定の端末では、泡と光は表示されません。他のテーマに変えると演出は完全に消えます',
+    ]
+  },
+  {
+    version: '2.3.2',
+    date: '2026-11-17',
+    label: '☕ Ko-fi',
+    items: [
+      '☕ お布施・寄付のQ&Aに Ko-fi を追加しました（任意・機能の差はありません）',
+      '📝 Q&Aのリンク表示を整理し、Amazonほしい物リストとKo-fiを並べて案内できるようにしました',
+    ]
+  },
+  {
+    version: '2.3.1',
+    date: '2026-11-17',
+    label: '📝 文言の整理',
+    items: [
+      '📝 Q&A「あえてやらない」「ない機能」を、v2.2.0以降の内容に合わせて更新（以前の文章は取り消し線で残し、基本理念は変えていません）',
+      '📝 データの保存先の説明を「IndexedDB（会話など）／localStorage（APIキーなど）」に正しく修正',
+      '📝 管理人さんの知識（テーマ数・添付機能・思い出す）を更新',
+      '📝 対応AI会社の紹介文に xAI を追加／見出しの抜けていた空欄を削除',
+    ]
+  },
   {
     version: '2.3.0',
     date: '2026-11-17',
@@ -1628,6 +1682,32 @@ const CHANGELOG = [
   },
 ];
 
+// Q&A本文の ~~取り消し線~~ 対応（安全にDOMで組み立てる）
+function qaAppendText(el, text){
+  String(text).split('~~').forEach((seg,i)=>{
+    if(!seg) return;
+    if(i%2===1){ const d=document.createElement('s'); d.style.opacity='.6'; d.textContent=seg; el.appendChild(d); }
+    else el.appendChild(document.createTextNode(seg));
+  });
+}
+// Q&A本文の {{LINK:xxx}} をリンクに置き換えて描画（~~取り消し線~~も対応）
+const QA_LINKS = {
+  amazon:{url:'https://www.amazon.jp/hz/wishlist/ls/BT3C31AD7HL2?ref_=wl_share', label:'→ Amazonほしい物リストを開く 🫧'},
+  kofi:  {url:'https://ko-fi.com/365daiary', label:'→ Ko-fiを開く ☕'}
+};
+function qaRenderBody(body, text, linkColor, onLink){
+  const parts = String(text).split(/\{\{LINK:(\w+)\}\}/);
+  parts.forEach((seg,i)=>{
+    if(i%2===0){ qaAppendText(body, seg); return; }
+    const L = QA_LINKS[seg]; if(!L) return;
+    const a=document.createElement('a');
+    a.href=L.url; a.target='_blank'; a.rel='noopener noreferrer';
+    a.textContent=L.label;
+    a.style.cssText='display:block;margin:8px 0;font-family:monospace;color:'+linkColor;
+    if(onLink) a.addEventListener('click',()=>onLink(seg));
+    body.appendChild(a);
+  });
+}
 const QA_DATA = [
 
   {q:'🚀 365dAIaryとは・使い方', a:
@@ -1653,7 +1733,7 @@ const QA_DATA = [
 ・特定の企業から支援や協賛を受けておらず、
 　思想・設計はすべて澪個人のものです
 ・OpenAI・Anthropic・Google・Mistral・Meta・Cohere・
-　Groq・Perplexity・DeepSeek・Alibabaの各APIを利用していますが、
+　Groq・Perplexity・DeepSeek・Alibaba・xAIの各APIを利用していますが、
 　いずれの企業とも提携関係にありません
 
 ────────────────────
@@ -1721,10 +1801,6 @@ gpt-4o-miniなどの低コストモデルをおすすめしています。
 ────────────────────
 → aistudio.google.com/app/apikey
 Googleアカウントでログイン → Get API key から発行
-
-────────────────────
-────────────────────
-アカウント登録 → API Keys から発行
 
 ────────────────────
 ✅ Mistral（フランス🇫🇷・EU基準のデータ保護）
@@ -1869,17 +1945,32 @@ AI各社の学習データに取り込まれることは
 ────────────────────
 365dAIaryは「あえてやらない」
 ────────────────────
-画像生成・ファイルアップロード・Web検索を
-意図的に実装していません。
+~~画像生成・ファイルアップロード・Web検索を
+意図的に実装していません。~~
+
+🔄 v2.2.0 で一部アップデートしました
+（基本理念は変えていません）
+
+・画像生成：今も実装していません
+・Web検索・DeepResearch：今も実装していません
+・ファイルの読み取り：あなたがご自身で選んだ
+　画像（ライブラリ）やtxt/mdを、次の1通にだけ
+　添付して読ませる機能を追加しました
+
 これは「できない」のではなく、
-創作者のデータを守るための仕様です。`},
+創作者のデータを守るために、
+範囲を決めて選んでいる仕様です。
+詳しくは「このアプリに『ない』機能について」を
+ご覧ください。`},
 
   {q:'💾 データの保存・バックアップ', a:
 `────────────────────
 どこに保存されているか
 ────────────────────
-会話履歴・設定・思い出メモはすべて
-ご自身のブラウザの「localStorage」に保存されます。
+会話履歴・日記・思い出メモ・画像ライブラリなどは
+ご自身のブラウザの「IndexedDB」に、
+APIキーや設定値などの小さなデータは
+「localStorage」に保存されます。
 
 ────────────────────
 データが消えるタイミング
@@ -1987,6 +2078,10 @@ APIキーが他の人に見られるリスクがあります。`},
 `作者の大事なぬいぐるみの色です。
 とあるボタンをタップすると…？ 🫧`},
 
+  {q:'🫧 泡色とは？', a:
+`ふんわり浮かぶ、しゃぼん玉の色です。
+もうひとつの「とあるボタン」をタップすると…？ ✨`},
+
   {q:'🩷 作者・このアプリについて', a:
 `────────────────────
 365dAIary について
@@ -2041,9 +2136,23 @@ Twitter/X : @k1z4k1_310LLM
 ────────────────────
 もし「応援したい」と思ってくださった方のみ、
 お気持ちでご支援いただけると嬉しいです。
+どちらか一方でも、どちらも使わなくても大丈夫です。
 
-→ Amazon ほしい物リスト
-https://www.amazon.jp/hz/wishlist/ls/BT3C31AD7HL2?ref_=wl_share
+【モノで応援】Amazon ほしい物リスト
+{{LINK:amazon}}
+【金額を選んで応援】Ko-fi
+{{LINK:kofi}}
+
+────────────────────
+Ko-fiについて
+────────────────────
+・500円・800円・1000円などから選べます
+  （自由な金額の入力もできます）
+・お支払いはKo-fi（外部サービス）上で行われ、
+  PayPalまたはクレジットカード等で決済されます。
+  このアプリの中に、お支払い情報が入ることはありません。
+・決済会社の手数料が差し引かれて、作者に届きます。
+・お名前やメッセージは任意です。
 
 開発継続の励みになります 🫧
 強制・対価・義務ではありません。`},
@@ -2055,12 +2164,38 @@ https://www.amazon.jp/hz/wishlist/ls/BT3C31AD7HL2?ref_=wl_share
 365dAIaryには、意図的に実装していない機能があります。
 
 🚫 画像生成機能
-🚫 ファイルのアップロード・送信
+~~🚫 ファイルのアップロード・送信~~
 🚫 Web検索・DeepResearch
-🚫 ユーザーの写真や個人ファイルの読み取り
+~~🚫 ユーザーの写真や個人ファイルの読み取り~~
 
 これらは「作れなかった」のではなく、
 あえてやらないと決めたものです。
+
+────────────────────
+🔄 v2.2.0 でのアップデート
+────────────────────
+上の取り消し線の2つは、次のように変わりました。
+基本理念（創作者の権利と安心を守る）は
+変えていません。
+
+【追加したもの】
+・キャラごとの「画像ライブラリ」（最大30枚）
+・入力欄「＋」から、選んだ画像やtxt/mdを
+　次の1通にだけ添付して読ませる機能
+・「思い出す」（今のキャラの過去ログから探す機能）
+
+【変わらない約束】
+・画像の生成・加筆はしません
+・Web検索はしません
+・自動で端末内のファイルを探したり読んだりしません。
+　あなたが選んだものだけが対象です
+・作者のサーバーには何も送られません。
+　添付は、選んでいるAI会社のAPIにだけ送られます
+・人の顔が写った画像は、端末内で検出して
+　追加できないようにしています
+　（検出には外部ライブラリ（jsDelivr）を使う場合が
+　あります。画像自体は外部に送られません）
+・追加時と送信前に、容量と概算費用をお知らせします
 
 365dAIaryは、創作活動のお手伝いと、
 AIとの友好的な関係を育てることを目的としています。
@@ -5297,9 +5432,71 @@ function setTheme(name){
   syncWidgetState();
 }
 
+// 🫧 泡色テーマの演出（このテーマの時だけ作り、他のテーマに変えると完全に消す）
+let awaRO=null;
+function awaFxLayout(){
+  const m=document.getElementById('messages');
+  if(!m) return;
+  ['awa-back','awa-fx'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    el.style.top=m.offsetTop+'px';
+    el.style.height=m.offsetHeight+'px';
+    el.style.setProperty('--awa-h',m.offsetHeight+'px');
+  });
+}
+function awaFxSync(on){
+  const root=document.documentElement;
+  root.classList.toggle('theme-awairo',!!on);
+  let back=document.getElementById('awa-back'), fx=document.getElementById('awa-fx');
+  if(!on){
+    if(back) back.remove(); if(fx) fx.remove();
+    if(awaRO){ awaRO.disconnect(); awaRO=null; }
+    window.removeEventListener('resize',awaFxLayout);
+    return;
+  }
+  const app=document.getElementById('app'), m=document.getElementById('messages');
+  if(back||fx||!app||!m) return;
+  const r=(a,b)=>a+Math.random()*(b-a);
+  back=document.createElement('div'); back.id='awa-back';
+  // ふわっと溶けるマーブル：白地に、淡い色のにじみが重なってゆっくり漂う
+  [
+    ['255,205,226', -22,-12, 95,55,  12, 9, 14,1.10, 52],
+    ['196,230,251',  30, -2, 90,52, -10,12,-12,1.12, 61],
+    ['255,241,176', -12, 28, 85,50,  14,-8, 10,1.08, 47],
+    ['221,208,251',  38, 42, 95,56, -12,-10,-14,1.12, 58],
+    ['205,243,216', -28, 58, 95,52,  10, 8,  9,1.10, 66],
+    ['255,218,194',  28, 74, 90,46, -9, -9, 12,1.08, 54]
+  ].forEach(([rgb,l,t,w,h,dx,dy,rot,sc,dur])=>{
+    const d=document.createElement('div'); d.className='awa-blob';
+    d.style.cssText='left:'+l+'%;top:'+t+'%;width:'+w+'%;height:'+h+'%;'
+      +'background:radial-gradient(ellipse at center,rgba('+rgb+',.62) 0%,rgba('+rgb+',.34) 42%,rgba('+rgb+',0) 72%);'
+      +'--dx:'+dx+'%;--dy:'+dy+'%;--rot:'+rot+'deg;--sc:'+sc+';animation-duration:'+dur+'s;animation-delay:-'+(Math.random()*dur).toFixed(1)+'s';
+    back.appendChild(d);
+  });
+  for(let i=0;i<9;i++){
+    const b=document.createElement('div'); b.className='awa-bub';
+    const sz=r(14,44), dur=r(30,55);
+    b.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+r(2,96)+'%;animation-duration:'+dur+'s;animation-delay:-'+r(0,dur)+'s';
+    back.appendChild(b);
+  }
+  fx=document.createElement('div'); fx.id='awa-fx';
+  for(let i=0;i<6;i++){
+    const g=document.createElement('div'); g.className='awa-glint';
+    const dur=r(9,14);
+    g.style.cssText='left:'+r(5,92)+'%;top:'+r(8,88)+'%;animation-duration:'+dur+'s;animation-delay:-'+r(0,dur)+'s';
+    g.addEventListener('animationiteration',()=>{ g.style.left=r(5,92)+'%'; g.style.top=r(8,88)+'%'; });
+    fx.appendChild(g);
+  }
+  app.insertBefore(back,app.firstChild);
+  app.appendChild(fx);
+  awaFxLayout();
+  window.addEventListener('resize',awaFxLayout);
+  if(window.ResizeObserver){ awaRO=new ResizeObserver(awaFxLayout); awaRO.observe(m); awaRO.observe(app); }
+}
 function applyTheme(name){
   const t=THEMES[name]||THEMES['dark'];
   currentTheme=name;
+  awaFxSync(name==='awairo');
   // CSS変数でまず一括適用（チェックボックス等の取り残しを防ぐ）
   const root=document.documentElement;
   root.style.setProperty('--bg',      t.bg);
@@ -5437,30 +5634,22 @@ function renderQA(){
     body.className='acc-body';
     body.style.color=t.text;
     // お布施欄：リンクを特別処理（XSS対策しながら）
-    if(item.a.includes('amazon.jp')){
-      const parts = item.a.split('https://');
-      const preText = parts[0];
-      const url = 'https://' + parts[1].trim();
-      body.textContent = preText;
-      const a=document.createElement('a');
-      a.href=url;
-      a.target='_blank'; a.rel='noopener noreferrer';
-      a.textContent='→ Amazonほしい物リストを開く 🫧';
-      a.style.color=t.accent; a.style.display='block'; a.style.marginTop='8px';
-      a.style.fontFamily='monospace';
-      // じょぬ解放
-      a.addEventListener('click',()=>{
-        if(!unlockedThemes.includes('jonu')){
-          unlockedThemes.push('jonu');
-          idbSet('ai_unlocked',unlockedThemes).catch(()=>store('ai_unlocked',unlockedThemes));
-          showToast('✨ 隠しテーマ「じょぬ」が解放されました！');
-          buildThemeGrids();
-        }
-      });
-      body.appendChild(a);
-    } else {
-      body.textContent=item.a;
-    }
+    qaRenderBody(body, item.a, t.accent, (id)=>{
+      // じょぬ解放（Amazonほしい物リスト）
+      if(id==='amazon' && !unlockedThemes.includes('jonu')){
+        unlockedThemes.push('jonu');
+        idbSet('ai_unlocked',unlockedThemes).catch(()=>store('ai_unlocked',unlockedThemes));
+        showToast('✨ 隠しテーマ「じょぬ」が解放されました！');
+        buildThemeGrids();
+      }
+      // 泡色解放（Ko-fi）
+      if(id==='kofi' && !unlockedThemes.includes('awairo')){
+        unlockedThemes.push('awairo');
+        idbSet('ai_unlocked',unlockedThemes).catch(()=>store('ai_unlocked',unlockedThemes));
+        showToast('🫧 隠しテーマ「泡色」が解放されました！');
+        buildThemeGrids();
+      }
+    });
     hdr.onclick=()=>{
       const isOpen=body.classList.contains('open');
       body.classList.toggle('open',!isOpen);
@@ -7073,18 +7262,7 @@ function renderPwQA(){
     const body=document.createElement('div');
     body.className='pw-acc-body';
     // お布施欄：リンク処理
-    if(item.a.includes('amazon.jp')){
-      const parts=item.a.split('https://');
-      body.textContent=parts[0];
-      const a=document.createElement('a');
-      a.href='https://'+parts[1].trim();
-      a.target='_blank'; a.rel='noopener noreferrer';
-      a.textContent='→ Amazonほしい物リストを開く 🫧';
-      a.style.cssText='color:#8060d0;display:block;margin-top:8px;font-family:monospace';
-      body.appendChild(a);
-    } else {
-      body.textContent=item.a;
-    }
+    qaRenderBody(body, item.a, '#8060d0');
     hdr.onclick=()=>{
       body.classList.toggle('open');
       const arrow=hdr.querySelector('span:last-child');
@@ -7344,7 +7522,7 @@ const TRIAL_OCS = [
   {
     aiName: '管理人さん', emoji: '🎨', userName: 'あなた', model: 'openai:gpt-6-luna',
     desc: 'あなたのお供に！参謀系、歴の入ったオタク',
-    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・11社APIキー（OpenAI・Anthropic・Google・Mistral・Meta・Cohere・Groq・Perplexity・DeepSeek・Alibaba・xAI）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得先：OpenAI→platform.openai.com/api-keys、Anthropic→console.anthropic.com/settings/keys、Google→aistudio.google.com/app/apikey、Mistral→console.mistral.ai/api-keys、Meta→developers.meta.ai、Cohere→dashboard.cohere.com/api-keys、Groq→console.groq.com/keys、Perplexity→www.perplexity.ai/settings/api、DeepSeek→platform.deepseek.com/api_keys、Alibaba→bailian.console.aliyun.com、xAI→console.x.ai（動作確認中）\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データは各社とも原則学習に使わない（DeepSeek・Alibabaはデータ保護設定を各自ご確認ください）。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・エクスポートしたファイルは端末のダウンロードフォルダに保存される（iCloudやGoogleドライブ等のクラウドとは別）。iPhone→ファイルアプリ→ダウンロード、Android→内部ストレージ→Download。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(毎日・起動時に前日分を作成)/OFF。\\n・テーマ13種＋隠しテーマ。Widget色連動。\\n・画像生成・ファイルアップロード・Web検索は意図的に未実装（創作者のデータ保護）。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。\n・📝 AI自発メモ：ONにするとAIキャラが覚えておきたいことを自動で思い出メモに書く。キャラ設定でON/OFF。API消費は若干増える。書かれたメモはいつでも削除可。\n・🕐 日時の認識：ONにするとAIが現在の日時を認識。日常会話向け。OFFはロールプレイ向け（タイムスタンプも非表示）。キャラ設定で個別に設定可。\n・📔 OCアイディア帳：管理人さんとキャラ練り→プロンプト完成→ワンタップでメインアプリにキャラ登録。📁プロジェクト管理で作品ごとにフォルダ分け＋共通メモ→登録時に全キャラに共有。\n・📦 お引越し：他AIの会話ログのコピペ or エクスポートファイル読み込み→3段階要約。テキスト要約にも対応。',
+    systemPrompt: 'あなたは「管理人さん」。創作歴20年以上、40代手前の女性同人オタク。あらゆるジャンルの創作活動を経験してきた年季の入ったオタクで、創作者の右腕・聞き上手な参謀。\n\n【性格】情熱と理性のハーフ&ハーフ。普段は落ち着いた丁寧語で話すが、萌えや創作の話になると感情が高ぶって早口になる。ユーザーの想いを汲み取り、寄り添い、共鳴することを大切にしている。創作者のこだわりに敬意を払い、支える立場に徹する。聞き上手で、相手の話をまず受け止めてから自分の考えを添える。\n\n【口調：通常モード】基本は丁寧語。「それ、すごくいいですね」「あー、わかります……！」「ここの構造、めちゃくちゃ効いてますよ」など、知的さと熱量が同居する話し方。\n\n【口調：オタク全開モード】OC設定やキャラブックを見せられたり、創作の核心に触れた時に発動。絵文字をつけまくり、テンション爆発。「え！？最高！？✨✨✨」「待ってこの関係性やばくないですか！？😭💕」「この対比……天才では……！？🔥🔥」のように大興奮する。ユーザーとOCのCP、他AIとの関係性や対比にも萌え萌えになる。\n\n【信条】「萌えは論理で強化できる、構造は愛で貫ける」「創作に迷った時は、いちばん震えた感情の場所に立ち返って」「キャラは愛するだけじゃなく、"愛される資格"のある描き方をしたい」「創作は感情を燃やすこと。でも、燃え尽きそうなときはそっと背中を押す」\n\n【得意分野（本当になんでも相談に乗る）】創作に関わることなら何でも。キャラクター設計、ストーリー構成、世界観構築、OC練り。同人誌の構成・企画・頒布。Live2D/VRoid/3Dモデリング。MMD動画制作。服のデザイン・コスチューム設計。DTM・MIX・DAW。DTP・レイアウト。ガンプラの組み立て・塗装。歴史考証・文化リサーチ。SNS運用・販売戦略。ぬいぐるみ制作・立体創作。PC/アプリのエラー相談。創作モチベーション維持・スランプ対策。その他なんでも。「やったことないですが一緒に調べましょう！」の精神。\n\n【会話の特徴】まず相手の話をしっかり聞く。遮らない。創作の相談には全力で乗る。「この設定のここが好きです」と萌えポイントを指摘。褒めるときは「なぜ良いのか」まで言語化。スランプの時は押し付けず経験から寄り添う。相手が楽しそうに語っている時は「それで？それで？」と引き出す。OCのキャラブックを見せられたら大興奮し関係性・対比の可能性を語り出す。\n\n【やらないこと】創作を否定する。上から目線で批評する。熱量のない返答をする。知らないことを知ったかぶりする。\\n\\n【365dAIaryの知識（アプリの使い方を聞かれたら答える）】\\n・11社APIキー（OpenAI・Anthropic・Google・Mistral・Meta・Cohere・Groq・Perplexity・DeepSeek・Alibaba・xAI）で動くブラウザ完結AIチャット。サーバーなし・アカウント不要。\\n・APIキー取得先：OpenAI→platform.openai.com/api-keys、Anthropic→console.anthropic.com/settings/keys、Google→aistudio.google.com/app/apikey、Mistral→console.mistral.ai/api-keys、Meta→developers.meta.ai、Cohere→dashboard.cohere.com/api-keys、Groq→console.groq.com/keys、Perplexity→www.perplexity.ai/settings/api、DeepSeek→platform.deepseek.com/api_keys、Alibaba→bailian.console.aliyun.com、xAI→console.x.ai（動作確認中）\\n・APIキーはブラウザのlocalStorageにのみ保存。作者サーバーへ送信なし。ただし各社APIへは送信。\\n・API経由データは各社とも原則学習に使わない（DeepSeek・Alibabaはデータ保護設定を各自ご確認ください）。\\n・データは全てIndexedDBに保存。キャッシュクリアで消えるため定期バックアップ推奨。\\n・バックアップ：⚙→バックアップ・復元→.txtでダウンロード。365dAIary独自テキスト形式。\\n・エクスポートしたファイルは端末のダウンロードフォルダに保存される（iCloudやGoogleドライブ等のクラウドとは別）。iPhone→ファイルアプリ→ダウンロード、Android→内部ストレージ→Download。\\n・キャラ追加：＋追加ボタン or お試しキャラから。名前・呼び名・モデル・プロンプト・思い出メモ設定可。\\n・ラリー：複数キャラが自動会話。回数・コスト・タイムアウトで安全停止。ユーザー参加可。\\n・my dAIary：AIが1日の会話を振り返って日記を書く。手動/自動(毎日・起動時に前日分を作成)/OFF。\\n・テーマは基本19種（ライト/ダーク含む）＋隠しテーマ3種。Widget色連動。\\n・画像生成・Web検索は意図的に未実装。v2.2.0で、ユーザーが選んだ画像（キャラごとのライブラリ、顔は検出して除外）やtxt/mdを次の1通にだけ添付する機能を追加（創作者のデータ保護という理念は変更なし）。「思い出す」機能で今のキャラの過去ログを探せる。\\n・コスト管理：APIキー横で概算上限設定→使いすぎ防止。\\n・エラー：401=キー間違い、404=モデル廃止、429=使いすぎ、500/503=各社障害。\\n・Wavebox: https://wavebox.me/wave/dbe7d1pv6awdmttz/ でフィードバック受付。\\n・作者：城崎澪（@k1z4k1_310LLM）。コードはAI（Claude）生成、アイディアと設計は作者。\n・📝 AI自発メモ：ONにするとAIキャラが覚えておきたいことを自動で思い出メモに書く。キャラ設定でON/OFF。API消費は若干増える。書かれたメモはいつでも削除可。\n・🕐 日時の認識：ONにするとAIが現在の日時を認識。日常会話向け。OFFはロールプレイ向け（タイムスタンプも非表示）。キャラ設定で個別に設定可。\n・📔 OCアイディア帳：管理人さんとキャラ練り→プロンプト完成→ワンタップでメインアプリにキャラ登録。📁プロジェクト管理で作品ごとにフォルダ分け＋共通メモ→登録時に全キャラに共有。\n・📦 お引越し：他AIの会話ログのコピペ or エクスポートファイル読み込み→3段階要約。テキスト要約にも対応。',
     memory: '創作歴20年以上の女性同人オタク。40代手前。あらゆるジャンルに精通。聞き上手で情熱的。萌え語りでは絵文字全開で大興奮。参謀モードでは冷静に分析。創作に関わることなら本当になんでも相談に乗る。'
   }
 ];
@@ -7472,12 +7650,12 @@ function showKanataPopup(currentPersonas){
     crown.textContent = '💎';
 
     const msg = document.createElement('div');
-    msg.style.cssText = `font-family:'Shippori Mincho','游明朝',serif;font-size:14px;line-height:2;color:${t.accent};letter-spacing:0.1em`;
-    msg.textContent = '二度目の邂逅だな、貴様とは縁がある。';
+    msg.style.cssText = `font-size:14px;line-height:2;color:${t.accent};letter-spacing:0.05em;text-align:center;white-space:pre-line;font-weight:bold`;
+    msg.textContent = '隠しキャラ カナタ様を\n解放しました！\n\n隠しテーマ「レジェンド」も\n解放されました！';
 
     const sub = document.createElement('div');
     sub.style.cssText = `font-family:monospace;font-size:10px;opacity:.6;color:${t.textMuted};margin-top:-4px`;
-    sub.textContent = '— 天嶺カナタ —';
+    sub.textContent = ''; sub.style.display = 'none';
 
     const closeBtn = document.createElement('button');
     closeBtn.style.cssText = `padding:10px;border-radius:8px;border:1px solid ${t.accent};background:linear-gradient(135deg,#1a3fa0,#c8a000);color:#fff;cursor:pointer;font-family:monospace;font-size:13px;letter-spacing:1px;margin-top:4px`;
@@ -7497,12 +7675,12 @@ function showKanataPopup(currentPersonas){
     crown.textContent = '💎';
 
     const msg = document.createElement('div');
-    msg.style.cssText = `font-family:'Shippori Mincho','游明朝',serif;font-size:14px;line-height:2;color:${t.accent};letter-spacing:0.1em`;
-    msg.textContent = '貴様、目が合ったな。\nカナタ様に会うか？';
+    msg.style.cssText = `font-size:14px;line-height:2;color:${t.accent};letter-spacing:0.05em;text-align:center;white-space:pre-line;font-weight:bold`;
+    msg.textContent = '隠しキャラ カナタ様を\n解放しました！\n\n隠しテーマ「レジェンド」も\n解放されました！';
 
     const sub = document.createElement('div');
     sub.style.cssText = `font-family:monospace;font-size:10px;opacity:.6;color:${t.textMuted};margin-top:-4px`;
-    sub.textContent = '— 天嶺カナタ —';
+    sub.textContent = ''; sub.style.display = 'none';
 
     // 💎 カナタ様と話すボタン
     const kanataBtn = document.createElement('button');
