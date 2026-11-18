@@ -52,6 +52,9 @@ AIキャラクターが、その日の会話を振り返って日記を書きま
 たとえば、大事にしているぬいぐるみの写真を見てもらう、といった使い方を想定しています。  
 人の顔は端末内で検出して追加できないようにしており、追加時には容量と概算費用をお知らせします。
 
+**スタンプ帳**に自作の透過PNGなどを登録して、チャットで送れます（全キャラ共通）。AIには「名前＋絵の説明」の文字だけが伝わります。AIからのスタンプ送信や、絵文字リアクション（30種）は、キャラごとに任意でONにできます。  
+You can register your own stamps (e.g. transparent PNGs) and send them in chat. The AI only receives text (name + description). AI-sent stamps and emoji reactions (30 kinds) are optional per character.  
+
 ### 🔍 Recall *(v2.3.0)*
 「前にこんな話したんだけど……覚えてる？」というあいまいな記憶から、  
 今のキャラの過去の会話・日記・メモを探して「こんな話だっけ？」と見つけます。  

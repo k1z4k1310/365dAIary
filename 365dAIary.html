@@ -746,6 +746,20 @@ html.theme-awairo #messages{position:relative;z-index:1;background:transparent}
         <option value="on">ON（AIが自分でメモを書きます）</option>
       </select>
     </div>
+    <div class="wiz-field" style="gap:4px;margin-top:4px">
+      <span style="font-family:monospace;font-size:10px;opacity:.7">💬 AIのリアクション絵文字</span>
+      <select class="sb-inp" id="react-mode" onchange="saveReactMode()">
+        <option value="off">OFF</option>
+        <option value="on">ON（あなたのメッセージに💕などを付けます）</option>
+      </select>
+    </div>
+    <div class="wiz-field" style="gap:4px;margin-top:4px">
+      <span style="font-family:monospace;font-size:10px;opacity:.7">🎟 AIからのスタンプ送信</span>
+      <select class="sb-inp" id="stamp-mode" onchange="saveStampMode()">
+        <option value="off">OFF</option>
+        <option value="on">ON（スタンプ一覧が毎回の入力に加わります）</option>
+      </select>
+    </div>
     <div class="wiz-field" style="gap:4px;margin-top:8px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">このキャラのテーマ（切替時に自動適用）</span>
       <select class="sb-inp" id="edit-persona-theme" style="width:100%;font-size:11px;padding:4px 6px"></select>
@@ -820,6 +834,24 @@ html.theme-awairo #messages{position:relative;z-index:1;background:transparent}
   </div>
 
   <!-- my dAIary（AI日記） -->
+  <!-- スタンプ帳 -->
+  <div class="sb-accordion" id="stamp-sec">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('stamp-body',this)">
+      <span>🎟 スタンプ帳</span><span class="sb-acc-arrow">▸</span>
+    </button>
+    <div class="sb-accordion-body" id="stamp-body">
+      <div style="font-size:10px;opacity:.6;line-height:1.6">自作スタンプなどを登録して、チャットで送れます（全キャラ共通・この端末の中だけに保存）。画像は長辺400pxに縮小されます。</div>
+      <div id="stamp-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      <button class="sb-btn" onclick="document.getElementById('stamp-file-input').click()">＋ スタンプを追加</button>
+      <input type="file" id="stamp-file-input" accept="image/*" style="display:none" onchange="stampFilePicked(event)">
+      <details style="margin-top:6px">
+        <summary style="cursor:pointer;font-size:11px;font-family:monospace;opacity:.8">💬 リアクション絵文字（使うものを選ぶ）</summary>
+        <div style="font-size:10px;opacity:.6;line-height:1.6;margin:6px 0">AIが使える絵文字を選びます。チェックを外したものは使われません。</div>
+        <div id="react-list" style="display:grid;grid-template-columns:1fr 1fr;gap:4px"></div>
+      </details>
+    </div>
+  </div>
+
   <div class="sb-accordion" id="diary-sec">
     <button class="sb-accordion-hdr" onclick="toggleSbAccordion('diary-body',this)">
       <span>📔 my dAIary（AI日記）</span><span class="sb-acc-arrow">▸</span>
@@ -1376,6 +1408,19 @@ function getProviderModelValue(wrapperId){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.5.0',
+    date: '2026-11-18',
+    label: '🎟 スタンプ帳＆💬リアクション',
+    items: [
+      '🎟 「スタンプ帳」を追加（全キャラ共通・最大40枚）。自作の透過PNGなどを登録して、＋メニューから「🎟 スタンプを送る」でチャットに送れます（画像は長辺400pxに縮小）',
+      '🎟 スタンプには「意味（名前）」を付けます。AIには名前と絵の説明の文字だけが伝わるので、毎回の費用はほぼ増えません',
+      '✅ 「自作、または二次利用OK」にチェックを入れた画像だけ、登録時に1回だけAIが絵を見て説明を書きます（手入力もできます）',
+      '🎟 キャラごとに「AIからのスタンプ送信」を選べます（OFFが基本・ONにすると毎回の入力にスタンプ一覧が加わります）',
+      '💬 キャラごとに「AIのリアクション絵文字」を選べます。AIがあなたのメッセージに💕などを付けつつ、普通に返信します（30種・使うものはスタンプ帳の中で選べます）',
+      '✨ AIの返答が表示されている間、末尾のタグが一瞬見える表示を直しました',
+    ]
+  },
   {
     version: '2.4.2',
     date: '2026-11-17',
@@ -2465,6 +2510,40 @@ AI各社のサーバーで障害が発生中です。
 上記で解決しない場合はWaveboxからご連絡ください。
 エラーメッセージのスクリーンショットがあると対応しやすいです。`},
 
+  {q:'🎟 スタンプ帳とリアクション絵文字について', a:
+`────────────────────
+スタンプ帳とは？
+────────────────────
+自作の透過PNGなどを登録して、チャットで「スタンプ」として送れる機能です。
+
+▼ 登録のしかた
+⚙ → 🎟 スタンプ帳 → ＋スタンプを追加
+・画像は長辺400pxに縮小されます（全キャラ共通・最大40枚）
+・「意味（名前）」を付けます（例：おはよう／だっこして）
+・自作、または二次利用が許可されている画像なら「✅ AIに見せてもよい」にチェック
+　→ 登録時に1回だけ、AIが絵を見て「どんな絵か」を文章で書きます（手入力もできます）
+
+▼ 送りかた
+入力欄の「＋」→「🎟 スタンプを送る」
+
+▼ AIには何が伝わる？
+・画像そのものは送られません。「名前＋絵の説明」の文字だけです
+・そのため、画像に対応していないモデルでも使えて、費用もほぼ増えません
+
+▼ AIからスタンプを送ってもらう
+キャラ設定の「🎟 AIからのスタンプ送信」をONにします。
+・ONの間は、スタンプ一覧が毎回の入力に少し加わります
+・AIは、気持ちを伝えたい時だけ、1回の返答で1つまで送ります
+
+────────────────────
+リアクション絵文字
+────────────────────
+キャラ設定の「💬 AIのリアクション絵文字」をONにすると、AIがあなたのメッセージに💕などを付けつつ、普通に返信します。
+・30種類から、使うものを選べます（⚙ → 🎟 スタンプ帳 → リアクション絵文字）
+・ONにすると、絵文字の一覧が毎回の入力に少し加わります
+
+※ スタンプ画像は、この端末の中にだけ保存されます（現在はバックアップには含まれません）`},
+
   {q:'📝 AI自発メモ機能について', a:
 `────────────────────
 AI自発メモとは？
@@ -2980,6 +3059,8 @@ function confirmClone(){
   // その他の設定も引き継ぐ
   np.diaryMode=src.diaryMode||'off';
   np.autoMemoMode=src.autoMemoMode||'off';
+  np.reactMode=src.reactMode||'off';
+  np.stampMode=src.stampMode||'off';
   np.timeAwareMode=src.timeAwareMode||'off';
   np.personaTheme=''; // テーマはデフォルトに（複製先に誤って適用されないよう）
   np.fanmarks=[]; // ファンマークも引き継がない
@@ -3402,6 +3483,11 @@ function updateDiaryUI(){
     amSel.style.borderColor=t.border;
     amSel.style.color=t.text;
     amSel.style.background=t.surface2;
+    ['react-mode','stamp-mode'].forEach(id=>{
+      const el=document.getElementById(id); if(!el) return;
+      el.value=(id==='react-mode'?p?.reactMode:p?.stampMode)||'off';
+      el.style.borderColor=t.border; el.style.color=t.text; el.style.background=t.surface2;
+    });
   }
   // timeAware UI更新
   const taSel=document.getElementById('timeaware-mode');
@@ -4249,7 +4335,20 @@ function renderMessages(){
     bubble.style.background=isSystem?'transparent':isUser?t.userBubble:t.aiBubble;
     bubble.style.borderColor=isSystem?t.border:isUser?t.userBorder:t.aiBorder;
     bubble.style.color=displayContent.startsWith('⚠')?'#e05555':isUser?t.userText:t.text;
-    bubble.textContent=displayContent;
+    bubble.textContent=(isUser&&msg.stamp)?'':displayContent;
+    if(msg.stamp){
+      const _st=stampBook.find(x=>x.id===msg.stamp.id);
+      if(_st){
+        const _im=stampImgEl(_st,150);
+        if(displayContent && !isUser) _im.style.marginTop='8px';
+        bubble.appendChild(_im);
+        if(isUser || !displayContent){
+          bubble.style.background='transparent'; bubble.style.borderColor='transparent'; bubble.style.padding='2px';
+        }
+      } else {
+        const _ph=document.createElement('div'); _ph.style.cssText='opacity:.7;font-size:12px'; _ph.textContent='🎟 スタンプ「'+msg.stamp.name+'」'; bubble.appendChild(_ph);
+      }
+    }
     if(isUser&&(msg.attach||msg.files)){
       const _ch=document.createElement('div');
       _ch.style.cssText='margin-top:6px;font-size:11px;opacity:.75;font-family:monospace;word-break:break-all';
@@ -4292,6 +4391,13 @@ function renderMessages(){
       bubble.appendChild(helpLink);
     }
     wrap.appendChild(label);wrap.appendChild(bubble);
+    if(isUser && msg.reaction){
+      const _rc=document.createElement('div');
+      _rc.textContent=msg.reaction;
+      _rc.title='AIのリアクション';
+      _rc.style.cssText='align-self:flex-end;margin:-10px 10px 0 0;padding:0 7px;font-size:15px;line-height:22px;border-radius:12px;border:1px solid '+t.border+';background:'+t.surface+';position:relative;z-index:1;box-shadow:0 1px 3px rgba(0,0,0,.12)';
+      wrap.appendChild(_rc);
+    }
 
     // 時刻表示（日時認識ONの時のみ表示。データは常に記録）
     const p_ts=currentPersona();
@@ -4608,11 +4714,11 @@ function buildSystemPrompt(persona){
       '- タグはユーザーには見えません。普通に会話してください。\n'+
       '- 既に思い出メモ・自発メモにある情報は書かない。';
   }
-  return base+userLine+timeLine+mem+autoMem+autoMemoInstruction;
+  return base+userLine+timeLine+mem+autoMem+autoMemoInstruction+reactStampInstruction(p);
 }
 
 function trimHistory(msgs){
-  return msgs.filter(m=>m.role!=='system-info').slice(-20).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
+  return msgs.filter(m=>m.role!=='system-info').slice(-20).map(m=>({role:m.role==='user'?'user':'assistant',content:(m.content||'')+((m.role!=='user'&&m.stamp)?((m.content?'\n':'')+'[スタンプ「'+m.stamp.name+'」を送った]'):'')}));
 }
 
 // ══════════════════════════════════════════════
@@ -4643,9 +4749,11 @@ async function regenerateMsg(msgIdx){
   renderMessages();
   try{
     const reply=await callAPI(provider,model,buildSystemPrompt(p),await attachToHistory(trimHistory(historyUpTo),historyUpTo[historyUpTo.length-1],p));
-    msg.alternates.push(reply);
+    const _rg=parseAiTags(reply);
+    msg.alternates.push(_rg.text);
     msg.activeAlt=msg.alternates.length-1;
-    msg.content=reply;
+    msg.content=_rg.text;
+    if(_rg.stamp) msg.stamp=_rg.stamp; else delete msg.stamp;
     msg.timestamp=Date.now();
     saveAllNow();
   }catch(e){
@@ -4656,12 +4764,18 @@ async function regenerateMsg(msgIdx){
   renderMessages();
 }
 
-async function send(){
+async function send(stampId){
   const input=document.getElementById('input');
-  const text=input.value.trim();
+  let stampObj=null;
+  let text=input.value.trim();
+  if(typeof stampId==='string'){
+    stampObj=stampBook.find(x=>x.id===stampId);
+    if(!stampObj) return;
+    text='[スタンプ「'+stampObj.name+'」'+(stampObj.desc?'：'+stampObj.desc:'')+']';
+  }
   if(!text) return;
   // 「@思い出す ○○」で過去ログ検索を起動
-  if(/^[@＠]思い出す/.test(text) && !(rallyUserWaiting && rallyUserResolve)){
+  if(!stampObj && /^[@＠]思い出す/.test(text) && !(rallyUserWaiting && rallyUserResolve)){
     input.value='';
     input.style.height='';
     updateSendBtn();
@@ -4685,7 +4799,7 @@ async function send(){
   // セッションがなければ新規
   if(!currentSid){
     const id=genId();
-    p.sessions.push({id,title:text.slice(0,24),msgs:[],createdAt:Date.now(),updatedAt:Date.now()});
+    p.sessions.push({id,title:stampObj?('🎟 '+stampObj.name):text.slice(0,24),msgs:[],createdAt:Date.now(),updatedAt:Date.now()});
     currentSid=id;
   }
   const [provider,model]=p.model.split(':');
@@ -4697,15 +4811,18 @@ async function send(){
     return;
   }
   const _umsg={role:'user',content:text,timestamp:Date.now()};
+  if(stampObj) _umsg.stamp={id:stampObj.id,name:stampObj.name};
   if(_pend.imgs.length) _umsg.attach=_pend.imgs.map(i=>({libId:i.libId,name:i.name}));
   if(_pend.files.length) _umsg.files=_pend.files.map(f=>({name:f.name,chars:f.chars,text:f.text}));
   sess.msgs.push(_umsg);
   pendingClear();
-  if(!sess.title) sess.title=text.slice(0,24);
+  if(!sess.title) sess.title=stampObj?('🎟 '+stampObj.name):text.slice(0,24);
   sess.updatedAt=Date.now();
   saveAllNow();
-  input.value='';
-  input.style.height='auto';
+  if(!stampObj){
+    input.value='';
+    input.style.height='auto';
+  }
   updateSendBtn();
   setLoading(true,p.aiName);
   document.getElementById('title').textContent=sess.title;
@@ -4758,6 +4875,8 @@ async function send(){
 
 // ── 疑似ストリーミング表示 ──
 async function pseudoStream(sess, fullText, aiName){
+  const rawText=fullText;
+  fullText=String(fullText).replace(/\s*<!--(AUTOMEMO|REACT|STAMP):[\s\S]*?-->\s*/g,' ').trim(); // 表示中にタグが見えないように
   const t=THEMES[currentTheme];
   const p=currentPersona();
   const container=document.getElementById('messages');
@@ -4794,9 +4913,16 @@ async function pseudoStream(sess, fullText, aiName){
   bubble.classList.remove('streaming');
   container.scrollTop=container.scrollHeight;
   // ── AI自発メモ検出 ──
-  const cleanText=extractAutoMemo(fullText,aiName);
+  const cleanText0=extractAutoMemo(rawText,aiName);
+  const _tg=parseAiTags(cleanText0);
+  const cleanText=_tg.text;
+  if(_tg.react){
+    for(let k=sess.msgs.length-1;k>=0;k--){ if(sess.msgs[k].role==='user'){ sess.msgs[k].reaction=_tg.react; break; } }
+  }
   // 確定保存（即時）
-  sess.msgs.push({role:'assistant',content:cleanText,personaName:aiName,timestamp:Date.now()});
+  const _amsg={role:'assistant',content:cleanText,personaName:aiName,timestamp:Date.now()};
+  if(_tg.stamp) _amsg.stamp=_tg.stamp;
+  sess.msgs.push(_amsg);
   saveAllNow();
   // 仮バブルを削除してからrenderMessages（残留すると重なってタップ不能になる）
   if(wrap.parentNode) wrap.parentNode.removeChild(wrap);
@@ -7945,6 +8071,9 @@ async function startApp(){
       setTimeout(()=>showKanataPopup(personas), 600);
     }
   }
+  await stampLoad();
+  renderStampBook();
+  renderReactSettings();
   renderQA();
   updateCostDisplay();
   initSearch();
@@ -8832,6 +8961,267 @@ async function openLibrary(mode){
   }
 }
 
+
+// ══════════════════════════════════════════════
+//  スタンプ帳 ＆ リアクション絵文字（v2.5.0）
+//  ・スタンプは全キャラ共通。長辺400pxに縮小して端末内(IndexedDB)に保存
+//  ・AIには「名前＋絵の説明」の文字だけを渡す（画像は送らない）。✅の画像だけ、登録時に1回AIが絵を見て説明を書く
+//  ・AIからの送信/リアクションは、返答末尾のタグ <!--STAMP:名前--> / <!--REACT:絵文字--> で行う
+// ══════════════════════════════════════════════
+const STAMP_MAX = 40;
+const STAMP_SIDE = 400;
+let stampBook = [];
+async function stampLoad(){ try{ const v=await idbGet('ai_stamps',[]); stampBook=Array.isArray(v)?v:[]; }catch(e){ stampBook=[]; } }
+async function stampSave(){ await idbSet('ai_stamps', stampBook); }
+
+const REACT_LIST = [
+  ['💕','大好き・愛おしい'],['🥰','とろける・ほっこり'],['😘','ちゅー・愛を込めて'],['🫶','ありがとう・大事に思う'],
+  ['😊','にっこり・うれしい'],['😆','大笑い'],['🎉','おめでとう・お祝い'],['✨','すてき・きらきら'],['🥳','パーティー・大喜び'],
+  ['🤗','ぎゅっ・包み込む'],['🥺','うるうる・お願い・切ない'],['😢','かなしい・もらい泣き'],['🫂','ハグ・寄り添う'],
+  ['😳','照れ・どきっ'],['😮','びっくり'],['👀','気になる・見てるよ'],['😨','ひえっ・不安'],
+  ['👍','いいね・了解'],['👏','拍手・すごい'],['💯','完璧・満点'],['🥇','一番・さすが'],['🙏','お願い・感謝・ごめん'],['🔥','熱い・燃えてる'],
+  ['😏','にやり・いたずら'],['😈','悪い顔・小悪魔'],['💢','むっ・怒り（ケンカ）'],['⁉️','えっ何？（驚きと疑問）'],['‼️','強調・断言'],
+  ['😴','眠い'],['💤','おやすみ・ぐっすり']
+];
+function reactEnabledEmojis(){
+  let arr=null;
+  try{ arr=JSON.parse(localStorage.getItem('react_enabled')||'null'); }catch(e){}
+  if(!Array.isArray(arr)) return REACT_LIST.map(r=>r[0]);
+  return arr;
+}
+function renderReactSettings(){
+  const box=document.getElementById('react-list'); if(!box) return;
+  const on=new Set(reactEnabledEmojis());
+  box.innerHTML='';
+  REACT_LIST.forEach(([e,m])=>{
+    const lab=document.createElement('label');
+    lab.style.cssText='display:flex;gap:4px;align-items:center;font-size:10px;cursor:pointer;line-height:1.3';
+    const c=document.createElement('input'); c.type='checkbox'; c.checked=on.has(e);
+    c.onchange=()=>{
+      const cur=new Set(reactEnabledEmojis());
+      if(c.checked) cur.add(e); else cur.delete(e);
+      localStorage.setItem('react_enabled', JSON.stringify(REACT_LIST.map(r=>r[0]).filter(x=>cur.has(x))));
+    };
+    const sp=document.createElement('span'); sp.textContent=e+' '+m;
+    lab.appendChild(c); lab.appendChild(sp); box.appendChild(lab);
+  });
+}
+
+function stampImgEl(st, maxPx){
+  const img=document.createElement('img');
+  img.src='data:'+st.mime+';base64,'+st.b64;
+  img.alt=st.name;
+  img.draggable=false;
+  img.style.cssText='display:block;max-width:'+(maxPx||150)+'px;max-height:'+(maxPx||150)+'px;width:auto;height:auto;pointer-events:none;-webkit-user-select:none;user-select:none';
+  return img;
+}
+const STAMP_CHECKER='repeating-conic-gradient(#e6e6ee 0 25%,#ffffff 0 50%) 50%/12px 12px';
+
+function renderStampBook(){
+  const box=document.getElementById('stamp-list'); if(!box) return;
+  box.innerHTML='';
+  if(stampBook.length===0){
+    box.innerHTML='<div style="font-size:11px;opacity:.5;padding:4px">スタンプはまだありません</div>';
+    return;
+  }
+  stampBook.forEach(st=>{
+    const it=document.createElement('div');
+    it.style.cssText='width:72px;cursor:pointer;text-align:center';
+    const th=document.createElement('div');
+    th.style.cssText='width:72px;height:72px;border-radius:8px;border:1px solid rgba(128,128,128,.35);background:'+STAMP_CHECKER+';display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative';
+    th.appendChild(stampImgEl(st,68));
+    if(st.aiOk){
+      const b=document.createElement('span'); b.textContent='👁'; b.title='AIに見せてよい画像';
+      b.style.cssText='position:absolute;right:2px;bottom:0;font-size:11px';
+      th.appendChild(b);
+    }
+    const nm=document.createElement('div');
+    nm.style.cssText='font-size:10px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    nm.textContent=st.name;
+    it.appendChild(th); it.appendChild(nm);
+    it.onclick=()=>stampEditModal(JSON.parse(JSON.stringify(st)), false);
+    box.appendChild(it);
+  });
+}
+
+// ── 画像を長辺400pxに縮小（透過PNGのまま） ──
+function stampResize(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const im=new Image();
+    im.onload=()=>{
+      try{
+        const sc=Math.min(1, STAMP_SIDE/Math.max(im.naturalWidth,im.naturalHeight));
+        const w=Math.max(1,Math.round(im.naturalWidth*sc)), h=Math.max(1,Math.round(im.naturalHeight*sc));
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(im,0,0,w,h);
+        const data=cv.toDataURL('image/png');
+        URL.revokeObjectURL(url);
+        resolve({mime:'image/png', b64:data.split(',')[1], w, h});
+      }catch(e){ URL.revokeObjectURL(url); reject(e); }
+    };
+    im.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error('画像を読み込めませんでした')); };
+    im.src=url;
+  });
+}
+
+async function stampFilePicked(ev){
+  const f=ev.target.files[0]; ev.target.value='';
+  if(!f) return;
+  if(stampBook.length>=STAMP_MAX){ showToast('⚠ スタンプは最大'+STAMP_MAX+'枚までです'); return; }
+  try{
+    const r=await stampResize(f);
+    const base=(f.name||'').replace(/\.[^.]+$/,'').slice(0,20);
+    stampEditModal({id:genId(), name:'', mime:r.mime, b64:r.b64, w:r.w, h:r.h, aiOk:false, desc:'', addedAt:Date.now()}, true);
+  }catch(e){ showToast('⚠ '+e.message); }
+}
+
+// 登録時に1回だけ、AIに絵を見て説明してもらう（✅の画像のみ）
+async function stampRecognize(st){
+  const p=currentPersona();
+  if(!p) throw new Error('キャラが選択されていません');
+  if(visionSupport(p.model)==='no') throw new Error('このモデルは画像に対応していません');
+  const [provider,model]=p.model.split(':');
+  const hist=[{role:'user', content:'これはチャットで使うスタンプ画像です。どんな絵か（誰／何が、どんな表情・ポーズで、どんな文字があるか）を、日本語で40文字以内の1文で説明してください。説明の文だけを出力してください。', images:[{mime:st.mime,b64:st.b64}]}];
+  const out=await callAPI(provider,model,'あなたは画像の説明係です。見たままを簡潔に書きます。',hist,undefined,150);
+  return String(out||'').replace(/[\r\n]+/g,' ').replace(/<!--[\s\S]*?-->/g,'').trim().slice(0,80);
+}
+
+function stampEditModal(st, isNew){
+  const t=THEMES[currentTheme];
+  const body=document.createElement('div');
+  body.style.cssText='display:flex;flex-direction:column;gap:8px';
+  const pv=document.createElement('div');
+  pv.style.cssText='align-self:center;padding:6px;border-radius:8px;border:1px solid '+t.border+';background:'+STAMP_CHECKER;
+  pv.appendChild(stampImgEl(st,160));
+  body.appendChild(pv);
+  const mkLbl=(txt)=>{const d=document.createElement('div');d.style.cssText='font-size:11px;opacity:.75';d.textContent=txt;return d;};
+  const inpCss='width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid '+t.border+';background:'+t.surface2+';color:'+t.text+';font-size:13px;font-family:inherit';
+  body.appendChild(mkLbl('意味・名前（AIにはこの名前が伝わります）'));
+  const nameI=document.createElement('input'); nameI.type='text'; nameI.maxLength=20; nameI.value=st.name||''; nameI.placeholder='例：おはよう／だっこして／ありがとう'; nameI.style.cssText=inpCss;
+  body.appendChild(nameI);
+  const lab=document.createElement('label');
+  lab.style.cssText='display:flex;gap:8px;align-items:flex-start;font-size:12px;cursor:pointer;line-height:1.6';
+  const chk=document.createElement('input'); chk.type='checkbox'; chk.checked=!!st.aiOk; chk.style.marginTop='4px';
+  const sp=document.createElement('span'); sp.textContent='✅ 自作、または二次利用が許可されている画像です。AIに見せてもよいです（登録時に1回だけ、AIが絵を見て説明を書きます）';
+  lab.appendChild(chk); lab.appendChild(sp);
+  body.appendChild(lab);
+  body.appendChild(mkLbl('絵の説明（任意・AIに文字で伝わります）'));
+  const descI=document.createElement('textarea'); descI.rows=2; descI.maxLength=80; descI.value=st.desc||''; descI.placeholder='例：ころんと仰向けで前足を上げた白茶の子猫、「だっこしてー」の文字'; descI.style.cssText=inpCss+';resize:vertical';
+  body.appendChild(descI);
+  if(!isNew){
+    const del=document.createElement('button'); del.type='button'; del.textContent='🗑 このスタンプを削除';
+    del.style.cssText='align-self:flex-start;padding:6px 10px;border-radius:8px;border:1px solid '+t.border+';background:none;color:#e05555;cursor:pointer;font-size:12px;font-family:inherit';
+    del.onclick=()=>{
+      m.close();
+      openConfirm('スタンプ「'+st.name+'」を削除しますか？','削除',async()=>{
+        stampBook=stampBook.filter(x=>x.id!==st.id);
+        await stampSave(); renderStampBook(); renderMessages(); showToast('🗑 削除しました');
+      });
+    };
+    body.appendChild(del);
+  }
+  const m=uiModal({
+    title:isNew?'🎟 スタンプを登録':'🎟 スタンプを編集',
+    body,
+    okLabel:isNew?'登録する':'保存する',
+    cancelLabel:'やめる',
+    onOk:async()=>{
+      st.name=nameI.value.trim(); st.aiOk=chk.checked; st.desc=descI.value.trim();
+      if(!st.name){ showToast('⚠ 名前（意味）を入力してください'); stampEditModal(st,isNew); return; }
+      if(stampBook.some(x=>x.id!==st.id && x.name===st.name)){ showToast('⚠ 同じ名前のスタンプがあります'); stampEditModal(st,isNew); return; }
+      if(st.aiOk && !st.desc){
+        showBusy('AIがスタンプの絵を見ています…');
+        try{ st.desc=await stampRecognize(st); }
+        catch(e){ if(e&&e.name==='CostLimitError'){ showToast('⚠ コスト上限のため、絵の説明は手入力してください'); } else { showToast('⚠ 絵の認識はできませんでした（説明は手入力できます）'); } }
+        hideBusy();
+      }
+      const i=stampBook.findIndex(x=>x.id===st.id);
+      if(i>=0) stampBook[i]=st; else stampBook.push(st);
+      await stampSave(); renderStampBook(); renderMessages();
+      showToast(isNew?'🎟 登録しました':'🎟 保存しました');
+    }
+  });
+}
+
+// ── スタンプを送る（＋メニュー） ──
+function stampPick(){
+  if(stampBook.length===0){ showToast('スタンプ帳が空です（⚙ → 🎟 スタンプ帳 から追加できます）'); return; }
+  const t=THEMES[currentTheme];
+  const body=document.createElement('div');
+  body.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:8px';
+  let mm=null;
+  stampBook.forEach(st=>{
+    const b=document.createElement('button'); b.type='button';
+    b.style.cssText='border:1px solid '+t.border+';border-radius:8px;background:'+STAMP_CHECKER+';padding:4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit';
+    b.appendChild(stampImgEl(st,90));
+    const n=document.createElement('span'); n.textContent=st.name; n.style.cssText='font-size:10px;color:#4b4060;background:rgba(255,255,255,.85);border-radius:4px;padding:0 4px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    b.appendChild(n);
+    b.onclick=()=>{ if(mm) mm.close(); send(st.id); };
+    body.appendChild(b);
+  });
+  mm=uiModal({title:'🎟 スタンプを送る', body, cancelLabel:'閉じる'});
+}
+
+// ── AI返答末尾のタグ（スタンプ／リアクション）を読み取って取り除く ──
+function parseAiTags(text){
+  let react=null, stampName=null;
+  const out=String(text||'').replace(/\s*<!--(REACT|STAMP):([\s\S]*?)-->\s*/g,(all,kind,val)=>{
+    val=String(val).trim();
+    if(kind==='REACT' && !react) react=val;
+    if(kind==='STAMP' && !stampName) stampName=val;
+    return ' ';
+  }).trim();
+  let stamp=null;
+  if(stampName){
+    const st=stampBook.find(x=>x.name===stampName) || stampBook.find(x=>stampName.includes(x.name)||x.name.includes(stampName));
+    if(st) stamp={id:st.id,name:st.name};
+  }
+  if(react){
+    const ok=reactEnabledEmojis();
+    const hit=REACT_LIST.map(r=>r[0]).find(e=>react.includes(e) && ok.includes(e));
+    react=hit||null;
+  }
+  return {text:out, react, stamp};
+}
+
+function saveReactMode(){
+  const p=currentPersona();if(!p) return;
+  p.reactMode=document.getElementById('react-mode').value;
+  saveAllNow();
+  showToast(p.reactMode==='on'?'💬 リアクションON':'💬 リアクションOFF');
+}
+function saveStampMode(){
+  const p=currentPersona();if(!p) return;
+  p.stampMode=document.getElementById('stamp-mode').value;
+  saveAllNow();
+  showToast(p.stampMode==='on'?'🎟 AIスタンプON':'🎟 AIスタンプOFF');
+}
+// システムプロンプトに足す文
+function reactStampInstruction(p){
+  let out='';
+  if(p.reactMode==='on'){
+    const ok=new Set(reactEnabledEmojis());
+    const list=REACT_LIST.filter(r=>ok.has(r[0]));
+    if(list.length){
+      out+='\n\n## リアクション機能\n'+
+        'LINEのように、ユーザーのメッセージに絵文字リアクションを付けられます。返答の末尾に <!--REACT:絵文字--> と書くと、ユーザーのメッセージに小さく表示されます（タグはユーザーには見えません）。\n'+
+        '- 気持ちが動いた時だけ。1回の返答で1つまで。毎回付ける必要はありません。\n'+
+        '- リアクションを付けても、返答の本文は必ず書いてください。\n'+
+        '使える絵文字と意味：\n'+list.map(r=>r[0]+' '+r[1]).join('\n');
+    }
+  }
+  if(p.stampMode==='on' && stampBook.length){
+    out+='\n\n## スタンプ機能\n'+
+      '返答の末尾に <!--STAMP:スタンプ名--> と書くと、そのスタンプ画像を送れます（タグはユーザーには見えません）。\n'+
+      '- 気持ちを伝えたい時だけ。1回の返答で1つまで。毎回送る必要はありません。\n'+
+      '- スタンプ名は下の一覧から、一字一句そのまま書く。\n'+
+      '- ユーザーが送ったスタンプは「[スタンプ「名前」：絵の説明]」という文字で届きます。\n'+
+      '一覧（名前：絵の説明）：\n'+stampBook.map(x=>x.name+(x.desc?'：'+x.desc:'')).join('\n');
+  }
+  return out;
+}
+
 // ══════════ ＋メニュー ══════════
 function togglePlusMenu(ev){
   if(ev) ev.stopPropagation();
@@ -8851,6 +9241,7 @@ function togglePlusMenu(ev){
     return b;
   };
   m.appendChild(mk('🖼 ライブラリから画像を選ぶ', ()=>openLibrary('pick')));
+  m.appendChild(mk('🎟 スタンプを送る', ()=>stampPick()));
   m.appendChild(mk('📄 txt / md を読み込む', ()=>document.getElementById('txt-file-input').click()));
   m.appendChild(mk('🔍 思い出す（過去の会話から探す）', ()=>recallStart('')));
   document.body.appendChild(m);
