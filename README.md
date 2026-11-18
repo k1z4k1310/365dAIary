@@ -55,6 +55,9 @@ AIキャラクターが、その日の会話を振り返って日記を書きま
 **スタンプ帳**に自作の透過PNGなどを登録して、チャットで送れます（全キャラ共通）。AIには「名前＋絵の説明」の文字だけが伝わります。AIからのスタンプ送信や、絵文字リアクション（30種）は、キャラごとに任意でONにできます。  
 You can register your own stamps (e.g. transparent PNGs) and send them in chat. The AI only receives text (name + description). AI-sent stamps and emoji reactions (30 kinds) are optional per character.  
 
+**チャットを画像で保存**: メッセージを長押し →「📸 画像にする」で、選んだメッセージ（最大30件）を、背景・テーマ色・名前・時刻つきの1枚のPNGにして保存・共有できます。  
+Long-press a message → "画像にする" to save up to 30 selected messages as one PNG, with your theme background, names and timestamps.
+
 ### 🔍 Recall *(v2.3.0)*
 「前にこんな話したんだけど……覚えてる？」というあいまいな記憶から、  
 今のキャラの過去の会話・日記・メモを探して「こんな話だっけ？」と見つけます。  
