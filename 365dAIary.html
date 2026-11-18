@@ -732,6 +732,9 @@ html.theme-awairo #messages{position:relative;z-index:1;background:transparent}
       <span style="font-family:monospace;font-size:10px;opacity:.7">使用モデル</span>
       <div id="edit-model-ui"></div>
     </div>
+    <details id="adv-settings" style="margin-top:8px;border:1px solid rgba(128,128,128,.3);border-radius:8px;padding:6px 8px">
+      <summary style="cursor:pointer;font-family:monospace;font-size:11px;opacity:.85;padding:4px 0">⚙ 詳細設定（日時・メモ・リアクション・スタンプ・テーマ・日記）</summary>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">
     <div class="wiz-field" style="gap:4px;margin-top:4px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">🕐 日時の認識</span>
       <select class="sb-inp" id="timeaware-mode" onchange="saveTimeAwareMode()">
@@ -775,6 +778,8 @@ html.theme-awairo #messages{position:relative;z-index:1;background:transparent}
       </select>
       <div style="font-family:monospace;font-size:9px;opacity:.45;line-height:1.4">ONにするとトークン・コストが増えます</div>
     </div>
+      </div>
+    </details>
     <button class="sb-btn" onclick="savePersonaSettings()">💾 このキャラの設定を保存</button>
     <button class="sb-btn" onclick="openLibrary('manage')" style="margin-top:4px">🖼 画像ライブラリ（追加・削除）</button>
     <button class="sb-btn" onclick="exportPersonaJSON()" style="margin-top:4px">📤 このキャラをJSONで書き出す</button>
@@ -834,24 +839,6 @@ html.theme-awairo #messages{position:relative;z-index:1;background:transparent}
   </div>
 
   <!-- my dAIary（AI日記） -->
-  <!-- スタンプ帳 -->
-  <div class="sb-accordion" id="stamp-sec">
-    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('stamp-body',this)">
-      <span>🎟 スタンプ帳</span><span class="sb-acc-arrow">▸</span>
-    </button>
-    <div class="sb-accordion-body" id="stamp-body">
-      <div style="font-size:10px;opacity:.6;line-height:1.6">自作スタンプなどを登録して、チャットで送れます（全キャラ共通・この端末の中だけに保存）。画像は長辺400pxに縮小されます。</div>
-      <div id="stamp-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-      <button class="sb-btn" onclick="document.getElementById('stamp-file-input').click()">＋ スタンプを追加</button>
-      <input type="file" id="stamp-file-input" accept="image/*" style="display:none" onchange="stampFilePicked(event)">
-      <details style="margin-top:6px">
-        <summary style="cursor:pointer;font-size:11px;font-family:monospace;opacity:.8">💬 リアクション絵文字（使うものを選ぶ）</summary>
-        <div style="font-size:10px;opacity:.6;line-height:1.6;margin:6px 0">AIが使える絵文字を選びます。チェックを外したものは使われません。</div>
-        <div id="react-list" style="display:grid;grid-template-columns:1fr 1fr;gap:4px"></div>
-      </details>
-    </div>
-  </div>
-
   <div class="sb-accordion" id="diary-sec">
     <button class="sb-accordion-hdr" onclick="toggleSbAccordion('diary-body',this)">
       <span>📔 my dAIary（AI日記）</span><span class="sb-acc-arrow">▸</span>
@@ -893,6 +880,24 @@ html.theme-awairo #messages{position:relative;z-index:1;background:transparent}
 
 
   <!-- Backup / Restore（アコーディオン） -->
+  <!-- スタンプ帳 -->
+  <div class="sb-accordion" id="stamp-sec">
+    <button class="sb-accordion-hdr" onclick="toggleSbAccordion('stamp-body',this)">
+      <span>🎟 スタンプ帳</span><span class="sb-acc-arrow">▸</span>
+    </button>
+    <div class="sb-accordion-body" id="stamp-body">
+      <div style="font-size:10px;opacity:.6;line-height:1.6">自作スタンプなどを登録して、チャットで送れます（全キャラ共通・この端末の中だけに保存）。画像は長辺400pxに縮小されます。</div>
+      <div id="stamp-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      <button class="sb-btn" onclick="document.getElementById('stamp-file-input').click()">＋ スタンプを追加</button>
+      <input type="file" id="stamp-file-input" accept="image/*" style="display:none" onchange="stampFilePicked(event)">
+      <details style="margin-top:6px">
+        <summary style="cursor:pointer;font-size:11px;font-family:monospace;opacity:.8">💬 リアクション絵文字（使うものを選ぶ）</summary>
+        <div style="font-size:10px;opacity:.6;line-height:1.6;margin:6px 0">AIが使える絵文字を選びます。チェックを外したものは使われません。</div>
+        <div id="react-list" style="display:grid;grid-template-columns:1fr 1fr;gap:4px"></div>
+      </details>
+    </div>
+  </div>
+
   <div class="sb-accordion" id="backup-sec">
     <button class="sb-accordion-hdr" onclick="toggleSbAccordion('backup-body',this)">
       <span>💾 バックアップ・復元</span>
@@ -1419,6 +1424,7 @@ const CHANGELOG = [
       '🎟 キャラごとに「AIからのスタンプ送信」を選べます（OFFが基本・ONにすると毎回の入力にスタンプ一覧が加わります）',
       '💬 キャラごとに「AIのリアクション絵文字」を選べます。AIがあなたのメッセージに💕などを付けつつ、普通に返信します（30種・使うものはスタンプ帳の中で選べます）',
       '✨ AIの返答が表示されている間、末尾のタグが一瞬見える表示を直しました',
+      '⚙ キャラ設定の各種ON/OFF（日時・自発メモ・リアクション・スタンプ・テーマ・日記注入）を「詳細設定」にまとめて、折りたためるようにしました。設定メニューでは「スタンプ帳」を日記・ラリーの下に移しました',
     ]
   },
   {
