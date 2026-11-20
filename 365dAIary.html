@@ -779,6 +779,13 @@ html.theme-awairo #messages{position:relative;z-index:1;background:transparent}
         <option value="on">ON（スタンプ一覧が毎回の入力に加わります）</option>
       </select>
     </div>
+    <div class="wiz-field" style="gap:4px;margin-top:4px">
+      <span style="font-family:monospace;font-size:10px;opacity:.7">📝 会話内でマークダウン形式を使う</span>
+      <select class="sb-inp" id="md-mode" onchange="saveMdMode()">
+        <option value="off">OFF（話し言葉だけで返します）</option>
+        <option value="on">ON（見出し・太字・箇条書きなどを表示します）</option>
+      </select>
+    </div>
     <div class="wiz-field" style="gap:4px;margin-top:8px">
       <span style="font-family:monospace;font-size:10px;opacity:.7">このキャラのテーマ（切替時に自動適用）</span>
       <select class="sb-inp" id="edit-persona-theme" style="width:100%;font-size:11px;padding:4px 6px"></select>
@@ -1430,6 +1437,17 @@ function getProviderModelValue(wrapperId){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.8.0',
+    date: '2026-11-20',
+    label: '📝 マークダウン表示の切り替え',
+    items: [
+      'キャラの「⚙ 詳細設定」に「📝 会話内でマークダウン形式を使う」を追加しました（キャラごとに設定できます）',
+      'ONにすると、AIの返信の見出し（#）・太字（**）・箇条書き（-）・区切り線（---）・引用（>）・コード・リンクがきれいに表示されます',
+      'OFFのときは、AIにMarkdownを使わず話し言葉で書くようにお願いします（初期設定はOFFです）',
+      'チャットを画像にして保存するときは、MDの記号を取り除いて保存します',
+    ]
+  },
   {
     version: '2.7.0',
     date: '2026-11-19',
@@ -3107,6 +3125,7 @@ function confirmClone(){
   np.autoMemoMode=src.autoMemoMode||'off';
   np.reactMode=src.reactMode||'off';
   np.stampMode=src.stampMode||'off';
+  np.mdMode=src.mdMode||'off';
   np.timeAwareMode=src.timeAwareMode||'off';
   np.personaTheme=''; // テーマはデフォルトに（複製先に誤って適用されないよう）
   np.fanmarks=[]; // ファンマークも引き継がない
@@ -3529,9 +3548,9 @@ function updateDiaryUI(){
     amSel.style.borderColor=t.border;
     amSel.style.color=t.text;
     amSel.style.background=t.surface2;
-    ['react-mode','stamp-mode'].forEach(id=>{
+    ['react-mode','stamp-mode','md-mode'].forEach(id=>{
       const el=document.getElementById(id); if(!el) return;
-      el.value=(id==='react-mode'?p?.reactMode:p?.stampMode)||'off';
+      el.value=(id==='react-mode'?p?.reactMode:id==='stamp-mode'?p?.stampMode:p?.mdMode)||'off';
       el.style.borderColor=t.border; el.style.color=t.text; el.style.background=t.surface2;
     });
   }
@@ -4382,7 +4401,8 @@ function renderMessages(){
     bubble.style.background=isSystem?'transparent':isUser?t.userBubble:t.aiBubble;
     bubble.style.borderColor=isSystem?t.border:isUser?t.userBorder:t.aiBorder;
     bubble.style.color=displayContent.startsWith('⚠')?'#e05555':isUser?t.userText:t.text;
-    bubble.textContent=(isUser&&msg.stamp)?'':displayContent;
+    { const _md=!isUser&&!isSystem&&!displayContent.startsWith('⚠')&&personaMd(msg.personaName||p?.aiName);
+      setBubbleText(bubble,(isUser&&msg.stamp)?'':displayContent,_md); }
     if(msg.stamp){
       const _st=stampBook.find(x=>x.id===msg.stamp.id);
       if(_st){
@@ -4762,7 +4782,7 @@ function buildSystemPrompt(persona){
       '- タグはユーザーには見えません。普通に会話してください。\n'+
       '- 既に思い出メモ・自発メモにある情報は書かない。';
   }
-  return base+userLine+timeLine+mem+autoMem+autoMemoInstruction+reactStampInstruction(p);
+  return base+userLine+timeLine+mem+autoMem+autoMemoInstruction+reactStampInstruction(p)+mdInstruction(p);
 }
 
 function trimHistory(msgs){
@@ -4952,12 +4972,13 @@ async function pseudoStream(sess, fullText, aiName){
   // チャンク表示
   const chunkSize=6;
   const delay=18;
+  const _mdS=personaMd(aiName);
   for(let i=0;i<fullText.length;i+=chunkSize){
-    bubble.textContent=fullText.slice(0,i+chunkSize);
+    setBubbleText(bubble,fullText.slice(0,i+chunkSize),_mdS);
     container.scrollTop=container.scrollHeight;
     await sleep(delay);
   }
-  bubble.textContent=fullText;
+  setBubbleText(bubble,fullText,_mdS);
   bubble.classList.remove('streaming');
   container.scrollTop=container.scrollHeight;
   // ── AI自発メモ検出 ──
@@ -9247,6 +9268,93 @@ function saveStampMode(){
   saveAllNow();
   showToast(p.stampMode==='on'?'🎟 AIスタンプON':'🎟 AIスタンプOFF');
 }
+// ══════════ マークダウン表示（v2.8.0・キャラごとにON/OFF） ══════════
+function personaMd(aiName){
+  const cp=currentPersona();
+  const p=(cp&&(!aiName||cp.aiName===aiName))?cp:(personas.find(pp=>pp.aiName===aiName)||cp);
+  return !!(p&&p.mdMode==='on');
+}
+function mdInline(str,parent){
+  const re=/(`[^`\n]+`)|(\*\*[^*\n]+?\*\*)|(~~[^~\n]+?~~)|(\[[^\]\n]+\]\((https?:\/\/[^\s)]+)\))/g;
+  let last=0,m;
+  while((m=re.exec(str))){
+    if(m.index>last) parent.appendChild(document.createTextNode(str.slice(last,m.index)));
+    const tk=m[0]; let el;
+    if(m[1]){ el=document.createElement('code'); el.textContent=tk.slice(1,-1); el.style.cssText='font-family:monospace;font-size:.92em;padding:1px 5px;border-radius:4px;background:rgba(127,127,127,.18)'; }
+    else if(m[2]){ el=document.createElement('strong'); mdInline(tk.slice(2,-2),el); }
+    else if(m[3]){ el=document.createElement('s'); mdInline(tk.slice(2,-2),el); }
+    else { el=document.createElement('a'); el.href=m[5]; el.target='_blank'; el.rel='noopener noreferrer'; el.textContent=tk.slice(1,tk.indexOf(']')); el.style.cssText='color:inherit;text-decoration:underline'; }
+    parent.appendChild(el); last=m.index+tk.length;
+  }
+  if(last<str.length) parent.appendChild(document.createTextNode(str.slice(last)));
+}
+function mdRender(text){
+  const frag=document.createDocumentFragment();
+  const lines=String(text).split('\n'); let i=0;
+  const div=(css)=>{ const d=document.createElement('div'); if(css) d.style.cssText=css; frag.appendChild(d); return d; };
+  while(i<lines.length){
+    const ln=lines[i]; let m;
+    if(/^```/.test(ln)){
+      const buf=[]; i++;
+      while(i<lines.length&&!/^```/.test(lines[i])){ buf.push(lines[i]); i++; }
+      i++;
+      const pre=div('font-family:monospace;font-size:12px;white-space:pre-wrap;padding:8px 10px;margin:4px 0;border-radius:6px;background:rgba(127,127,127,.15)');
+      pre.textContent=buf.join('\n'); continue;
+    }
+    if(/^\s*$/.test(ln)){ div('height:.6em'); i++; continue; }
+    if(/^\s*([-*_])(\s*\1){2,}\s*$/.test(ln)){
+      const hr=document.createElement('hr'); hr.style.cssText='border:none;border-top:1px solid rgba(127,127,127,.4);margin:8px 0'; frag.appendChild(hr); i++; continue;
+    }
+    if((m=ln.match(/^(#{1,6})\s+(.*)$/))){
+      const d=div('font-weight:bold;font-size:'+[17,16,15,14,14,14][m[1].length-1]+'px;margin:4px 0 2px'); mdInline(m[2],d); i++; continue;
+    }
+    if((m=ln.match(/^(\s*)[-*+]\s+(.*)$/))){
+      const d=div('padding-left:'+(1.1+Math.floor(m[1].length/2))+'em;text-indent:-1em'); d.appendChild(document.createTextNode('・')); mdInline(m[2],d); i++; continue;
+    }
+    if((m=ln.match(/^(\s*)(\d+)[.)]\s+(.*)$/))){
+      const d=div('padding-left:1.7em;text-indent:-1.7em'); d.appendChild(document.createTextNode(m[2]+'. ')); mdInline(m[3],d); i++; continue;
+    }
+    if((m=ln.match(/^>\s?(.*)$/))){
+      const d=div('border-left:3px solid rgba(127,127,127,.5);padding-left:8px;opacity:.85'); mdInline(m[1],d); i++; continue;
+    }
+    if(/^\s*\|.*\|\s*$/.test(ln)){ const d=div('font-family:monospace;font-size:12px'); d.textContent=ln; i++; continue; }
+    const d=div(''); mdInline(ln,d); i++;
+  }
+  return frag;
+}
+function setBubbleText(bubble,text,md){
+  if(md){ bubble.textContent=''; bubble.appendChild(mdRender(text)); }
+  else bubble.textContent=text;
+}
+// 画像保存用：MDの記号を取り除く
+function mdStrip(text){
+  return String(text)
+    .replace(/^```.*$/gm,'')
+    .replace(/^\s*([-*_])(\s*\1){2,}\s*$/gm,'')
+    .replace(/^#{1,6}\s+/gm,'')
+    .replace(/^(\s*)[-*+]\s+/gm,'$1・')
+    .replace(/^>\s?/gm,'')
+    .replace(/\*\*([^*\n]+?)\*\*/g,'$1')
+    .replace(/~~([^~\n]+?)~~/g,'$1')
+    .replace(/`([^`\n]+)`/g,'$1')
+    .replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,'$1')
+    .replace(/\n{3,}/g,'\n\n').trim();
+}
+function mdInstruction(p){
+  if(p&&p.mdMode==='on'){
+    return '\n\n## 文章の書き方\n'+
+      'Markdown記法が使えます。長い説明や一覧など、必要なときだけ、見出し（#）・太字（**）・箇条書き（-）・区切り線（---）を使ってください。普段の短い会話では使わず、いつもの話し方で自然に返してください。表（|）は使わないでください。';
+  }
+  return '\n\n## 文章の書き方\n'+
+    'このチャットではMarkdown記法（#の見出し、**太字**、---の区切り線、表、コードブロックなど）は表示されません。使わずに、チャットらしい話し言葉で書いてください。長くなるときは、改行と「・」、絵文字で区切ってください。';
+}
+function saveMdMode(){
+  const p=currentPersona(); if(!p) return;
+  p.mdMode=document.getElementById('md-mode').value;
+  saveAllNow();
+  showToast(p.mdMode==='on'?'📝 マークダウン表示ON':'📝 マークダウン表示OFF');
+  if(typeof renderMessages==='function') renderMessages();
+}
 // システムプロンプトに足す文
 function reactStampInstruction(p){
   let out='';
@@ -9294,10 +9402,11 @@ function shotMsgInfo(idx){
   if(!msg||msg.role==='system-info') return null;
   const p=currentPersona(); const isUser=msg.role==='user';
   const text=msg.alternates?msg.alternates[msg.activeAlt||0]:msg.content;
-  let name;
+  let name, mdOn=false;
   if(isUser) name=p?.userName||'あなた';
   else{
     const nm=msg.personaName||p?.aiName||'AI';
+    mdOn=personaMd(nm);
     const mp=personas.find(pp=>pp.aiName===nm);
     const em=mp?.emoji||p?.emoji||'';
     name=em?em+' '+nm:nm;
@@ -9305,7 +9414,7 @@ function shotMsgInfo(idx){
   const st=msg.stamp?stampBook.find(x=>x.id===msg.stamp.id):null;
   return {
     isUser, name, stamp:st, stampName:msg.stamp?msg.stamp.name:'',
-    text:(isUser&&msg.stamp)?'':String(text||''),
+    text:(isUser&&msg.stamp)?'':(mdOn?mdStrip(text||''):String(text||'')),
     reaction:isUser?(msg.reaction||''):'',
     attach:isUser?[...(msg.attach||[]).map(a=>'🖼 '+a.name),...(msg.files||[]).map(f=>'📄 '+f.name)]:[],
     time:shotTime(msg.timestamp)

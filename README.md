@@ -58,6 +58,9 @@ You can register your own stamps (e.g. transparent PNGs) and send them in chat. 
 **チャットを画像で保存**: メッセージを長押し →「📸 画像にする」で、選んだメッセージ（最大30件）を、背景・テーマ色・名前・時刻つきの1枚のPNGにして保存・共有できます。  
 Long-press a message → "画像にする" to save up to 30 selected messages as one PNG, with your theme background, names and timestamps.
 
+**📝 マークダウン表示の切り替え**: キャラの「⚙ 詳細設定」で、見出し・太字・箇条書きなどのMarkdown表示をキャラごとにON/OFFできます（初期設定はOFF：話し言葉と「・」で返します）。  
+Per-character toggle for Markdown rendering (default OFF: plain chat-style replies).
+
 **🎄 年末のホリデーカード**: 12/25になると、画面の上に手紙の端がのぞき、タップすると1年の振り返りカード（いちばんお話したキャラ・メッセージ数・ラリー回数・お話しした日数など）が届きます。集計は1/1〜12/24分で、すべてこの端末の中で行われます。右の履歴パネルの「🎄 一年を振り返る」からいつでも見返せて、画像で保存・共有もできます。  
 On Dec 25 a letter peeks in from the top of the screen, delivering a year-in-review card (top character, message count, rallies, days talked, etc.). Everything is computed locally on your device from Jan 1 to Dec 24, and you can save/share it as an image.
 
