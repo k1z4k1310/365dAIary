@@ -1233,21 +1233,21 @@ const PROVIDER_DEF = [
 
 const MODEL_DEF = [
   // {value:'provider:model', provider, label, shortLabel, price:{in,out}, wizard:true}
-  // 料金は 1,000トークンあたりのUSD。⚠️ は終了予定日つき（2026-11-01 更新）
+  // 料金は 1,000トークンあたりのUSD。⚠️ は終了予定日つき（2026-11-24 各社の公式価格と照合）
   // ── OpenAI ──
   {value:'openai:gpt-6-astra', provider:'openai', label:'GPT-6 Astra（最高性能）', shortLabel:'GPT-6 Astra', price:{in:0.01,out:0.05}, wizard:true},
   {value:'openai:gpt-6.1-sol', provider:'openai', label:'GPT-6.1 Sol（高性能）', shortLabel:'GPT-6.1 Sol', price:{in:0.002,out:0.01}, wizard:true},
   {value:'openai:gpt-6.1-terra', provider:'openai', label:'GPT-6.1 Terra（バランス）', shortLabel:'GPT-6.1 Terra', price:{in:0.001,out:0.005}, wizard:true},
   {value:'openai:gpt-6-luna', provider:'openai', label:'GPT-6 Luna（おすすめ・最安級）', shortLabel:'GPT-6 Luna（おすすめ）', price:{in:0.0001,out:0.0005}, wizard:true},
-  {value:'openai:gpt-5.5', provider:'openai', label:'GPT-5.5', shortLabel:'GPT-5.5', price:{in:0.0025,out:0.015}, wizard:true},
-  {value:'openai:gpt-5.5-pro', provider:'openai', label:'GPT-5.5 Pro', shortLabel:'GPT-5.5 Pro', price:{in:0.0025,out:0.015}},
-  {value:'openai:gpt-5.4', provider:'openai', label:'GPT-5.4', shortLabel:'GPT-5.4', price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.4-pro', provider:'openai', label:'GPT-5.4 Pro', shortLabel:'GPT-5.4 Pro', price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.4-mini', provider:'openai', label:'GPT-5.4 mini', shortLabel:'GPT-5.4 mini', price:{in:0.00075,out:0.003}, wizard:true},
-  {value:'openai:gpt-5.4-nano', provider:'openai', label:'⚠️ GPT-5.4 nano（2027/4/1終了予定）', shortLabel:'⚠️ GPT-5.4 nano（〜2027/4/1）', price:{in:0.0002,out:0.0008}},
+  {value:'openai:gpt-5.5', provider:'openai', label:'GPT-5.5', shortLabel:'GPT-5.5', price:{in:0.005,out:0.03}, wizard:true},
+  {value:'openai:gpt-5.5-pro', provider:'openai', label:'GPT-5.5 Pro', shortLabel:'GPT-5.5 Pro', price:{in:0.03,out:0.18}},
+  {value:'openai:gpt-5.4', provider:'openai', label:'GPT-5.4', shortLabel:'GPT-5.4', price:{in:0.0025,out:0.015}},
+  {value:'openai:gpt-5.4-pro', provider:'openai', label:'GPT-5.4 Pro', shortLabel:'GPT-5.4 Pro', price:{in:0.03,out:0.18}},
+  {value:'openai:gpt-5.4-mini', provider:'openai', label:'GPT-5.4 mini', shortLabel:'GPT-5.4 mini', price:{in:0.00075,out:0.0045}, wizard:true},
+  {value:'openai:gpt-5.4-nano', provider:'openai', label:'⚠️ GPT-5.4 nano（2027/4/1終了予定）', shortLabel:'⚠️ GPT-5.4 nano（〜2027/4/1）', price:{in:0.0002,out:0.00125}},
   {value:'openai:gpt-5.3-codex', provider:'openai', label:'⚠️ GPT-5.3 Codex（2027/4/1終了予定）', shortLabel:'⚠️ GPT-5.3 Codex（〜2027/4/1）', price:{in:0.00175,out:0.014}},
   {value:'openai:gpt-5.2', provider:'openai', label:'GPT-5.2', shortLabel:'GPT-5.2', price:{in:0.00175,out:0.014}},
-  {value:'openai:gpt-5.1', provider:'openai', label:'⚠️ GPT-5.1（2027/4/1終了予定）', shortLabel:'⚠️ GPT-5.1（〜2027/4/1）', price:{in:0.00175,out:0.014}},
+  {value:'openai:gpt-5.1', provider:'openai', label:'⚠️ GPT-5.1（2027/4/1終了予定）', shortLabel:'⚠️ GPT-5.1（〜2027/4/1）', price:{in:0.00125,out:0.01}},
   {value:'openai:gpt-5', provider:'openai', label:'⚠️ GPT-5（2026/12/11終了予定）', shortLabel:'⚠️ GPT-5（〜2026/12/11）', price:{in:0.00125,out:0.01}},
   {value:'openai:gpt-4.1', provider:'openai', label:'⚠️ GPT-4.1（2027/1/14終了予定）', shortLabel:'⚠️ GPT-4.1（〜2027/1/14）', price:{in:0.002,out:0.008}},
   {value:'openai:gpt-4.1-mini', provider:'openai', label:'⚠️ GPT-4.1 mini（2027/1/14終了予定）', shortLabel:'⚠️ GPT-4.1 mini（〜2027/1/14）', price:{in:0.0004,out:0.0016}},
@@ -1275,11 +1275,11 @@ const MODEL_DEF = [
   {value:'google:gemini-3.1-pro-preview', provider:'google', label:'Gemini 3.1 Pro（プレビュー）', shortLabel:'Gemini 3.1 Pro', price:{in:0.002,out:0.012}},
   {value:'google:gemini-3-flash-preview', provider:'google', label:'⚠️ Gemini 3 Flash（プレビュー・後継は3.6 Flash）', shortLabel:'⚠️ Gemini 3 Flash（プレビュー）', price:{in:0.0005,out:0.003}},
   {value:'google:gemini-2.5-pro', provider:'google', label:'Gemini 2.5 Pro（過去に使ったキーのみ）', shortLabel:'Gemini 2.5 Pro', price:{in:0.00125,out:0.01}},
-  {value:'google:gemini-2.5-flash', provider:'google', label:'Gemini 2.5 Flash（過去に使ったキーのみ）', shortLabel:'Gemini 2.5 Flash', price:{in:0.00015,out:0.00035}},
-  {value:'google:gemini-2.5-flash-lite', provider:'google', label:'Gemini 2.5 Flash-Lite（過去に使ったキーのみ）', shortLabel:'Gemini 2.5 Flash-Lite', price:{in:4e-05,out:0.00016}},
+  {value:'google:gemini-2.5-flash', provider:'google', label:'Gemini 2.5 Flash（過去に使ったキーのみ）', shortLabel:'Gemini 2.5 Flash', price:{in:0.0003,out:0.0025}},
+  {value:'google:gemini-2.5-flash-lite', provider:'google', label:'Gemini 2.5 Flash-Lite（過去に使ったキーのみ）', shortLabel:'Gemini 2.5 Flash-Lite', price:{in:0.0001,out:0.0004}},
   // ── Mistral ──
-  {value:'mistral:mistral-large-latest', provider:'mistral', label:'Mistral Large（Large 4・高性能）', shortLabel:'Mistral Large', price:{in:0.002,out:0.006}, wizard:true},
-  {value:'mistral:mistral-small-latest', provider:'mistral', label:'Mistral Small（Small 4・軽量）', shortLabel:'Mistral Small', price:{in:0.0001,out:0.0003}, wizard:true},
+  {value:'mistral:mistral-large-latest', provider:'mistral', label:'Mistral Large（Large 4・高性能）', shortLabel:'Mistral Large', price:{in:0.00136,out:0.00418}, wizard:true},
+  {value:'mistral:mistral-small-latest', provider:'mistral', label:'Mistral Small（Small 4・軽量）', shortLabel:'Mistral Small', price:{in:0.00015,out:0.0006}, wizard:true},
   // ── Meta (Meta Model API) ──
   {value:'meta:muse-spark-1.1', provider:'meta', label:'Muse Spark 1.1（Meta）', shortLabel:'Muse Spark 1.1', price:{in:0.00125,out:0.00425}, wizard:true},
   // ── Cohere ──
@@ -1293,14 +1293,14 @@ const MODEL_DEF = [
   {value:'groq:llama-3.3-70b-versatile', provider:'groq', label:'Llama 3.3 70B（超高速）', shortLabel:'Llama 3.3 70B（超高速）', price:{in:0.00059,out:0.00079}},
   {value:'groq:llama-3.1-8b-instant', provider:'groq', label:'Llama 3.1 8B Instant（爆速）', shortLabel:'Llama 3.1 8B（爆速）', price:{in:5e-05,out:8e-05}, wizard:true},
   // ── Perplexity ──
-  {value:'perplexity:sonar-pro', provider:'perplexity', label:'Sonar Pro（Web検索付き）', shortLabel:'Sonar Pro', price:{in:0.003,out:0.015}, wizard:true},
-  {value:'perplexity:sonar', provider:'perplexity', label:'Sonar（Web検索付き・軽量）', shortLabel:'Sonar', price:{in:0.001,out:0.001}, wizard:true},
+  {value:'perplexity:sonar-pro', provider:'perplexity', label:'Sonar Pro（Web検索付き）', shortLabel:'Sonar Pro', price:{in:0.003,out:0.015,req:0.006}, wizard:true},
+  {value:'perplexity:sonar', provider:'perplexity', label:'Sonar（Web検索付き・軽量）', shortLabel:'Sonar', price:{in:0.001,out:0.001,req:0.005}, wizard:true},
   // ── DeepSeek ── ※ピーク時間帯料金で概算
   {value:'deepseek:deepseek-flash', provider:'deepseek', label:'DeepSeek Flash（V4.1・軽量）', shortLabel:'DeepSeek Flash', price:{in:0.0003,out:0.0012}, wizard:true},
   {value:'deepseek:deepseek-v4-pro', provider:'deepseek', label:'DeepSeek V4 Pro（高性能）', shortLabel:'DeepSeek V4 Pro', price:{in:0.00132,out:0.00396}, wizard:true},
   // ── Alibaba (Qwen) ──
   {value:'alibaba:qwen3.8-max', provider:'alibaba', label:'Qwen3.8 Max（最新・高性能）', shortLabel:'Qwen3.8 Max', price:{in:0.002,out:0.006}, wizard:true},
-  {value:'alibaba:qwen3.8-flash', provider:'alibaba', label:'Qwen3.8 Flash（高速・軽量）', shortLabel:'Qwen3.8 Flash', price:{in:0.00015,out:0.00047}, wizard:true},
+  {value:'alibaba:qwen3.8-flash', provider:'alibaba', label:'Qwen3.8 Flash（高速・軽量）', shortLabel:'Qwen3.8 Flash', price:{in:0.00016,out:0.00047}, wizard:true},
   {value:'alibaba:qwen-max', provider:'alibaba', label:'Qwen Max', shortLabel:'Qwen Max', price:{in:0.0016,out:0.0064}},
   {value:'alibaba:qwen-plus', provider:'alibaba', label:'Qwen Plus', shortLabel:'Qwen Plus', price:{in:0.0004,out:0.0012}, wizard:true},
   {value:'alibaba:qwen-turbo', provider:'alibaba', label:'Qwen Turbo（軽量）', shortLabel:'Qwen Turbo', price:{in:5e-05,out:0.0002}},
@@ -1437,6 +1437,18 @@ function getProviderModelValue(wrapperId){
 //  CHANGELOG（ここだけ更新すれば全箇所に反映）
 // ══════════════════════════════════════════════
 const CHANGELOG = [
+  {
+    version: '2.8.1',
+    date: '2026-11-24',
+    label: '💰 コスト概算の単価を修正',
+    items: [
+      '💰 各社の公式の料金表と照らして、モデルの単価を見直しました。GPT-5.5・GPT-5.5 Pro・GPT-5.4・GPT-5.4 Pro・GPT-5.1 などの単価が実際より安く入っていたため、概算が少なく表示されていました',
+      'Gemini 2.5 Flash / Flash-Lite、GPT-5.4 mini / nano、Mistral Large / Small、Qwen3.8 Flash の単価も直しました',
+      'Perplexity（Sonar / Sonar Pro）は、検索1回ごとにかかる費用も概算に足すようにしました',
+      '⚠ これまでの累計（💰）は古い単価で計算されているため、実際の請求より少なく表示されている場合があります。気になる場合は、⚙ → コスト管理から数字をリセットしてください',
+      'OpenAIのキャッシュ割引（同じ内容の再送が安くなる分）は計算に入れていないため、概算は実際よりやや多めに出ます',
+    ]
+  },
   {
     version: '2.8.0',
     date: '2026-11-20',
@@ -4678,7 +4690,7 @@ async function callAPI(provider,model,systemPrompt,history,signal,maxTok){
   }
   // コスト計算
   const price=MODEL_PRICE[model]||{in:0.002,out:0.002};
-  const cost=(usageIn/1000)*price.in+(usageOut/1000)*price.out;
+  const cost=(usageIn/1000)*price.in+(usageOut/1000)*price.out+(price.req||0);
   addCost(cost);
   return reply;
 }
